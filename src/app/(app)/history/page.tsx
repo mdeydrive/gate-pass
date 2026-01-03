@@ -13,9 +13,9 @@ export default function HistoryPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>ভিজিটর হিস্ট্রি</CardTitle>
+        <CardTitle>Visitor History</CardTitle>
         <CardDescription>
-          সমস্ত গেট কার্যক্রমের একটি সম্পূর্ণ লগ।
+          A complete log of all gate activities.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -24,3 +24,5 @@ export default function HistoryPage() {
     </Card>
   );
 }
+
+    
