@@ -23,7 +23,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { QrCode, PlusCircle, Camera, Check, X, AlertTriangle } from "lucide-react";
+import { QrCode, PlusCircle, Camera, Check, X, AlertTriangle, Calendar as CalendarIcon } from "lucide-react";
 import { activities as initialActivities, type Activity } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -39,6 +39,51 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRef, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+
+
+function DateTimePicker({ value, onChange, placeholder }: { value: Date | undefined, onChange: (date: Date | undefined) => void, placeholder: string }) {
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant={"outline"}
+            className={cn(
+              "w-full justify-start text-left font-normal",
+              !value && "text-muted-foreground"
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {value ? format(value, "PPP HH:mm") : <span>{placeholder}</span>}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0">
+          <Calendar
+            mode="single"
+            selected={value}
+            onSelect={onChange}
+            initialFocus
+          />
+          <div className="p-3 border-t border-border">
+             <Input 
+                type="time"
+                value={value ? format(value, 'HH:mm') : ''}
+                onChange={(e) => {
+                    const time = e.target.value;
+                    const [hours, minutes] = time.split(':').map(Number);
+                    const newDate = value ? new Date(value) : new Date();
+                    newDate.setHours(hours);
+                    newDate.setMinutes(minutes);
+                    onChange(newDate);
+                }}
+             />
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  }
 
 function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => void }) {
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -54,8 +99,8 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
     const [companyName, setCompanyName] = useState('');
     const [location, setLocation] = useState('');
     const [passType, setPassType] = useState('');
-    const [validFrom, setValidFrom] = useState('');
-    const [validTo, setValidTo] = useState('');
+    const [validFrom, setValidFrom] = useState<Date | undefined>();
+    const [validTo, setValidTo] = useState<Date | undefined>();
     const [vehicleNumber, setVehicleNumber] = useState('');
 
     useEffect(() => {
@@ -146,8 +191,8 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
         setCompanyName('');
         setLocation('');
         setPassType('');
-        setValidFrom('');
-        setValidTo('');
+        setValidFrom(undefined);
+        setValidTo(undefined);
         setVehicleNumber('');
         setCapturedImage(null);
 
@@ -198,12 +243,12 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
                     </div>
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="valid-from">Valid From</Label>
-                            <Input id="valid-from" type="datetime-local" value={validFrom} onChange={e => setValidFrom(e.target.value)} />
+                            <Label>Valid From</Label>
+                            <DateTimePicker value={validFrom} onChange={setValidFrom} placeholder="Select start date & time" />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="valid-to">Valid To</Label>
-                            <Input id="valid-to" type="datetime-local" value={validTo} onChange={e => setValidTo(e.target.value)} />
+                            <Label>Valid To</Label>
+                            <DateTimePicker value={validTo} onChange={setValidTo} placeholder="Select end date & time" />
                         </div>
                     </div>
                     <div className="grid gap-2">
