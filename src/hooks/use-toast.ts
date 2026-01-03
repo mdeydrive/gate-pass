@@ -178,7 +178,6 @@ function useToast() {
 
   React.useEffect(() => {
     setMounted(true)
-    return () => setMounted(false)
   }, [])
 
   React.useEffect(() => {
