@@ -1,3 +1,4 @@
+
 "use client"
 
 // Inspired by react-hot-toast library
@@ -172,13 +173,13 @@ function toast({ ...props }: Toast) {
 }
 
 function useToast() {
-  const [state, setState] = React.useState<State>(memoryState);
-  const [hasMounted, setHasMounted] = React.useState(false);
+  const [state, setState] = React.useState<State>(memoryState)
+  const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
+    setMounted(true)
+    return () => setMounted(false)
+  }, [])
 
   React.useEffect(() => {
     listeners.push(setState)
@@ -194,7 +195,7 @@ function useToast() {
     ...state,
     toast,
     dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
-    toasts: hasMounted ? state.toasts : [],
+    toasts: mounted ? state.toasts : [],
   }
 }
 
