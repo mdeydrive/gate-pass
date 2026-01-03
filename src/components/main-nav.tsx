@@ -9,13 +9,13 @@ import {
   Ticket,
   History,
   Building,
-  Shield,
-  Users,
   AlertTriangle,
   Car,
   Package,
   Wrench
 } from "lucide-react";
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+
 
 type NavItem = {
   href: string;
@@ -33,7 +33,6 @@ const navItems: NavItem[] = [
   { href: "/vehicles", label: "Vehicles", icon: Car, roles: ["Admin", "Security"] },
   { href: "/deliveries", label: "Deliveries", icon: Package, roles: ["Security", "Resident"] },
   { href: "/staff", label: "Staff", icon: Wrench, roles: ["Admin", "Manager"] },
-
 ];
 
 export default function MainNav() {
@@ -43,21 +42,20 @@ export default function MainNav() {
   const accessibleNavItems = navItems.filter(item => item.roles.includes(role));
 
   return (
-    <nav className="grid items-start gap-1 font-medium">
+    <SidebarMenu>
       {accessibleNavItems.map(({ href, label, icon: Icon }) => (
-        <Link
-          key={label}
-          href={href}
-          className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-            pathname.startsWith(href) && href !== "/" && "bg-muted text-primary",
-            pathname === "/" && href === "/" && "bg-muted text-primary"
-          )}
-        >
-          <Icon className="h-4 w-4" />
-          {label}
-        </Link>
+        <SidebarMenuItem key={label}>
+          <Link href={href} passHref legacyBehavior>
+            <SidebarMenuButton
+              title={label}
+              isActive={pathname.startsWith(href)}
+              tooltip={label}
+            >
+              <Icon/>
+            </SidebarMenuButton>
+          </Link>
+        </SidebarMenuItem>
       ))}
-    </nav>
+    </SidebarMenu>
   );
 }
