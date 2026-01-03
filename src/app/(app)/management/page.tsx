@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useRole } from "@/contexts/role-context";
@@ -12,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { PlusCircle, Building, Users, KeyRound, MoreVertical } from "lucide-react";
-import { complexes } from "@/lib/data";
+import { complexes as initialComplexes } from "@/lib/data";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,9 +36,32 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react";
 
-function AddComplexDialog() {
+function AddComplexDialog({ onAddComplex }: { onAddComplex: (newComplex: any) => void }) {
+  const [name, setName] = useState('');
+  const [blocks, setBlocks] = useState(1);
+  const [floors, setFloors] = useState(10);
+  const [units, setUnits] = useState(40);
+  const [open, setOpen] = useState(false);
+
+  const handleSubmit = () => {
+    const newComplex = {
+      id: `c${Date.now()}`,
+      name,
+      blocks,
+      floors,
+      units,
+    };
+    onAddComplex(newComplex);
+    setOpen(false); // Close the dialog after submission
+    // Reset form
+    setName('');
+    setBlocks(1);
+    setFloors(10);
+    setUnits(40);
+  };
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" /> Add Complex
@@ -55,25 +79,25 @@ function AddComplexDialog() {
             <Label htmlFor="name" className="text-right">
               Name
             </Label>
-            <Input id="name" placeholder="e.g. Tower C" className="col-span-3" />
+            <Input id="name" placeholder="e.g. Tower C" className="col-span-3" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="blocks" className="text-right">
               Blocks
             </Label>
-            <Input id="blocks" type="number" defaultValue="1" className="col-span-3" />
+            <Input id="blocks" type="number" className="col-span-3" value={blocks} onChange={(e) => setBlocks(Number(e.target.value))} />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="floors" className="text-right">
               Floors
             </Label>
-            <Input id="floors" type="number" defaultValue="10" className="col-span-3" />
+            <Input id="floors" type="number" className="col-span-3" value={floors} onChange={(e) => setFloors(Number(e.target.value))} />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="units" className="text-right">
               Units
             </Label>
-            <Input id="units" type="number" defaultValue="40" className="col-span-3" />
+            <Input id="units" type="number" className="col-span-3" value={units} onChange={(e) => setUnits(Number(e.target.value))} />
           </div>
         </div>
         <DialogFooter>
@@ -82,7 +106,7 @@ function AddComplexDialog() {
                 Cancel
                 </Button>
             </DialogClose>
-            <Button type="submit">Create Complex</Button>
+            <Button type="submit" onClick={handleSubmit}>Create Complex</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -92,6 +116,11 @@ function AddComplexDialog() {
 
 export default function ManagementPage() {
     const { role } = useRole();
+    const [complexes, setComplexes] = useState(initialComplexes);
+
+    const handleAddComplex = (newComplex: any) => {
+      setComplexes((prevComplexes) => [...prevComplexes, newComplex]);
+    };
 
     if (role !== 'Admin') {
         return (
@@ -116,7 +145,7 @@ export default function ManagementPage() {
                 <h1 className="text-2xl font-bold tracking-tight">Complex Management</h1>
                 <p className="text-muted-foreground">Create and manage complexes, blocks, floors, and units.</p>
             </div>
-            <AddComplexDialog />
+            <AddComplexDialog onAddComplex={handleAddComplex} />
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {complexes.map((complex) => (
