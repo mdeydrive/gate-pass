@@ -48,7 +48,7 @@ export default function ManagementPage() {
                 <p className="text-muted-foreground">Create and manage complexes, blocks, floors, and units.</p>
             </div>
             <Button>
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Complex
+                <PlusCircle className="mr-2 h-4 w-4" /> এটাকে একটিভ করে দাও
             </Button>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
