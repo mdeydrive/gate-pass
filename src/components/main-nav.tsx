@@ -45,7 +45,7 @@ export default function MainNav() {
     <SidebarMenu>
       {accessibleNavItems.map(({ href, label, icon: Icon }) => (
         <SidebarMenuItem key={label}>
-          <Link href={href} passHref legacyBehavior>
+          <Link href={href}>
             <SidebarMenuButton
               title={label}
               isActive={pathname.startsWith(href)}
