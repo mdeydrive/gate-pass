@@ -24,7 +24,6 @@ const navItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["Admin", "Security", "Resident", "Manager"] },
   { href: "/gate-pass", label: "Gate Pass", icon: Ticket, roles: ["Security", "Resident"] },
   { href: "/history", label: "History", icon: History, roles: ["Admin", "Resident", "Manager"] },
-  { href: "/security", label: "Security", icon: Shield, roles: ["Admin", "Security", "Manager"] },
   { href: "/management", label: "Management", icon: Building, roles: ["Admin"] },
 ];
 

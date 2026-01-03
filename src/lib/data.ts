@@ -22,10 +22,10 @@ export const activities: Activity[] = [
 ];
 
 export const users: { name: string; role: UserRole; email: string; avatar: string }[] = [
-    { name: 'Admin User', role: 'Admin', email: 'admin@securepass.com', avatar: 'https://picsum.photos/seed/user1/100/100' },
-    { name: 'Security Guard', role: 'Security', email: 'security@securepass.com', avatar: 'https://picsum.photos/seed/user2/100/100' },
-    { name: 'John Resident', role: 'Resident', email: 'resident@securepass.com', avatar: 'https://picsum.photos/seed/user3/100/100' },
-    { name: 'Facility Manager', role: 'Manager', email: 'manager@securepass.com', avatar: 'https://picsum.photos/seed/user4/100/100' },
+    { name: 'Admin User', role: 'Admin', email: 'admin@securepass.com', avatar: '/placeholders/user1.jpg' },
+    { name: 'Security Guard', role: 'Security', email: 'security@securepass.com', avatar: '/placeholders/user2.jpg' },
+    { name: 'John Resident', role: 'Resident', email: 'resident@securepass.com', avatar: '/placeholders/user3.jpg' },
+    { name: 'Facility Manager', role: 'Manager', email: 'manager@securepass.com', avatar: '/placeholders/user4.jpg' },
 ];
 
 export const dashboardStats = {

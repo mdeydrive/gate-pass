@@ -21,7 +21,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     "/gate-pass": "Gate Pass Management",
     "/history": "Visitor History",
     "/management": "Complex Management",
-    "/security": "Security Analysis",
   };
   
   const currentTitle = pageTitles[pathname] || "SecurePass"; 
