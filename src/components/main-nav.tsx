@@ -11,6 +11,10 @@ import {
   Building,
   Shield,
   Users,
+  AlertTriangle,
+  Car,
+  Package,
+  Wrench
 } from "lucide-react";
 
 type NavItem = {
@@ -23,8 +27,13 @@ type NavItem = {
 const navItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["Admin", "Security", "Resident", "Manager"] },
   { href: "/gate-pass", label: "Gate Pass", icon: Ticket, roles: ["Security", "Resident"] },
-  { href: "/history", label: "History", icon: History, roles: ["Admin", "Resident", "Manager"] },
-  { href: "/management", label: "Management", icon: Building, roles: ["Admin"] },
+  { href: "/history", label: "History", icon: History, roles: ["Admin", "Security", "Resident", "Manager"] },
+  { href: "/management", label: "Management", icon: Building, roles: ["Admin", "Manager"] },
+  { href: "/alerts", label: "Alerts", icon: AlertTriangle, roles: ["Security", "Admin", "Manager"] },
+  { href: "/vehicles", label: "Vehicles", icon: Car, roles: ["Admin", "Security"] },
+  { href: "/deliveries", label: "Deliveries", icon: Package, roles: ["Security", "Resident"] },
+  { href: "/staff", label: "Staff", icon: Wrench, roles: ["Admin", "Manager"] },
+
 ];
 
 export default function MainNav() {
@@ -41,7 +50,8 @@ export default function MainNav() {
           href={href}
           className={cn(
             "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-            pathname === href && "bg-muted text-primary"
+            pathname.startsWith(href) && href !== "/" && "bg-muted text-primary",
+            pathname === "/" && href === "/" && "bg-muted text-primary"
           )}
         >
           <Icon className="h-4 w-4" />
