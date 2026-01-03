@@ -45,8 +45,26 @@ import { cn } from "@/lib/utils";
 
 
 function DateTimePicker({ value, onChange, placeholder }: { value: Date | undefined, onChange: (date: Date | undefined) => void, placeholder: string }) {
+    const [open, setOpen] = useState(false);
+    const [date, setDate] = useState<Date|undefined>(value);
+
+    useEffect(() => {
+        setDate(value);
+    }, [value, open]);
+
+
+    const handleConfirm = () => {
+        onChange(date);
+        setOpen(false);
+    }
+
+    const handleCancel = () => {
+        setDate(value);
+        setOpen(false);
+    }
+
     return (
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant={"outline"}
@@ -62,23 +80,28 @@ function DateTimePicker({ value, onChange, placeholder }: { value: Date | undefi
         <PopoverContent className="w-auto p-0">
           <Calendar
             mode="single"
-            selected={value}
-            onSelect={onChange}
+            selected={date}
+            onSelect={setDate}
             initialFocus
           />
-          <div className="p-3 border-t border-border">
+          <div className="p-3 border-t border-border space-y-2">
              <Input 
                 type="time"
-                value={value ? format(value, 'HH:mm') : ''}
+                value={date ? format(date, 'HH:mm') : ''}
                 onChange={(e) => {
                     const time = e.target.value;
+                    if (!time) return;
                     const [hours, minutes] = time.split(':').map(Number);
-                    const newDate = value ? new Date(value) : new Date();
+                    const newDate = date ? new Date(date) : new Date();
                     newDate.setHours(hours);
                     newDate.setMinutes(minutes);
-                    onChange(newDate);
+                    setDate(newDate);
                 }}
              />
+             <div className="flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={handleCancel}>Cancel</Button>
+                <Button size="sm" onClick={handleConfirm}>OK</Button>
+             </div>
           </div>
         </PopoverContent>
       </Popover>
