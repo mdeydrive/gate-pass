@@ -42,9 +42,10 @@ import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
 
-function DateTimePicker({ value, onChange, placeholder }: { value: Date | undefined, onChange: (date: Date | undefined) => void, placeholder: string }) {
+function DateTimePicker({ value, onChange, placeholder, disabled }: { value: Date | undefined, onChange: (date: Date | undefined) => void, placeholder: string, disabled?: boolean }) {
     const [open, setOpen] = useState(false);
     const [date, setDate] = useState<Date|undefined>(value);
 
@@ -72,6 +73,7 @@ function DateTimePicker({ value, onChange, placeholder }: { value: Date | undefi
               "w-full justify-start text-left font-normal",
               !value && "text-muted-foreground"
             )}
+            disabled={disabled}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {value ? format(value, "PPP HH:mm") : <span>{placeholder}</span>}
@@ -125,6 +127,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
     const [validFrom, setValidFrom] = useState<Date | undefined>();
     const [validTo, setValidTo] = useState<Date | undefined>();
     const [vehicleNumber, setVehicleNumber] = useState('');
+    const [isNow, setIsNow] = useState(false);
 
     useEffect(() => {
         const getCameraPermission = async () => {
@@ -218,12 +221,23 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
         setValidTo(undefined);
         setVehicleNumber('');
         setCapturedImage(null);
+        setIsNow(false);
 
         toast({
             title: "Pass Generated!",
             description: `A new gate pass for ${visitorName} has been created and checked in.`,
         });
     }
+
+    const handleNowChange = (checked: boolean | 'indeterminate') => {
+        const isChecked = !!checked;
+        setIsNow(isChecked);
+        if (isChecked) {
+            setValidFrom(new Date());
+        } else {
+            setValidFrom(undefined);
+        }
+    };
 
     return (
         <div className="grid gap-6">
@@ -266,8 +280,14 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
                     </div>
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
-                            <Label>Valid From</Label>
-                            <DateTimePicker value={validFrom} onChange={setValidFrom} placeholder="Select start date & time" />
+                            <div className="flex items-center justify-between">
+                                <Label>Valid From</Label>
+                                <div className="flex items-center gap-2">
+                                    <Checkbox id="now-checkbox" checked={isNow} onCheckedChange={handleNowChange} />
+                                    <Label htmlFor="now-checkbox" className="text-sm font-normal">Now</Label>
+                                </div>
+                            </div>
+                            <DateTimePicker value={validFrom} onChange={setValidFrom} placeholder="Select start date & time" disabled={isNow} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Valid To</Label>
