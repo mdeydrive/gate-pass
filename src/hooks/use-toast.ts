@@ -172,7 +172,13 @@ function toast({ ...props }: Toast) {
 }
 
 function useToast() {
-  const [state, setState] = React.useState<State>(memoryState)
+  const [state, setState] = React.useState<State>(memoryState);
+  const [hasMounted, setHasMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
 
   React.useEffect(() => {
     listeners.push(setState)
@@ -188,6 +194,7 @@ function useToast() {
     ...state,
     toast,
     dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    toasts: hasMounted ? state.toasts : [],
   }
 }
 
