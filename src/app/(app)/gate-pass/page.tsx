@@ -7,7 +7,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,8 +23,8 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { QrCode, PlusCircle, Camera, Upload, User, Check, X } from "lucide-react";
-import { activities } from "@/lib/data";
+import { QrCode, PlusCircle, Camera, Check, X } from "lucide-react";
+import { activities as initialActivities, type Activity } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -38,15 +37,21 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRef, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { format } from "date-fns";
 
-
-function PassForm() {
+function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => void }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const photoRef = useRef<HTMLCanvasElement>(null);
     const [hasCameraPermission, setHasCameraPermission] = useState(false);
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
     const { toast } = useToast();
+
+    // Form state
+    const [visitorName, setVisitorName] = useState('');
+    const [passType, setPassType] = useState('');
+    const [validFrom, setValidFrom] = useState('');
+    const [validTo, setValidTo] = useState('');
+    const [vehicleNumber, setVehicleNumber] = useState('');
 
     useEffect(() => {
         const getCameraPermission = async () => {
@@ -62,8 +67,8 @@ function PassForm() {
             setHasCameraPermission(false);
             toast({
               variant: 'destructive',
-              title: 'Camera Access Denied',
-              description: 'Please enable camera permissions in your browser settings.',
+              title: 'ক্যামেরা অ্যাক্সেস নেই',
+              description: 'অনুগ্রহ করে আপনার ব্রাউজার সেটিংসে ক্যামেরার অনুমতি সক্রিয় করুন।',
             });
           }
         };
@@ -88,8 +93,46 @@ function PassForm() {
 
             const context = photo.getContext('2d');
             context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-            setCapturedImage(photo.toDataURL('image/png'));
+            const imageDataUrl = photo.toDataURL('image/png');
+            setCapturedImage(imageDataUrl);
         }
+    }
+
+    const handleGeneratePass = () => {
+        if (!visitorName || !passType) {
+            toast({
+                variant: "destructive",
+                title: "প্রয়োজনীয় তথ্য দিন",
+                description: "অনুগ্রহ করে ভিজিটরের নাম এবং পাসের প্রকার দিন।",
+            });
+            return;
+        }
+
+        const newPass: Activity = {
+            id: `pass-${Date.now()}`,
+            visitorName,
+            passType: passType as Activity['passType'],
+            status: 'Checked In',
+            time: format(new Date(), "hh:mm a"),
+            date: format(new Date(), "yyyy-MM-dd"),
+            vehicle: vehicleNumber || undefined,
+            photo: capturedImage || undefined,
+        };
+
+        onGeneratePass(newPass);
+
+        // Reset form
+        setVisitorName('');
+        setPassType('');
+        setValidFrom('');
+        setValidTo('');
+        setVehicleNumber('');
+        setCapturedImage(null);
+
+        toast({
+            title: "পাস তৈরি হয়েছে!",
+            description: `${visitorName}-এর জন্য একটি নতুন গেট পাস তৈরি এবং চেক-ইন করা হয়েছে।`,
+        });
     }
 
     return (
@@ -97,43 +140,43 @@ function PassForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="grid gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="visitor-name">Visitor Name</Label>
-                        <Input id="visitor-name" placeholder="e.g. John Doe" />
+                        <Label htmlFor="visitor-name">ভিজিটরের নাম</Label>
+                        <Input id="visitor-name" placeholder="যেমন, John Doe" value={visitorName} onChange={e => setVisitorName(e.target.value)} />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="pass-type">Pass Type</Label>
-                        <Select>
+                        <Label htmlFor="pass-type">পাসের প্রকার</Label>
+                        <Select value={passType} onValueChange={setPassType}>
                             <SelectTrigger id="pass-type">
-                                <SelectValue placeholder="Select type" />
+                                <SelectValue placeholder="প্রকার নির্বাচন করুন" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="guest">Guest/Family</SelectItem>
-                                <SelectItem value="delivery">Delivery</SelectItem>
-                                <SelectItem value="staff">Staff</SelectItem>
-                                <SelectItem value="vehicle">Vehicle</SelectItem>
-                                <SelectItem value="vendor">Vendor</SelectItem>
+                                <SelectItem value="Guest">অতিথি/পরিবার</SelectItem>
+                                <SelectItem value="Delivery">ডেলিভারি</SelectItem>
+                                <SelectItem value="Staff">কর্মী</SelectItem>
+                                <SelectItem value="Vehicle">যানবাহন</SelectItem>
+                                <SelectItem value="Vendor">ভেন্ডর</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="valid-from">Valid From</Label>
-                            <Input id="valid-from" type="datetime-local" />
+                            <Label htmlFor="valid-from">বৈধতার শুরু</Label>
+                            <Input id="valid-from" type="datetime-local" value={validFrom} onChange={e => setValidFrom(e.target.value)} />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="valid-to">Valid To</Label>
-                            <Input id="valid-to" type="datetime-local" />
+                            <Label htmlFor="valid-to">বৈধতার শেষ</Label>
+                            <Input id="valid-to" type="datetime-local" value={validTo} onChange={e => setValidTo(e.target.value)} />
                         </div>
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="vehicle-number">Vehicle Number (Optional)</Label>
-                        <Input id="vehicle-number" placeholder="e.g. MH12AB1234" />
+                        <Label htmlFor="vehicle-number">গাড়ির নম্বর (ঐচ্ছিক)</Label>
+                        <Input id="vehicle-number" placeholder="যেমন, MH12AB1234" value={vehicleNumber} onChange={e => setVehicleNumber(e.target.value)} />
                     </div>
                 </div>
 
                 <div className="grid gap-4">
                      <div className="grid gap-2">
-                        <Label>Visitor Photo (Optional)</Label>
+                        <Label>ভিজিটরের ছবি (ঐচ্ছিক)</Label>
                         <div className="w-full aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
                            {capturedImage ? (
                                 <img src={capturedImage} alt="Captured" className="object-cover w-full h-full" />
@@ -142,61 +185,61 @@ function PassForm() {
                            ): (
                             <div className="text-center p-4">
                                 <Camera className="mx-auto h-12 w-12 text-muted-foreground" />
-                                <p className="mt-2 text-sm text-muted-foreground">Camera not available. Please grant permission.</p>
+                                <p className="mt-2 text-sm text-muted-foreground">ক্যামেরা পাওয়া যায়নি। অনুগ্রহ করে অনুমতি দিন।</p>
                             </div>
                            )}
                            <canvas ref={photoRef} style={{display: 'none'}} />
                         </div>
-                        <Button variant="outline" onClick={takePicture} disabled={!hasCameraPermission}>
+                         <Button variant="outline" onClick={takePicture} disabled={!hasCameraPermission}>
                             <Camera className="mr-2 h-4 w-4" />
-                            {capturedImage ? 'Retake Photo' : 'Capture Photo'}
+                            {capturedImage ? 'পুনরায় ছবি তুলুন' : 'ছবি তুলুন'}
                         </Button>
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="id-upload">ID Proof (Optional)</Label>
+                        <Label htmlFor="id-upload">পরিচয়পত্র আপলোড (ঐচ্ছিক)</Label>
                         <Input id="id-upload" type="file" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"/>
                     </div>
                 </div>
             </div>
-            <Button className="w-full sm:w-auto justify-self-start">Generate Pass & Check-In</Button>
+            <Button className="w-full sm:w-auto justify-self-start" onClick={handleGeneratePass}>পাস তৈরি করুন এবং চেক-ইন করুন</Button>
         </div>
     );
 }
 
-function ActivePassesList() {
-    const activePasses = activities.filter(a => a.status === 'Checked In' || a.status === 'Pending').slice(0, 5);
+function ActivePassesList({ passes, onUpdatePass }: { passes: Activity[], onUpdatePass: (id: string, status: Activity['status']) => void }) {
+    const activePasses = passes.filter(a => a.status === 'Checked In' || a.status === 'Pending');
   
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Active & Pending Passes</CardTitle>
+          <CardTitle>সক্রিয় ও অপেক্ষমাণ পাস</CardTitle>
           <CardDescription>
-            Visitors currently inside or waiting for entry.
+            বর্তমানে ভিতরে থাকা বা প্রবেশের জন্য অপেক্ষারত ভিজিটর।
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Visitor</TableHead>
-                <TableHead>Pass Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>ভিজিটর</TableHead>
+                <TableHead>পাসের প্রকার</TableHead>
+                <TableHead>স্ট্যাটাস</TableHead>
+                <TableHead className="text-right">פעולות</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {activePasses.map((activity) => (
+              {activePasses.length > 0 ? activePasses.map((activity) => (
                 <TableRow key={activity.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarImage src={`/placeholders/user${(parseInt(activity.id) % 4) + 1}.jpg`} />
+                        <AvatarImage src={activity.photo || `https://avatar.vercel.sh/${activity.visitorName}.png`} />
                         <AvatarFallback>{activity.visitorName.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="font-medium">{activity.visitorName}</div>
-                        <div className="text-sm text-muted-foreground">Checked In: {activity.time}</div>
+                        <div className="text-sm text-muted-foreground">চেক ইন: {activity.time}</div>
                       </div>
                     </div>
                   </TableCell>
@@ -206,18 +249,26 @@ function ActivePassesList() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm">
-                        <Check className="mr-1 h-3.5 w-3.5" />
-                        Verify
-                      </Button>
-                      <Button variant="destructive" size="sm">
-                        <X className="mr-1 h-3.5 w-3.5" />
-                        Check Out
-                      </Button>
+                      {activity.status === 'Pending' && (
+                        <Button variant="outline" size="sm" onClick={() => onUpdatePass(activity.id, 'Checked In')}>
+                            <Check className="mr-1 h-3.5 w-3.5" />
+                            ভেরিফাই
+                        </Button>
+                      )}
+                      {activity.status === 'Checked In' && (
+                        <Button variant="destructive" size="sm" onClick={() => onUpdatePass(activity.id, 'Checked Out')}>
+                            <X className="mr-1 h-3.5 w-3.5" />
+                            চেক আউট
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              )) : (
+                <TableRow>
+                    <TableCell colSpan={4} className="text-center">কোনো সক্রিয় পাস নেই।</TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -226,51 +277,66 @@ function ActivePassesList() {
   }
 
 export default function GatePassPage() {
+  const [activities, setActivities] = useState<Activity[]>(initialActivities);
+
+  const handleGeneratePass = (newPass: Activity) => {
+    setActivities(prevActivities => [newPass, ...prevActivities]);
+  };
+
+  const handleUpdatePass = (id: string, status: Activity['status']) => {
+    setActivities(prevActivities => 
+        prevActivities.map(pass => 
+            pass.id === id ? { ...pass, status: status, ...(status === 'Checked Out' && { checkoutTime: format(new Date(), "hh:mm a") }) } : pass
+        )
+    );
+  };
+
+
   return (
     <Tabs defaultValue="generate" className="w-full">
       <div className="flex items-center">
         <TabsList>
-          <TabsTrigger value="generate">Generate Pass</TabsTrigger>
-          <TabsTrigger value="active">Active Passes</TabsTrigger>
-          <TabsTrigger value="pre-approved">Pre-Approved</TabsTrigger>
+          <TabsTrigger value="generate">পাস তৈরি করুন</TabsTrigger>
+          <TabsTrigger value="active">সক্রিয় পাস</TabsTrigger>
+          <TabsTrigger value="pre-approved">পূর্ব-অনুমোদিত</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
             <Button size="sm" variant="outline" className="h-8 gap-1">
                 <QrCode className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Scan Pass</span>
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">স্ক্যান পাস</span>
             </Button>
             <Button size="sm" className="h-8 gap-1">
                 <PlusCircle className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Pre-Approve</span>
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">পূর্ব-অনুমোদন</span>
             </Button>
         </div>
       </div>
       <TabsContent value="generate">
         <Card>
           <CardHeader>
-            <CardTitle>Create New Gate Pass</CardTitle>
+            <CardTitle>নতুন গেট পাস তৈরি করুন</CardTitle>
             <CardDescription>
-              Fill in the details for a new visitor and generate their pass.
+              নতুন ভিজিটরের জন্য তথ্য পূরণ করুন এবং তার পাস তৈরি করুন।
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <PassForm />
+            <PassForm onGeneratePass={handleGeneratePass} />
           </CardContent>
         </Card>
       </TabsContent>
       <TabsContent value="active">
-        <ActivePassesList />
+        <ActivePassesList passes={activities} onUpdatePass={handleUpdatePass} />
       </TabsContent>
       <TabsContent value="pre-approved">
         <Card>
           <CardHeader>
-            <CardTitle>Pre-Approved Visitors</CardTitle>
+            <CardTitle>পূর্ব-অনুমোদিত ভিজিটর</CardTitle>
             <CardDescription>
-              List of visitors you have pre-approved for entry.
+              প্রবেশের জন্য আপনার দ্বারা পূর্ব-অনুমোদিত ভিজিটরদের তালিকা।
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">Pre-approved visitor list will be shown here.</p>
+            <p className="text-muted-foreground">পূর্ব-অনুমোদিত ভিজিটরদের তালিকা এখানে দেখানো হবে।</p>
           </CardContent>
         </Card>
       </TabsContent>

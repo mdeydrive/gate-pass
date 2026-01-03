@@ -16,7 +16,7 @@ const getBadgeVariant = (status: string) => {
 export const columns: ColumnDef<Activity>[] = [
   {
     accessorKey: "visitorName",
-    header: "Visitor",
+    header: "ভিজিটর",
     cell: ({ row }) => {
         const activity = row.original
         return (
@@ -26,26 +26,26 @@ export const columns: ColumnDef<Activity>[] = [
   },
   {
     accessorKey: "passType",
-    header: "Pass Type",
+    header: "পাসের প্রকার",
   },
   {
     accessorKey: "date",
-    header: "Date",
+    header: "তারিখ",
   },
   {
     accessorKey: "time",
-    header: "Time",
+    header: "সময়",
   },
   {
     accessorKey: "vehicle",
-    header: "Vehicle No.",
+    header: "গাড়ির নম্বর",
     cell: ({ row }) => {
         return row.original.vehicle ? <span>{row.original.vehicle}</span> : <span className="text-muted-foreground">N/A</span>
     }
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: "স্ট্যাটাস",
     cell: ({ row }) => {
         const status = row.getValue("status") as string;
         return <Badge variant={getBadgeVariant(status)}>{status}</Badge>

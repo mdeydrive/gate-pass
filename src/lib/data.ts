@@ -3,29 +3,31 @@ import type { UserRole } from "@/contexts/role-context";
 export type Activity = {
   id: string;
   visitorName: string;
-  passType: 'Visitor' | 'Delivery' | 'Staff' | 'Vehicle';
+  passType: 'Guest' | 'Delivery' | 'Staff' | 'Vehicle' | 'Vendor';
   status: 'Checked In' | 'Checked Out' | 'Pending';
   time: string;
   date: string;
   vehicle?: string;
+  photo?: string;
+  checkoutTime?: string;
 };
 
 export const activities: Activity[] = [
-  { id: '1', visitorName: 'John Doe', passType: 'Visitor', status: 'Checked In', time: '10:30 AM', date: '2023-10-27', vehicle: 'TS09AB1234' },
+  { id: '1', visitorName: 'John Doe', passType: 'Guest', status: 'Checked In', time: '10:30 AM', date: '2023-10-27', vehicle: 'TS09AB1234' },
   { id: '2', visitorName: 'Jane Smith (Amazon)', passType: 'Delivery', status: 'Checked Out', time: '11:15 AM', date: '2023-10-27' },
   { id: '3', visitorName: 'Maintenance Team', passType: 'Staff', status: 'Checked In', time: '09:00 AM', date: '2023-10-27' },
-  { id: '4', visitorName: 'Emily White', passType: 'Visitor', status: 'Pending', time: '01:00 PM', date: '2023-10-27' },
+  { id: '4', visitorName: 'Emily White', passType: 'Guest', status: 'Pending', time: '01:00 PM', date: '2023-10-27' },
   { id: '5', visitorName: 'UPS Delivery', passType: 'Delivery', status: 'Checked In', time: '12:05 PM', date: '2023-10-27' },
-  { id: '6', visitorName: 'Alex Green', passType: 'Visitor', status: 'Checked Out', time: '02:30 PM', date: '2023-10-26' },
+  { id: '6', visitorName: 'Alex Green', passType: 'Guest', status: 'Checked Out', time: '02:30 PM', date: '2023-10-26' },
   { id: '7', visitorName: 'Food Delivery', passType: 'Delivery', status: 'Checked Out', time: '08:45 PM', date: '2023-10-26' },
-  { id: '8', visitorName: 'Robert Brown', passType: 'Visitor', status: 'Checked In', time: '03:00 PM', date: '2023-10-27', vehicle: 'KA01CD5678'},
+  { id: '8', visitorName: 'Robert Brown', passType: 'Guest', status: 'Checked In', time: '03:00 PM', date: '2023-10-27', vehicle: 'KA01CD5678'},
 ];
 
 export const users: { name: string; role: UserRole; email: string; avatar: string }[] = [
-    { name: 'Admin User', role: 'Admin', email: 'admin@securepass.com', avatar: '/placeholders/user1.jpg' },
-    { name: 'Security Guard', role: 'Security', email: 'security@securepass.com', avatar: '/placeholders/user2.jpg' },
-    { name: 'John Resident', role: 'Resident', email: 'resident@securepass.com', avatar: '/placeholders/user3.jpg' },
-    { name: 'Facility Manager', role: 'Manager', email: 'manager@securepass.com', avatar: '/placeholders/user4.jpg' },
+    { name: 'Admin User', role: 'Admin', email: 'admin@securepass.com', avatar: 'https://avatar.vercel.sh/admin.png' },
+    { name: 'Security Guard', role: 'Security', email: 'security@securepass.com', avatar: 'https://avatar.vercel.sh/security.png' },
+    { name: 'John Resident', role: 'Resident', email: 'resident@securepass.com', avatar: 'https://avatar.vercel.sh/resident.png' },
+    { name: 'Facility Manager', role: 'Manager', email: 'manager@securepass.com', avatar: 'https://avatar.vercel.sh/manager.png' },
 ];
 
 export const dashboardStats = {
