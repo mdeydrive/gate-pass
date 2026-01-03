@@ -29,6 +29,20 @@ export const columns: ColumnDef<Activity>[] = [
     header: "Mobile No.",
   },
   {
+    accessorKey: "companyName",
+    header: "Company",
+    cell: ({ row }) => {
+        return row.original.companyName ? <span>{row.original.companyName}</span> : <span className="text-muted-foreground">N/A</span>
+    }
+  },
+  {
+    accessorKey: "location",
+    header: "Location",
+    cell: ({ row }) => {
+        return row.original.location ? <span>{row.original.location}</span> : <span className="text-muted-foreground">N/A</span>
+    }
+  },
+  {
     accessorKey: "passType",
     header: "Pass Type",
   },
