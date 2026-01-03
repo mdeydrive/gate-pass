@@ -50,6 +50,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
 
     // Form state
     const [visitorName, setVisitorName] = useState('');
+    const [mobileNumber, setMobileNumber] = useState('');
     const [passType, setPassType] = useState('');
     const [validFrom, setValidFrom] = useState('');
     const [validTo, setValidTo] = useState('');
@@ -112,11 +113,11 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
     }
 
     const handleGeneratePass = () => {
-        if (!visitorName || !passType) {
+        if (!visitorName || !passType || !mobileNumber) {
             toast({
                 variant: "destructive",
                 title: "Required fields missing",
-                description: "Please enter the visitor's name and select a pass type.",
+                description: "Please enter visitor name, mobile number, and select a pass type.",
             });
             return;
         }
@@ -124,6 +125,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
         const newPass: Activity = {
             id: `pass-${Date.now()}`,
             visitorName,
+            mobileNumber,
             passType: passType as Activity['passType'],
             status: 'Checked In',
             time: format(new Date(), "hh:mm a"),
@@ -136,6 +138,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
 
         // Reset form
         setVisitorName('');
+        setMobileNumber('');
         setPassType('');
         setValidFrom('');
         setValidTo('');
@@ -152,9 +155,15 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
         <div className="grid gap-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="grid gap-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="visitor-name">Visitor Name</Label>
-                        <Input id="visitor-name" placeholder="e.g., John Doe" value={visitorName} onChange={e => setVisitorName(e.target.value)} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="visitor-name">Visitor Name</Label>
+                            <Input id="visitor-name" placeholder="e.g., John Doe" value={visitorName} onChange={e => setVisitorName(e.target.value)} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="mobile-number">Mobile Number</Label>
+                            <Input id="mobile-number" placeholder="e.g., 9876543210" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} />
+                        </div>
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="pass-type">Pass Type</Label>

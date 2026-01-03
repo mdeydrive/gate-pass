@@ -25,6 +25,10 @@ export const columns: ColumnDef<Activity>[] = [
     }
   },
   {
+    accessorKey: "mobileNumber",
+    header: "Mobile No.",
+  },
+  {
     accessorKey: "passType",
     header: "Pass Type",
   },
@@ -52,5 +56,3 @@ export const columns: ColumnDef<Activity>[] = [
     }
   },
 ]
-
-    
