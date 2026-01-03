@@ -38,7 +38,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRef, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, endOfDay } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -128,6 +128,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
     const [validTo, setValidTo] = useState<Date | undefined>();
     const [vehicleNumber, setVehicleNumber] = useState('');
     const [isNow, setIsNow] = useState(false);
+    const [validityOption, setValidityOption] = useState('today');
 
     useEffect(() => {
         const getCameraPermission = async () => {
@@ -222,6 +223,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
         setVehicleNumber('');
         setCapturedImage(null);
         setIsNow(false);
+        setValidityOption('today');
 
         toast({
             title: "Pass Generated!",
@@ -238,6 +240,14 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
             setValidFrom(undefined);
         }
     };
+    
+    useEffect(() => {
+        if (validityOption === 'today') {
+          setValidTo(endOfDay(new Date()));
+        } else {
+          setValidTo(undefined);
+        }
+      }, [validityOption]);
 
     return (
         <div className="grid gap-6">
@@ -291,7 +301,20 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
                         </div>
                         <div className="grid gap-2">
                             <Label>Valid To</Label>
-                            <DateTimePicker value={validTo} onChange={setValidTo} placeholder="Select end date & time" />
+                            <Select value={validityOption} onValueChange={setValidityOption}>
+                                <SelectTrigger>
+                                <SelectValue placeholder="Select validity" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                <SelectItem value="today">Valid for today</SelectItem>
+                                <SelectItem value="manual">Set date and time manually</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {validityOption === 'manual' && (
+                                <div className="mt-2">
+                                    <DateTimePicker value={validTo} onChange={setValidTo} placeholder="Select end date & time" />
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className="grid gap-2">
