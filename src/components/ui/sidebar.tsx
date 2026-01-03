@@ -74,8 +74,11 @@ const SidebarProvider = React.forwardRef<
     // We use openProp and setOpenProp for control from outside the component.
     const [_open, _setOpen] = React.useState(defaultOpen)
     const open = openProp ?? _open
+    const [hasMounted, setHasMounted] = React.useState(false);
+
 
     React.useEffect(() => {
+      setHasMounted(true);
       const cookieValue = document.cookie
         .split("; ")
         .find((row) => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
@@ -140,6 +143,10 @@ const SidebarProvider = React.forwardRef<
       }),
       [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
     )
+    
+    if (!hasMounted) {
+      return null;
+    }
 
     return (
       <SidebarContext.Provider value={contextValue}>
