@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRole } from "@/contexts/role-context";
@@ -20,6 +21,74 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useState } from "react";
+
+function AddComplexDialog() {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button>
+          <PlusCircle className="mr-2 h-4 w-4" /> Add Complex
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Add New Complex</DialogTitle>
+          <DialogDescription>
+            Fill in the details below to create a new complex.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="name" className="text-right">
+              Name
+            </Label>
+            <Input id="name" placeholder="e.g. Tower C" className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="blocks" className="text-right">
+              Blocks
+            </Label>
+            <Input id="blocks" type="number" defaultValue="1" className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="floors" className="text-right">
+              Floors
+            </Label>
+            <Input id="floors" type="number" defaultValue="10" className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="units" className="text-right">
+              Units
+            </Label>
+            <Input id="units" type="number" defaultValue="40" className="col-span-3" />
+          </div>
+        </div>
+        <DialogFooter>
+            <DialogClose asChild>
+                <Button type="button" variant="secondary">
+                Cancel
+                </Button>
+            </DialogClose>
+            <Button type="submit">Create Complex</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 
 export default function ManagementPage() {
     const { role } = useRole();
@@ -47,9 +116,7 @@ export default function ManagementPage() {
                 <h1 className="text-2xl font-bold tracking-tight">Complex Management</h1>
                 <p className="text-muted-foreground">Create and manage complexes, blocks, floors, and units.</p>
             </div>
-            <Button>
-                <PlusCircle className="mr-2 h-4 w-4" /> এটাকে একটিভ করে দাও
-            </Button>
+            <AddComplexDialog />
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {complexes.map((complex) => (
