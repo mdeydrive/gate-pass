@@ -23,7 +23,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { QrCode, PlusCircle, Camera, Check, X } from "lucide-react";
+import { QrCode, PlusCircle, Camera, Check, X, AlertTriangle } from "lucide-react";
 import { activities as initialActivities, type Activity } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -34,6 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRef, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -42,8 +43,9 @@ import { format } from "date-fns";
 function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => void }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const photoRef = useRef<HTMLCanvasElement>(null);
-    const [hasCameraPermission, setHasCameraPermission] = useState(false);
+    const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
+    const [cameraError, setCameraError] = useState<string | null>(null);
     const { toast } = useToast();
 
     // Form state
@@ -55,21 +57,30 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
 
     useEffect(() => {
         const getCameraPermission = async () => {
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            setCameraError("Camera not supported by this browser.");
+            setHasCameraPermission(false);
+            return;
+          }
+
           try {
             const stream = await navigator.mediaDevices.getUserMedia({video: true});
             setHasCameraPermission(true);
+            setCameraError(null);
     
             if (videoRef.current) {
               videoRef.current.srcObject = stream;
             }
-          } catch (error) {
+          } catch (error: any) {
             console.error('Error accessing camera:', error);
+            if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                setCameraError("No camera device found. Please connect a camera.");
+            } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                setCameraError("Camera access was denied. Please enable camera permissions in your browser settings.");
+            } else {
+                setCameraError("An unknown error occurred while accessing the camera.");
+            }
             setHasCameraPermission(false);
-            toast({
-              variant: 'destructive',
-              title: 'Camera Access Denied',
-              description: 'Please enable camera permissions in your browser settings.',
-            });
           }
         };
     
@@ -81,7 +92,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
                 stream.getTracks().forEach(track => track.stop());
             }
         }
-      }, [toast]);
+      }, []);
 
     const takePicture = () => {
         if (videoRef.current && photoRef.current) {
@@ -92,9 +103,11 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
             photo.height = video.videoHeight;
 
             const context = photo.getContext('2d');
-            context?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-            const imageDataUrl = photo.toDataURL('image/png');
-            setCapturedImage(imageDataUrl);
+            if (context) {
+                context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+                const imageDataUrl = photo.toDataURL('image/png');
+                setCapturedImage(imageDataUrl);
+            }
         }
     }
 
@@ -177,19 +190,30 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
                 <div className="grid gap-4">
                      <div className="grid gap-2">
                         <Label>Visitor Photo (Optional)</Label>
-                        <div className="w-full aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                        <div className="w-full aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden relative">
                            {capturedImage ? (
                                 <img src={capturedImage} alt="Captured" className="object-cover w-full h-full" />
                            ) : hasCameraPermission ? (
-                             <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted />
+                             <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                            ): (
                             <div className="text-center p-4">
                                 <Camera className="mx-auto h-12 w-12 text-muted-foreground" />
-                                <p className="mt-2 text-sm text-muted-foreground">Camera not found. Please grant permission.</p>
+                                <p className="mt-2 text-sm text-muted-foreground">
+                                    {hasCameraPermission === null ? "Requesting camera permission..." : "Camera not available."}
+                                </p>
                             </div>
                            )}
-                           <canvas ref={photoRef} style={{display: 'none'}} />
+                           <canvas ref={photoRef} className="hidden" />
                         </div>
+                        {cameraError && (
+                             <Alert variant="destructive">
+                                <AlertTriangle className="h-4 w-4" />
+                                <AlertTitle>Camera Error</AlertTitle>
+                                <AlertDescription>
+                                    {cameraError}
+                                </AlertDescription>
+                            </Alert>
+                        )}
                          <Button variant="outline" onClick={takePicture} disabled={!hasCameraPermission}>
                             <Camera className="mr-2 h-4 w-4" />
                             {capturedImage ? 'Retake Photo' : 'Take Photo'}
@@ -318,7 +342,7 @@ export default function GatePassPage() {
             <CardDescription>
               Fill in the details for the new visitor to generate their pass.
             </CardDescription>
-          </CardHeader>
+          </Header>
           <CardContent>
             <PassForm onGeneratePass={handleGeneratePass} />
           </CardContent>
@@ -334,7 +358,7 @@ export default function GatePassPage() {
             <CardDescription>
               List of visitors pre-approved by residents for entry.
             </CardDescription>
-          </CardHeader>
+          </Header>
           <CardContent>
             <p className="text-muted-foreground">The list of pre-approved visitors will be shown here.</p>
           </CardContent>
