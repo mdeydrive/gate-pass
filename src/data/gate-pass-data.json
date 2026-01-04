@@ -43,10 +43,12 @@
     "photo": "/images/pass-1767533213449.png",
     "time": "06:56 PM",
     "date": "2026-01-04",
-    "status": "Approved",
+    "status": "Checked Out",
     "approverIds": [
       "auth-1767532502167"
-    ]
+    ],
+    "checkedInAt": "2026-01-04T18:06:51.065Z",
+    "checkedOutAt": "2026-01-04T18:08:01.441Z"
   },
   {
     "id": "pass-1767532970116",
@@ -75,10 +77,13 @@
     "photo": "/images/pass-1767532522656.png",
     "time": "06:45 PM",
     "date": "2026-01-04",
-    "status": "Pending",
+    "status": "Checked Out",
     "approverIds": [
       "auth-1767532502167"
-    ]
+    ],
+    "approvedAt": "2026-01-04T18:06:08.018Z",
+    "checkedInAt": "2026-01-04T18:07:28.225Z",
+    "checkedOutAt": "2026-01-04T18:09:37.457Z"
   },
   {
     "visitorName": "mintu dey",
@@ -122,11 +127,12 @@
     "visitorName": "Maintenance Team",
     "mobileNumber": "9876543212",
     "passType": "Staff",
-    "status": "Checked In",
+    "status": "Checked Out",
     "time": "09:00 AM",
     "date": "2023-10-27",
     "companyName": "Urban Company",
-    "location": "City Branch"
+    "location": "City Branch",
+    "checkedOutAt": "2026-01-04T18:08:06.385Z"
   },
   {
     "id": "4",
@@ -147,11 +153,12 @@
     "visitorName": "UPS Delivery",
     "mobileNumber": "9876543214",
     "passType": "Delivery",
-    "status": "Checked In",
+    "status": "Checked Out",
     "time": "12:05 PM",
     "date": "2023-10-27",
     "companyName": "UPS",
-    "location": "Main Depot"
+    "location": "Main Depot",
+    "checkedOutAt": "2026-01-04T18:08:09.233Z"
   },
   {
     "id": "6",
@@ -182,11 +189,12 @@
     "visitorName": "Robert Brown",
     "mobileNumber": "9876543217",
     "passType": "Guest",
-    "status": "Checked In",
+    "status": "Checked Out",
     "time": "03:00 PM",
     "date": "2023-10-27",
     "vehicle": "KA01CD5678",
     "companyName": "Self",
-    "location": "Out of Town"
+    "location": "Out of Town",
+    "checkedOutAt": "2026-01-04T18:08:11.817Z"
   }
 ]
