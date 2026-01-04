@@ -413,7 +413,7 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
     }, [toast]);
 
     const passesToDisplay = (role === 'Manager' || role === 'Resident') && user
-    ? passes.filter(p => p.approverIds?.includes(user.id) || p.status === 'Pending' && (!p.approverIds || p.approverIds.length === 0))
+    ? passes.filter(p => (p.status === 'Pending' && (!p.approverIds || p.approverIds.length === 0)) || (p.approverIds && p.approverIds.includes(user.id)))
     : passes;
 
     const activePasses = passesToDisplay.filter(a => a.status === 'Checked In' || a.status === 'Pending' || a.status === 'Approved');
@@ -592,3 +592,5 @@ export default function GatePassPage() {
     </Tabs>
   );
 }
+
+    

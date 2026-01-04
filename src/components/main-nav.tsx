@@ -27,22 +27,29 @@ type NavItem = {
   roles: UserRole[];
 };
 
-const navItems: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["Admin", "Security", "Resident", "Manager"] },
-  { href: "/gate-pass", label: "Manage Gate Pass", icon: Ticket, roles: ["Security", "Resident", "Admin", "Manager"] },
-  { href: "/history", label: "History", icon: History, roles: ["Admin", "Security", "Resident", "Manager"] },
-  { href: "/visitors", label: "Visitors", icon: Users, roles: ["Admin", "Security", "Manager"] },
-  { href: "/management", label: "Management", icon: Building, roles: ["Admin", "Manager"] },
-  { href: "/approving-authorities", label: "Approving Authorities", icon: ClipboardCheck, roles: ["Admin", "Manager"] },
-  { href: "/alerts", label: "Alerts", icon: AlertTriangle, roles: ["Security", "Admin", "Manager"] },
-  { href: "/vehicles", label: "Vehicles", icon: Car, roles: ["Admin", "Security"] },
-  { href: "/deliveries", label: "Deliveries", icon: Package, roles: ["Security", "Resident"] },
-  { href: "/staff", label: "Staff", icon: Wrench, roles: ["Admin", "Manager"] },
-];
+const allNavItems: NavItem[] = [
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["Admin", "Security", "Resident", "Manager"] },
+    { href: "/gate-pass", label: "Manage Gate Pass", icon: Ticket, roles: ["Security", "Resident", "Admin", "Manager"] },
+    { href: "/history", label: "History", icon: History, roles: ["Admin", "Security"] },
+    { href: "/visitors", label: "Visitors", icon: Users, roles: ["Admin", "Security"] },
+    { href: "/management", label: "Management", icon: Building, roles: ["Admin"] },
+    { href: "/approving-authorities", label: "Approving Authorities", icon: ClipboardCheck, roles: ["Admin"] },
+    { href: "/alerts", label: "Alerts", icon: AlertTriangle, roles: ["Security", "Admin"] },
+    { href: "/vehicles", label: "Vehicles", icon: Car, roles: ["Admin", "Security"] },
+    { href: "/deliveries", label: "Deliveries", icon: Package, roles: ["Security"] },
+    { href: "/staff", label: "Staff", icon: Wrench, roles: ["Admin"] },
+  ];
+
+const managerNavItems: NavItem[] = [
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["Manager", "Resident"] },
+    { href: "/gate-pass", label: "Manage Gate Pass", icon: Ticket, roles: ["Manager", "Resident"] },
+]
 
 export default function MainNav() {
   const pathname = usePathname();
   const { role } = useRole();
+
+  const navItems = (role === "Manager" || role === "Resident") ? managerNavItems : allNavItems;
 
   const accessibleNavItems = navItems.filter(item => item.roles.includes(role));
 
@@ -64,3 +71,5 @@ export default function MainNav() {
     </SidebarMenu>
   );
 }
+
+    
