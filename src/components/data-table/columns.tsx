@@ -16,7 +16,7 @@ const getBadgeVariant = (status: Activity['status']) => {
     }
 };
 
-export const columns: ColumnDef<Activity>[] = [
+export const columns: ColumnDef<Activity & { approverNames?: string[] }>[] = [
   {
     accessorKey: "visitorName",
     header: "Visitor",
@@ -38,20 +38,6 @@ export const columns: ColumnDef<Activity>[] = [
     header: "Mobile No.",
   },
   {
-    accessorKey: "companyName",
-    header: "Company",
-    cell: ({ row }) => {
-        return row.original.companyName ? <span>{row.original.companyName}</span> : <span className="text-muted-foreground">N/A</span>
-    }
-  },
-  {
-    accessorKey: "location",
-    header: "Location",
-    cell: ({ row }) => {
-        return row.original.location ? <span>{row.original.location}</span> : <span className="text-muted-foreground">N/A</span>
-    }
-  },
-  {
     accessorKey: "passType",
     header: "Pass Type",
   },
@@ -62,6 +48,22 @@ export const columns: ColumnDef<Activity>[] = [
   {
     accessorKey: "time",
     header: "Time",
+  },
+  {
+    accessorKey: "approverNames",
+    header: "Approving Authority",
+    cell: ({ row }) => {
+        const approverNames = row.original.approverNames;
+        return approverNames && approverNames.length > 0 ? (
+            <div className="flex flex-col">
+                {approverNames.map((name, index) => (
+                    <span key={index}>{name}</span>
+                ))}
+            </div>
+        ) : (
+            <span className="text-muted-foreground">N/A</span>
+        );
+    }
   },
   {
     accessorKey: "vehicle",
