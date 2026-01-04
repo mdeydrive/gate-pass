@@ -22,13 +22,15 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
 
   const pageTitles: { [key: string]: string } = {
     "/dashboard": "Dashboard",
-    "/gate-pass": "Gate Pass Management",
+    "/gate-pass": "Manage Gate Pass",
     "/history": "Visitor History",
     "/management": "Complex Management",
     "/alerts": "Alerts",
     "/vehicles": "Vehicle Log",
     "/deliveries": "Delivery Management",
     "/staff": "Staff Management",
+    "/visitors": "Visitor List",
+    "/approving-authorities": "Approving Authorities",
   };
   
   const currentTitle = pageTitles[pathname] || "SecurePass"; 
