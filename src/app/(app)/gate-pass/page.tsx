@@ -139,6 +139,8 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
     const [vehicleNumber, setVehicleNumber] = useState('');
     const [isNow, setIsNow] = useState(false);
     const [validityOption, setValidityOption] = useState('today');
+    const [selectedVisitorForDisplay, setSelectedVisitorForDisplay] = useState<string>('');
+
 
     // Combobox state
     const [comboboxOpen, setComboboxOpen] = useState(false);
@@ -166,6 +168,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
         setCapturedImage(null);
         setIsNow(false);
         setValidityOption('today');
+        setSelectedVisitorForDisplay('');
     }
 
     const prefillVisitorData = (visitor: Activity) => {
@@ -173,6 +176,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
         setMobileNumber(visitor.mobileNumber || '');
         setCompanyName(visitor.companyName || '');
         setLocation(visitor.location || '');
+        setSelectedVisitorForDisplay(`${visitor.visitorName} - ${visitor.mobileNumber}`);
         toast({
             title: "Existing Visitor Found",
             description: `Details for ${visitor.visitorName} have been pre-filled.`,
@@ -298,8 +302,8 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                                 aria-expanded={comboboxOpen}
                                 className="w-full justify-between"
                                 >
-                                {visitorName
-                                    ? `${visitorName} - ${mobileNumber}`
+                                {selectedVisitorForDisplay
+                                    ? selectedVisitorForDisplay
                                     : "Select or search visitor..."}
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
@@ -318,12 +322,14 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                                                 <CommandItem
                                                 key={visitor.id}
                                                 value={`${visitor.visitorName} ${visitor.mobileNumber}`}
-                                                onSelect={() => prefillVisitorData(visitor)}
+                                                onSelect={(currentValue) => {
+                                                    prefillVisitorData(visitor);
+                                                }}
                                                 >
                                                 <Check
                                                     className={cn(
                                                     "mr-2 h-4 w-4",
-                                                    visitorName === visitor.visitorName ? "opacity-100" : "opacity-0"
+                                                    selectedVisitorForDisplay === `${visitor.visitorName} - ${visitor.mobileNumber}` ? "opacity-100" : "opacity-0"
                                                     )}
                                                 />
                                                 {visitor.visitorName} ({visitor.mobileNumber})
@@ -671,10 +677,3 @@ export default function GatePassPage() {
     </Tabs>
   );
 }
-
-    
-
-    
-
-
-
