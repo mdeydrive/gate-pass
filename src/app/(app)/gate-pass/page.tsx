@@ -138,31 +138,6 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
     const [isNow, setIsNow] = useState(false);
     const [validityOption, setValidityOption] = useState('today');
     
-    // Approvers state
-    const [authorities, setAuthorities] = useState<ApprovingAuthority[]>([]);
-    const [loadingAuthorities, setLoadingAuthorities] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedApproverIds, setSelectedApproverIds] = useState<string[]>([]);
-
-
-    useEffect(() => {
-        async function fetchAuthorities() {
-            try {
-                setLoadingAuthorities(true);
-                const response = await fetch('/api/authorities');
-                if (!response.ok) throw new Error("Failed to fetch authorities.");
-                const data = await response.json();
-                setAuthorities(data);
-            } catch (error) {
-                console.error(error);
-                toast({ variant: 'destructive', title: "Error", description: "Could not fetch approving authorities." });
-            } finally {
-                setLoadingAuthorities(false);
-            }
-        }
-        fetchAuthorities();
-    }, [toast]);
-    
 
     useEffect(() => {
         const getCameraPermission = async () => {
@@ -230,15 +205,6 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
             return;
         }
 
-        if (selectedApproverIds.length === 0) {
-            toast({
-                variant: "destructive",
-                title: "No Approver Selected",
-                description: "Please select at least one approving authority.",
-            });
-            return;
-        }
-
         const newPass = {
             visitorName,
             mobileNumber,
@@ -247,7 +213,6 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
             passType: passType as Activity['passType'],
             vehicle: vehicleNumber || undefined,
             photo: capturedImage || undefined,
-            approverIds: selectedApproverIds,
         };
 
         onGeneratePass(newPass);
@@ -264,8 +229,6 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
         setCapturedImage(null);
         setIsNow(false);
         setValidityOption('today');
-        setSelectedApproverIds([]);
-        setSearchTerm('');
 
 
         toast({
@@ -306,19 +269,6 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
             }
         }
     };
-    
-    const handleApproverSelection = (approverId: string) => {
-        setSelectedApproverIds(prev =>
-            prev.includes(approverId)
-                ? prev.filter(id => id !== approverId)
-                : [...prev, approverId]
-        );
-    };
-
-    const filteredAuthorities = authorities.filter(auth =>
-        auth.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        auth.mobileNumber.includes(searchTerm)
-    );
 
     return (
         <div className="grid gap-6">
@@ -429,6 +379,10 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                             </div>
                         </div>
                     </div>
+                    <Button onClick={handleGeneratePass} className="w-full sm:w-auto justify-self-start">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Generate Gate Pass
+                    </Button>
                 </div>
 
             </div>
