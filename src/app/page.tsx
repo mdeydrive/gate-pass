@@ -1,7 +1,7 @@
 
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -218,7 +218,21 @@ function ManagerLoginForm({ onLogin }: { onLogin: (id: string, pass: string, typ
 export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('user');
+
+  useEffect(() => {
+    const role = searchParams.get('role');
+    const validRoles = ['user', 'admin', 'approver', 'manager', 'security'];
+    if (role && validRoles.includes(role)) {
+      setActiveTab(role);
+    } else {
+        // If there's no role in query param, default to user
+        // and remove any existing role param from URL
+        router.replace('/', undefined);
+    }
+  }, [searchParams, router]);
 
   const handleLogin = async (identifier: string, pass: string, type: 'user' | 'admin' | 'approver' | 'manager' | 'security') => {
     const success = await login(identifier, pass, type);
@@ -237,6 +251,11 @@ export default function LoginPage() {
     }
   };
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    router.push(`/?role=${value}`, undefined);
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40">
       <Card className="w-full max-w-sm">
@@ -247,7 +266,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="user" className="w-full">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="user">User</TabsTrigger>
               <TabsTrigger value="admin">Admin</TabsTrigger>
@@ -276,3 +295,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

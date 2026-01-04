@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRole } from "@/contexts/role-context";
@@ -26,7 +27,7 @@ import { useRouter } from "next/navigation";
 
 
 export default function UserNav() {
-  const { role, setRole, roles } = useRole();
+  const { role, roles } = useRole();
   const { logout, user } = useAuth();
   const router = useRouter();
 
@@ -36,6 +37,13 @@ export default function UserNav() {
   const handleLogout = () => {
     logout();
     router.push('/');
+  }
+
+  const handleRoleSwitch = (newRole: string) => {
+    if (newRole !== role) {
+      logout();
+      router.push(`/?role=${newRole.toLowerCase()}`);
+    }
   }
 
   return (
@@ -105,7 +113,7 @@ export default function UserNav() {
             <DropdownMenuSubTrigger>Switch Role</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
-                <DropdownMenuRadioGroup value={role} onValueChange={(value) => setRole(value as any)}>
+                <DropdownMenuRadioGroup value={role} onValueChange={handleRoleSwitch}>
                   {roles.map((r) => (
                     <DropdownMenuRadioItem key={r} value={r}>{r}</DropdownMenuRadioItem>
                   ))}
