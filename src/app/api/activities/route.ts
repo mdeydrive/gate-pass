@@ -85,9 +85,9 @@ export async function POST(request: Request) {
           status: status,
         };
 
-        // Only add checkoutTime if it's provided (for 'Checked Out' status)
-        if (status === 'Checked Out' && body.checkoutTime) {
-            (updatedActivity as any).checkoutTime = body.checkoutTime;
+        // Only add checkoutTime if the status is 'Checked Out'
+        if (status === 'Checked Out') {
+            updatedActivity.checkoutTime = body.checkoutTime || new Date().toLocaleTimeString();
         }
 
         activities[activityIndex] = updatedActivity;
@@ -97,8 +97,7 @@ export async function POST(request: Request) {
     } 
     // Logic for CREATING a new pass
     else {
-        const newActivityData = body;
-        let imageUrl = newActivityData.photo;
+        let imageUrl = body.photo;
 
         // If a photo is included and it's a base64 string, save it
         if (imageUrl && imageUrl.startsWith('data:image')) {
@@ -106,19 +105,19 @@ export async function POST(request: Request) {
         }
 
         // Build the final new activity object by explicitly picking fields
+        // This prevents incorrect fields like 'checkoutTime' from being added on creation
         const newActivity: Activity = {
-            id: newActivityData.id,
-            visitorName: newActivityData.visitorName,
-            passType: newActivityData.passType,
-            status: newActivityData.status,
-            time: newActivityData.time,
-            date: newActivityData.date,
-            mobileNumber: newActivityData.mobileNumber,
-            companyName: newActivityData.companyName,
-            location: newActivityData.location,
-            vehicle: newActivityData.vehicle,
+            id: body.id,
+            visitorName: body.visitorName,
+            passType: body.passType,
+            status: body.status,
+            time: body.time,
+            date: body.date,
+            mobileNumber: body.mobileNumber,
+            companyName: body.companyName,
+            location: body.location,
+            vehicle: body.vehicle,
             photo: imageUrl,
-            // checkoutTime is explicitly NOT included here
         };
         
         activities.unshift(newActivity); // Add to the beginning of the list
@@ -129,6 +128,7 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error("Failed to process request:", error);
-    return NextResponse.json({ message: 'Failed to process request' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return NextResponse.json({ message: 'Failed to process request', error: errorMessage }, { status: 500 });
   }
 }
