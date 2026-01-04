@@ -55,11 +55,17 @@ export const columns: ColumnDef<Activity & { approverNames?: string[] }>[] = [
   },
   {
     accessorKey: "date",
-    header: "Date",
+    header: "Check-in Time",
+    cell: ({ row }) => {
+      return `${row.original.date} ${row.original.time}`
+    }
   },
   {
-    accessorKey: "time",
-    header: "Time",
+    accessorKey: "checkoutTime",
+    header: "Check-out Time",
+    cell: ({ row }) => {
+        return row.original.checkoutTime ? <span>{`${row.original.date} ${row.original.checkoutTime}`}</span> : <span className="text-muted-foreground">N/A</span>
+    }
   },
   {
     accessorKey: "approverNames",

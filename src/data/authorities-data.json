@@ -1,5 +1,13 @@
 [
   {
+    "id": "auth-1767544215373",
+    "name": "samar",
+    "role": "Security",
+    "mobileNumber": "5555555555",
+    "email": "mintu@gmail.com",
+    "avatar": "https://avatar.vercel.sh/samar.png"
+  },
+  {
     "id": "auth-1767532502167",
     "name": "mintu",
     "role": "Approver",
