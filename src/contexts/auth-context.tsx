@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
@@ -5,6 +6,7 @@ import type { UserRole } from './role-context';
 import type { ApprovingAuthority } from '@/lib/data';
 
 interface User {
+  id: string;
   username: string; // Keep username for display, could be the person's name
   role: UserRole;
   mobileNumber: string;
@@ -54,7 +56,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (identifier: string, pass: string): Promise<boolean> => {
     // Admin login check
     if (identifier === 'admin' && pass === 'admin123') {
-        const loggedInUser: User = { 
+        const loggedInUser: User = {
+            id: 'admin-user',
             username: 'Administrator', 
             role: 'Admin',
             mobileNumber: 'N/A'
@@ -82,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
       const loggedInUser: User = { 
+        id: authority.id,
         username: authority.name, 
         role: userRole,
         mobileNumber: authority.mobileNumber

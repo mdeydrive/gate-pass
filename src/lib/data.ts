@@ -6,7 +6,7 @@ export type Activity = {
   visitorName: string;
   mobileNumber?: string;
   passType: 'Guest' | 'Delivery' | 'Staff' | 'Vehicle' | 'Vendor';
-  status: 'Checked In' | 'Checked Out' | 'Pending' | 'Approved';
+  status: 'Checked In' | 'Checked Out' | 'Pending' | 'Approved' | 'Rejected';
   time: string;
   date: string;
   vehicle?: string;

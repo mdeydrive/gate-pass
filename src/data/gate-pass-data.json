@@ -42,7 +42,10 @@
     "photo": "/images/pass-1767532522656.png",
     "time": "06:45 PM",
     "date": "2026-01-04",
-    "status": "Pending"
+    "status": "Pending",
+    "approverIds": [
+      "auth-1767532502167"
+    ]
   },
   {
     "visitorName": "mintu dey",

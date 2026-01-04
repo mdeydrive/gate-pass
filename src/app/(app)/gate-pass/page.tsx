@@ -25,7 +25,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { QrCode, PlusCircle, Camera, Check, X, AlertTriangle, Calendar as CalendarIcon, ShieldCheck, Search } from "lucide-react";
+import { QrCode, PlusCircle, Camera, Check, X, AlertTriangle, Calendar as CalendarIcon, ShieldCheck, Search, Ban } from "lucide-react";
 import type { Activity } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -50,6 +50,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRole } from "@/contexts/role-context";
 import type { ApprovingAuthority } from "@/lib/data";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from "@/contexts/auth-context";
 
 
 function DateTimePicker({ value, onChange, placeholder, disabled }: { value: Date | undefined, onChange: (date: Date | undefined) => void, placeholder: string, disabled?: boolean }) {
@@ -391,7 +392,8 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
 
 function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: { passes: Activity[], onUpdatePass: (id: string, status: Activity['status']) => void, onAssignApprover: (id: string, approverId: string) => void, loading: boolean }) {
     const { role } = useRole();
-    const activePasses = passes.filter(a => a.status === 'Checked In' || a.status === 'Pending' || a.status === 'Approved');
+    const { user } = useAuth();
+    
     const [authorities, setAuthorities] = useState<ApprovingAuthority[]>([]);
     const { toast } = useToast();
 
@@ -410,12 +412,20 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
         fetchAuthorities();
     }, [toast]);
 
+    const passesToDisplay = (role === 'Manager' || role === 'Resident') && user
+    ? passes.filter(p => p.approverIds?.includes(user.id) || p.status === 'Pending' && (!p.approverIds || p.approverIds.length === 0))
+    : passes;
+
+    const activePasses = passesToDisplay.filter(a => a.status === 'Checked In' || a.status === 'Pending' || a.status === 'Approved');
+
+
     const getBadgeVariant = (status: Activity['status']) => {
         switch (status) {
           case 'Checked In': return 'default';
           case 'Checked Out': return 'secondary';
           case 'Pending': return 'destructive';
           case 'Approved': return 'secondary';
+          case 'Rejected': return 'destructive';
           default: return 'outline';
         }
     };
@@ -488,10 +498,16 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                                 </SelectContent>
                             </Select>
                         ) : (
+                            <>
                             <Button variant="outline" size="sm" onClick={() => onUpdatePass(activity.id, 'Approved')}>
                                 <ShieldCheck className="mr-1 h-3.5 w-3.5" />
                                 Approve
                             </Button>
+                            <Button variant="destructive" size="sm" onClick={() => onUpdatePass(activity.id, 'Rejected')}>
+                                <Ban className="mr-1 h-3.5 w-3.5" />
+                                Reject
+                            </Button>
+                            </>
                         )
                       )}
                       {activity.status === 'Approved' && role === 'Security' && (

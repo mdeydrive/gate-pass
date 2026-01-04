@@ -12,6 +12,7 @@ const getBadgeVariant = (status: Activity['status']) => {
       case 'Checked Out': return 'secondary';
       case 'Pending': return 'destructive';
       case 'Approved': return 'secondary';
+      case 'Rejected': return 'destructive';
       default: return 'outline';
     }
 };
