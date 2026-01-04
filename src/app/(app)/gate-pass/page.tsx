@@ -345,21 +345,21 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="visitor-name">Visitor Name</Label>
-                            <Input id="visitor-name" placeholder="e.g., John Doe" value={visitorName} onChange={e => setVisitorName(e.target.value)} />
+                            <Input id="visitor-name" placeholder="Enter visitor's full name" value={visitorName} onChange={e => setVisitorName(e.target.value)} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="mobile-number">Mobile Number</Label>
-                            <Input id="mobile-number" placeholder="e.g., 9876543210" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} />
+                            <Input id="mobile-number" placeholder="Enter 10-digit mobile number" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                        <div className="grid gap-2">
                             <Label htmlFor="company-name">Company Name (Optional)</Label>
-                            <Input id="company-name" placeholder="e.g., Acme Inc." value={companyName} onChange={e => setCompanyName(e.target.value)} />
+                            <Input id="company-name" placeholder="Enter company name" value={companyName} onChange={e => setCompanyName(e.target.value)} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="location">Location (Optional)</Label>
-                            <Input id="location" placeholder="e.g., New York" value={location} onChange={e => setLocation(e.target.value)} />
+                            <Input id="location" placeholder="Enter visitor's city or location" value={location} onChange={e => setLocation(e.target.value)} />
                         </div>
                     </div>
                     <div className="grid gap-2">
@@ -408,7 +408,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="vehicle-number">Vehicle Number (Optional)</Label>
-                        <Input id="vehicle-number" placeholder="e.g., MH12AB1234" value={vehicleNumber} onChange={e => setVehicleNumber(e.target.value)} />
+                        <Input id="vehicle-number" placeholder="Enter vehicle registration number" value={vehicleNumber} onChange={e => setVehicleNumber(e.target.value)} />
                     </div>
                     
                     <div className="grid gap-4 pt-4">

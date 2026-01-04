@@ -98,7 +98,7 @@ function AddAuthorityDialog({ onAddAuthority }: { onAddAuthority: (newAuthority:
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">Name</Label>
-            <Input id="name" placeholder="e.g. John Doe" className="col-span-3" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input id="name" placeholder="Enter full name" className="col-span-3" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="role" className="text-right">Role</Label>
@@ -117,11 +117,11 @@ function AddAuthorityDialog({ onAddAuthority }: { onAddAuthority: (newAuthority:
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="mobile" className="text-right">Mobile No.</Label>
-            <Input id="mobile" placeholder="e.g. 9876543210" className="col-span-3" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} />
+            <Input id="mobile" placeholder="Enter 10-digit mobile number" className="col-span-3" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="email" className="text-right">Email</Label>
-            <Input id="email" type="email" placeholder="e.g. john.d@company.com" className="col-span-3" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input id="email" type="email" placeholder="Enter email address" className="col-span-3" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
         </div>
         <DialogFooter>
@@ -181,7 +181,7 @@ function EditAuthorityDialog({ authority, onUpdateAuthority }: { authority: Auth
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="edit-name" className="text-right">Name</Label>
-            <Input id="edit-name" className="col-span-3" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input id="edit-name" className="col-span-3" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter full name" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="edit-role" className="text-right">Role</Label>
@@ -200,11 +200,11 @@ function EditAuthorityDialog({ authority, onUpdateAuthority }: { authority: Auth
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="edit-mobile" className="text-right">Mobile No.</Label>
-            <Input id="edit-mobile" className="col-span-3" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} />
+            <Input id="edit-mobile" className="col-span-3" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} placeholder="Enter 10-digit mobile number" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="edit-email" className="text-right">Email</Label>
-            <Input id="edit-email" type="email" className="col-span-3" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input id="edit-email" type="email" className="col-span-3" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email address" />
           </div>
         </div>
         <DialogFooter>

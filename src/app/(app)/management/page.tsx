@@ -79,7 +79,7 @@ function AddComplexDialog({ onAddComplex }: { onAddComplex: (newComplex: any) =>
             <Label htmlFor="name" className="text-right">
               Name
             </Label>
-            <Input id="name" placeholder="e.g. Tower C" className="col-span-3" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input id="name" placeholder="Enter complex or tower name" className="col-span-3" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="blocks" className="text-right">

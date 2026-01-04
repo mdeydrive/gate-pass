@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -32,7 +33,7 @@ function UserLoginForm({ onLogin }: { onLogin: (mobile: string, pass: string, ty
           <Input
             id="mobile-number"
             type="text"
-            placeholder="e.g., 9123456780"
+            placeholder="Enter your mobile number"
             required
             value={mobileNumber}
             onChange={(e) => setMobileNumber(e.target.value)}
@@ -43,7 +44,7 @@ function UserLoginForm({ onLogin }: { onLogin: (mobile: string, pass: string, ty
           <Input
             id="password"
             type="password"
-            placeholder="••••••••"
+            placeholder="Enter your password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -73,7 +74,7 @@ function AdminLoginForm({ onLogin }: { onLogin: (id: string, pass: string, type:
           <Input
             id="admin-password"
             type="password"
-            placeholder="••••••••"
+            placeholder="Enter admin password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -104,7 +105,7 @@ function ApproverLoginForm({ onLogin }: { onLogin: (id: string, pass: string, ty
            <Input
             id="approver-mobile"
             type="text"
-            placeholder="e.g., 9123456780"
+            placeholder="Enter your mobile number"
             required
             value={mobileNumber}
             onChange={(e) => setMobileNumber(e.target.value)}
@@ -115,7 +116,7 @@ function ApproverLoginForm({ onLogin }: { onLogin: (id: string, pass: string, ty
           <Input
             id="approver-password"
             type="password"
-            placeholder="••••••••"
+            placeholder="Enter your password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -146,7 +147,7 @@ function ManagerLoginForm({ onLogin }: { onLogin: (id: string, pass: string, typ
              <Input
               id="manager-mobile"
               type="text"
-              placeholder="e.g., 9123456780"
+              placeholder="Enter your mobile number"
               required
               value={mobileNumber}
               onChange={(e) => setMobileNumber(e.target.value)}
@@ -157,7 +158,7 @@ function ManagerLoginForm({ onLogin }: { onLogin: (id: string, pass: string, typ
             <Input
               id="manager-password"
               type="password"
-              placeholder="••••••••"
+              placeholder="Enter your password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
