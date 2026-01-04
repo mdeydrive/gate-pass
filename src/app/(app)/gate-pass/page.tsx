@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -480,7 +481,6 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                      </Card>
                 </div>
             </div>
-            <Button className="w-full sm:w-auto justify-self-start" onClick={handleGeneratePass}>Request Approval</Button>
         </div>
     );
 }
@@ -633,3 +633,5 @@ export default function GatePassPage() {
     </Tabs>
   );
 }
+
+    
