@@ -68,21 +68,22 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const activities = await readData();
 
-    // Check if this is a status update
+    // Check if this is a status update for an existing pass
     if (body.id && body.status) {
         const { id, status, checkoutTime } = body;
-        const activities = await readData();
         const activityIndex = activities.findIndex(a => a.id === id);
 
         if (activityIndex === -1) {
             return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
         }
 
-        const updatedActivity = { ...activities[activityIndex], status };
-        if (checkoutTime) {
-            updatedActivity.checkoutTime = checkoutTime;
-        }
+        const updatedActivity = { 
+          ...activities[activityIndex], 
+          status,
+          ...(checkoutTime && { checkoutTime }) // Only add checkoutTime if it exists
+        };
 
         activities[activityIndex] = updatedActivity;
         await writeData(activities);
@@ -93,18 +94,26 @@ export async function POST(request: Request) {
         const newActivityData = body;
         let imageUrl = newActivityData.photo;
 
+        // If a photo is included and it's a base64 string, save it
         if (imageUrl && imageUrl.startsWith('data:image')) {
           imageUrl = await saveImage(imageUrl);
         }
 
-        const newActivity = { ...newActivityData, photo: imageUrl };
+        // Build the final new activity object, ensuring no unwanted properties are included
+        const newActivity: Activity = {
+            id: newActivityData.id,
+            visitorName: newActivityData.visitorName,
+            passType: newActivityData.passType,
+            status: newActivityData.status,
+            time: newActivityData.time,
+            date: newActivityData.date,
+            mobileNumber: newActivityData.mobileNumber || undefined,
+            companyName: newActivityData.companyName || undefined,
+            location: newActivityData.location || undefined,
+            vehicle: newActivityData.vehicle || undefined,
+            photo: imageUrl || undefined,
+        };
         
-        // Ensure checkoutTime is not part of a new pass object
-        if ('checkoutTime' in newActivity) {
-            delete (newActivity as Partial<Activity>).checkoutTime;
-        }
-
-        const activities = await readData();
         activities.unshift(newActivity); // Add to the beginning of the list
         await writeData(activities);
 
