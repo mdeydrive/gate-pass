@@ -1013,41 +1013,37 @@ function PreApprovedList({ passes, loading }: { passes: Activity[], loading: boo
 export default function GatePassPage() {
     const { activities, addActivity, updateActivityStatus, assignApprover, loading, preApproveVisitor } = useGatePass();
     const { role } = useRole();
-    const defaultTab = role === 'Approver' ? 'active' : 'generate';
+    const defaultTab = 'generate';
 
   return (
     <Tabs defaultValue={defaultTab} className="w-full">
       <div className="flex items-center">
         <TabsList>
-          {role !== 'Approver' && <TabsTrigger value="generate">Generate Pass</TabsTrigger>}
+          <TabsTrigger value="generate">Generate Pass</TabsTrigger>
           <TabsTrigger value="active">Active Passes</TabsTrigger>
           <TabsTrigger value="pre-approved">Pre-approved</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
-            {role !== 'Approver' && (
-              <Button size="sm" variant="outline" className="h-8 gap-1">
-                  <QrCode className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-rap">Scan Pass</span>
-              </Button>
-            )}
+            <Button size="sm" variant="outline" className="h-8 gap-1">
+                <QrCode className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-rap">Scan Pass</span>
+            </Button>
             <PreApproveDialog activities={activities} onPreApprove={preApproveVisitor} />
         </div>
       </div>
-      {role !== 'Approver' && 
-        <TabsContent value="generate">
-            <Card>
-            <CardHeader>
-                <CardTitle>Create New Gate Pass</CardTitle>
-                <CardDescription>
-                Fill in the details for the new visitor to generate a pass.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <PassForm onGeneratePass={addActivity} />
-            </CardContent>
-            </Card>
-        </TabsContent>
-      }
+      <TabsContent value="generate">
+          <Card>
+          <CardHeader>
+              <CardTitle>Create New Gate Pass</CardTitle>
+              <CardDescription>
+              Fill in the details for the new visitor to generate a pass.
+              </CardDescription>
+          </CardHeader>
+          <CardContent>
+              <PassForm onGeneratePass={addActivity} />
+          </CardContent>
+          </Card>
+      </TabsContent>
       <TabsContent value="active">
         <ActivePassesList passes={activities} onUpdatePass={updateActivityStatus} onAssignApprover={assignApprover} loading={loading} />
       </TabsContent>
@@ -1057,3 +1053,5 @@ export default function GatePassPage() {
     </Tabs>
   );
 }
+
+    
