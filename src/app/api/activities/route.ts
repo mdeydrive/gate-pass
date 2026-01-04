@@ -100,7 +100,7 @@ export async function POST(request: Request) {
         }
 
         const newActivity: Activity = {
-          id: `pass-${Date.now()}`,
+          id: body.id,
           visitorName: body.visitorName,
           mobileNumber: body.mobileNumber,
           companyName: body.companyName,
