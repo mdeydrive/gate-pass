@@ -64,14 +64,13 @@ export async function GET() {
   }
 }
 
-// POST /api/activities - Creates a new activity
+// POST /api/activities - Creates a new activity or updates status
 export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // Check if this is a new pass or a status update
+    // Check if this is a status update
     if (body.id && body.status) {
-        // This is a status update
         const { id, status, checkoutTime } = body;
         const activities = await readData();
         const activityIndex = activities.findIndex(a => a.id === id);
@@ -80,7 +79,12 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
         }
 
-        activities[activityIndex] = { ...activities[activityIndex], status, checkoutTime };
+        const updatedActivity = { ...activities[activityIndex], status };
+        if (checkoutTime) {
+            updatedActivity.checkoutTime = checkoutTime;
+        }
+
+        activities[activityIndex] = updatedActivity;
         await writeData(activities);
         return NextResponse.json(activities[activityIndex]);
 
@@ -107,4 +111,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Failed to process request' }, { status: 500 });
   }
 }
-
