@@ -1,18 +1,19 @@
+
 [
   {
     "id": "auth-1767544215373",
-    "name": "samar",
+    "name": "Samar",
     "role": "Security",
     "mobileNumber": "5555555555",
-    "email": "mintu@gmail.com",
+    "email": "samar@example.com",
     "avatar": "https://avatar.vercel.sh/samar.png"
   },
   {
     "id": "auth-1767532502167",
-    "name": "mintu",
+    "name": "Mintu Dey",
     "role": "Approver",
     "mobileNumber": "9230579375",
-    "email": "mintu@gmail.com",
+    "email": "mintu@example.com",
     "avatar": "https://avatar.vercel.sh/mintu.png"
   },
   {
@@ -26,7 +27,7 @@
   {
     "id": "auth2",
     "name": "Dwight Schrute",
-    "role": "Asst. to the Manager",
+    "role": "Resident",
     "mobileNumber": "9123456781",
     "email": "dwight.s@securepass.com",
     "avatar": "https://avatar.vercel.sh/dwight.png"
@@ -34,7 +35,7 @@
   {
     "id": "auth3",
     "name": "Jim Halpert",
-    "role": "Administrator",
+    "role": "Admin",
     "mobileNumber": "9123456782",
     "email": "jim.h@securepass.com",
     "avatar": "https://avatar.vercel.sh/jim.png"
@@ -42,9 +43,17 @@
   {
     "id": "auth4",
     "name": "Pam Beesly",
-    "role": "Administrator",
+    "role": "Resident",
     "mobileNumber": "9123456783",
     "email": "pam.b@securepass.com",
     "avatar": "https://avatar.vercel.sh/pam.png"
+  },
+  {
+    "id": "auth5",
+    "name": "Angela Martin",
+    "role": "Approver",
+    "mobileNumber": "9123456784",
+    "email": "angela.m@securepass.com",
+    "avatar": "https://avatar.vercel.sh/angela.png"
   }
 ]

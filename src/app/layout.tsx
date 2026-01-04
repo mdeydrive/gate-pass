@@ -1,7 +1,9 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/auth-context';
+import { RoleProvider } from '@/contexts/role-context';
 
 export const metadata: Metadata = {
   title: 'SecurePass',
@@ -18,9 +20,11 @@ export default function RootLayout({
        <head>
       </head>
       <body className={`font-body antialiased`}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <RoleProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </RoleProvider>
         <Toaster />
       </body>
     </html>

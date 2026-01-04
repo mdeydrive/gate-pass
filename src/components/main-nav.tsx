@@ -42,29 +42,12 @@ const allNavItems: NavItem[] = [
     { href: "/control-panel", label: "Control Panel", icon: Settings, roles: ["Admin"] },
   ];
 
-const managerNavItems: NavItem[] = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["Manager", "Resident"] },
-    { href: "/gate-pass", label: "Manage Gate Pass", icon: Ticket, roles: ["Manager", "Resident"] },
-]
-
-const approverNavItems: NavItem[] = [
-    { href: "/gate-pass", label: "Manage Gate Pass", icon: Ticket, roles: ["Approver"] },
-]
 
 export default function MainNav() {
   const pathname = usePathname();
   const { role } = useRole();
 
-  let navItems;
-  if (role === "Manager" || role === "Resident") {
-    navItems = managerNavItems;
-  } else if (role === "Approver") {
-    navItems = approverNavItems;
-  } else {
-    navItems = allNavItems;
-  }
-
-  const accessibleNavItems = navItems.filter(item => item.roles.includes(role));
+  const accessibleNavItems = allNavItems.filter(item => item.roles.includes(role));
 
   return (
     <SidebarMenu>

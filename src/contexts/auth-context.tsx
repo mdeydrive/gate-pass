@@ -4,12 +4,13 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
 import type { UserRole } from './role-context';
 import type { ApprovingAuthority } from '@/lib/data';
+import { useRole } from './role-context';
 
 interface User {
   id: string;
-  username: string; // Keep username for display, could be the person's name
+  username: string;
   role: UserRole;
-  mobileNumber: string;
+  mobileNumber?: string;
 }
 
 interface AuthContextType {
@@ -21,7 +22,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// A simple in-memory cache for the authorities to avoid fetching on every login attempt.
 let authoritiesCache: ApprovingAuthority[] | null = null;
 
 async function getAuthorities(): Promise<ApprovingAuthority[]> {
@@ -47,90 +47,79 @@ async function getAuthorities(): Promise<ApprovingAuthority[]> {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { setRole } = useRole(); 
 
   useEffect(() => {
-    // In a real app, you'd check for a token in localStorage here
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setRole(parsedUser.role);
+    }
     setLoading(false);
-  }, []);
+  }, [setRole]);
 
   const login = async (identifier: string, pass: string, type: 'user' | 'admin' | 'approver' | 'manager' | 'security'): Promise<boolean> => {
-    // Admin login check
-    if (type === 'admin' && identifier === 'admin' && pass === 'admin123') {
-        const loggedInUser: User = {
-            id: 'admin-user',
-            username: 'Administrator', 
-            role: 'Admin',
-            mobileNumber: 'N/A'
-        };
-        setUser(loggedInUser);
-        return true;
-    }
     
-    if (pass !== 'user123') {
+    if (pass !== 'user123' && (type !== 'admin' || pass !== 'admin123')) {
       return false;
     }
 
-    const authorities = await getAuthorities();
-    const authority = authorities.find(auth => auth.mobileNumber === identifier);
+    let loggedInUser: User | null = null;
 
-    if (authority) {
-        let userRole: UserRole;
-
-        switch (type) {
-            case 'approver':
-                userRole = 'Approver';
-                break;
-            case 'manager':
-                userRole = 'Manager';
-                break;
-            case 'security':
-                userRole = 'Security';
-                break;
-            case 'admin':
-                userRole = 'Admin';
-                break;
-            case 'user':
-                // For a general user, derive role from their authority record, or default
-                const potentialRole = authority.role as UserRole;
-                if (['Admin', 'Security', 'Resident', 'Manager'].includes(potentialRole)) {
-                    userRole = potentialRole;
-                } else if (authority.role === 'Administrator') {
-                    userRole = 'Admin';
-                }
-                else {
-                    userRole = 'Resident'; // Default role for general users
-                }
-                break;
-            default:
-                return false; // Should not happen
-        }
-
-        const loggedInUser: User = { 
-            id: authority.id,
-            username: authority.name, 
-            role: userRole,
-            mobileNumber: authority.mobileNumber
+    if (type === 'admin' && identifier === 'admin' && pass === 'admin123') {
+        loggedInUser = {
+            id: 'admin-user',
+            username: 'Administrator', 
+            role: 'Admin',
         };
+    } else {
+        const authorities = await getAuthorities();
+        const authority = authorities.find(auth => auth.mobileNumber === identifier);
+
+        if (authority) {
+            const userRole = authority.role as UserRole;
+            // Check if the login type matches the role from the database
+            if ((type === 'approver' && userRole === 'Approver') ||
+                (type === 'manager' && userRole === 'Manager') ||
+                (type === 'security' && userRole === 'Security') ||
+                (type === 'user' && ['Resident', 'Admin'].includes(userRole))
+            ) {
+                 loggedInUser = { 
+                    id: authority.id,
+                    username: authority.name, 
+                    role: userRole,
+                    mobileNumber: authority.mobileNumber
+                };
+            }
+        }
+    }
+    
+    // Fallback for hardcoded demo users ONLY if no match found in authorities
+    if (!loggedInUser) {
+        if (type === 'security' && identifier === 'security' && pass === 'user123') {
+            loggedInUser = { id: 'demo-security', username: 'Security Guard', role: 'Security', mobileNumber: '0000000000' };
+        } else if (type === 'user' && identifier === 'resident' && pass === 'user123') {
+            loggedInUser = { id: 'demo-resident', username: 'John Resident', role: 'Resident', mobileNumber: '1111111111' };
+        } else if (type === 'manager' && identifier === 'manager' && pass === 'user123') {
+             loggedInUser = { id: 'demo-manager', username: 'Facility Manager', role: 'Manager', mobileNumber: '2222222222' };
+        }
+    }
+
+    if (loggedInUser) {
         setUser(loggedInUser);
+        setRole(loggedInUser.role);
+        localStorage.setItem('user', JSON.stringify(loggedInUser));
         return true;
     }
-
-    // Fallback for demo users not in the authorities list
-    if (type === 'security' && identifier === 'security' && pass === 'user123') {
-        setUser({ id: 'demo-security', username: 'Security Guard', role: 'Security', mobileNumber: '0000000000' });
-        return true;
-    }
-     if (type === 'user' && identifier === 'resident' && pass === 'user123') {
-        setUser({ id: 'demo-resident', username: 'John Resident', role: 'Resident', mobileNumber: '1111111111' });
-        return true;
-    }
-
 
     return false;
   };
 
   const logout = () => {
     setUser(null);
+    setRole('Resident'); // Reset to a default non-privileged role
+    localStorage.removeItem('user');
   };
 
   const value = useMemo(

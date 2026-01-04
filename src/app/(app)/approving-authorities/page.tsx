@@ -107,7 +107,7 @@ function AddAuthorityDialog({ onAddAuthority }: { onAddAuthority: (newAuthority:
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="Resident">User</SelectItem>
+                    <SelectItem value="Resident">Resident</SelectItem>
                     <SelectItem value="Approver">Approver</SelectItem>
                     <SelectItem value="Admin">Admin</SelectItem>
                     <SelectItem value="Manager">Gatepass Manager</SelectItem>
@@ -190,7 +190,7 @@ function EditAuthorityDialog({ authority, onUpdateAuthority }: { authority: Auth
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="Resident">User</SelectItem>
+                    <SelectItem value="Resident">Resident</SelectItem>
                     <SelectItem value="Approver">Approver</SelectItem>
                     <SelectItem value="Admin">Admin</SelectItem>
                     <SelectItem value="Manager">Gatepass Manager</SelectItem>
@@ -281,6 +281,21 @@ export default function ApprovingAuthoritiesPage() {
     }
   };
 
+  if (role !== 'Admin') {
+    return (
+        <div className="flex items-center justify-center h-full">
+            <Card className="w-full max-w-md text-center">
+                <CardHeader>
+                    <CardTitle>Access Denied</CardTitle>
+                    <CardDescription>You do not have permission to view this page.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p>Please switch to an Admin role to access this page.</p>
+                </CardContent>
+            </Card>
+        </div>
+    )
+  }
 
   return (
     <Card>
