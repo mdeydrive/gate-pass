@@ -275,15 +275,16 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
             }
         }
     };
-
-    const handleCompanyNameBlur = () => {
-        if (companyName.length > 0) {
-            const existingVisitor = activities.find(activity => activity.companyName?.toLowerCase() === companyName.toLowerCase());
+    
+    const handleVisitorNameBlur = () => {
+        if (visitorName.length > 0) {
+            const existingVisitor = activities.find(activity => activity.visitorName.toLowerCase() === visitorName.toLowerCase());
             if (existingVisitor) {
                 prefillVisitorData(existingVisitor);
             }
         }
     };
+
 
     return (
         <div className="grid gap-6">
@@ -292,7 +293,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="visitor-name">Visitor Name</Label>
-                            <Input id="visitor-name" placeholder="e.g., John Doe" value={visitorName} onChange={e => setVisitorName(e.target.value)} />
+                            <Input id="visitor-name" placeholder="e.g., John Doe" value={visitorName} onChange={e => setVisitorName(e.target.value)} onBlur={handleVisitorNameBlur} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="mobile-number">Mobile Number</Label>
@@ -302,7 +303,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                        <div className="grid gap-2">
                             <Label htmlFor="company-name">Company Name (Optional)</Label>
-                            <Input id="company-name" placeholder="e.g., Acme Inc." value={companyName} onChange={e => setCompanyName(e.target.value)} onBlur={handleCompanyNameBlur} />
+                            <Input id="company-name" placeholder="e.g., Acme Inc." value={companyName} onChange={e => setCompanyName(e.target.value)} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="location">Location (Optional)</Label>
@@ -628,4 +629,5 @@ export default function GatePassPage() {
     
 
     
+
 
