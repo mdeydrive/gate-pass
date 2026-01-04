@@ -58,28 +58,17 @@ function UserLoginForm({ onLogin }: { onLogin: (mobile: string, pass: string) =>
 }
 
 function AdminLoginForm({ onLogin }: { onLogin: (id: string, pass: string) => void }) {
-  const [adminId, setAdminId] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin(adminId, password);
+    // The admin ID is hardcoded as 'admin'
+    onLogin('admin', password);
   };
 
   return (
     <form onSubmit={handleSubmit}>
       <div className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="admin-id">Admin ID</Label>
-          <Input
-            id="admin-id"
-            type="text"
-            placeholder="admin"
-            required
-            value={adminId}
-            onChange={(e) => setAdminId(e.target.value)}
-          />
-        </div>
         <div className="grid gap-2">
           <Label htmlFor="admin-password">Password</Label>
           <Input
