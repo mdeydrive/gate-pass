@@ -735,6 +735,20 @@ function PreApproveDialog({ activities, onPreApprove }: { activities: Activity[]
     const { toast } = useToast();
     const [companyComboboxOpen, setCompanyComboboxOpen] = useState(false);
 
+    // Visitor search state
+    const [visitorComboboxOpen, setVisitorComboboxOpen] = useState(false);
+    const [selectedVisitorForDisplay, setSelectedVisitorForDisplay] = useState('');
+
+    const uniqueVisitors = useMemo(() => {
+        const visitorsMap = new Map<string, Activity>();
+        activities.forEach(activity => {
+            const key = `${activity.visitorName}-${activity.mobileNumber}`;
+            if (!visitorsMap.has(key)) {
+                visitorsMap.set(key, activity);
+            }
+        });
+        return Array.from(visitorsMap.values());
+    }, [activities]);
 
     const uniqueCompanies = useMemo(() => {
         const companyNames = new Set<string>();
@@ -745,6 +759,22 @@ function PreApproveDialog({ activities, onPreApprove }: { activities: Activity[]
         });
         return Array.from(companyNames);
     }, [activities]);
+
+    const resetForm = () => {
+        setVisitorName('');
+        setMobileNumber('');
+        setCompanyName('');
+        setPassType('');
+        setSelectedVisitorForDisplay('');
+    };
+
+    const prefillVisitorData = (visitor: Activity) => {
+        setVisitorName(visitor.visitorName);
+        setMobileNumber(visitor.mobileNumber || '');
+        setCompanyName(visitor.companyName || '');
+        setSelectedVisitorForDisplay(`${visitor.visitorName} - ${visitor.mobileNumber}`);
+        setVisitorComboboxOpen(false);
+    };
 
     const handlePreApprove = () => {
         if (!visitorName || !passType || !mobileNumber) {
@@ -772,29 +802,76 @@ function PreApproveDialog({ activities, onPreApprove }: { activities: Activity[]
         });
         
         // Reset form and close dialog
-        setVisitorName('');
-        setMobileNumber('');
-        setPassType('');
-        setCompanyName('');
+        resetForm();
         setOpen(false);
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(isOpen) => {
+            setOpen(isOpen);
+            if (!isOpen) {
+                resetForm();
+            }
+        }}>
             <DialogTrigger asChild>
                 <Button size="sm" className="h-8 gap-1">
                     <PlusCircle className="h-4 w-4" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-rap">Pre-approve</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[480px]">
                 <DialogHeader>
                     <DialogTitle>Create Pre-approved Pass</DialogTitle>
                     <DialogDescription>
-                        Enter the visitor's details to create a pass that will be active immediately upon their arrival.
+                        Search for an existing visitor or enter new details to create a pass that will be active upon arrival.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="pre-visitor-search" className="text-right">Visitor</Label>
+                        <div className="col-span-3">
+                             <Popover open={visitorComboboxOpen} onOpenChange={setVisitorComboboxOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={visitorComboboxOpen}
+                                    className="w-full justify-between font-normal"
+                                    >
+                                    {selectedVisitorForDisplay
+                                        ? selectedVisitorForDisplay
+                                        : "Select or search visitor..."}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Search visitor by name or mobile..." />
+                                        <CommandList>
+                                            <CommandEmpty>No visitor found. Enter details manually.</CommandEmpty>
+                                            <CommandGroup>
+                                                {uniqueVisitors.map((visitor) => (
+                                                    <CommandItem
+                                                    key={visitor.id}
+                                                    value={`${visitor.visitorName} ${visitor.mobileNumber}`}
+                                                    onSelect={() => prefillVisitorData(visitor)}
+                                                    >
+                                                    <Check
+                                                        className={cn(
+                                                        "mr-2 h-4 w-4",
+                                                        selectedVisitorForDisplay === `${visitor.visitorName} - ${visitor.mobileNumber}` ? "opacity-100" : "opacity-0"
+                                                        )}
+                                                    />
+                                                    {visitor.visitorName} ({visitor.mobileNumber})
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                    </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="pre-visitor-name" className="text-right">Visitor Name</Label>
                         <Input id="pre-visitor-name" placeholder="Enter visitor's full name" className="col-span-3" value={visitorName} onChange={e => setVisitorName(e.target.value)} />
@@ -824,7 +901,7 @@ function PreApproveDialog({ activities, onPreApprove }: { activities: Activity[]
                                  <Command>
                                      <CommandInput placeholder="Search company..." />
                                      <CommandList>
-                                         <CommandEmpty>No company found.</CommandEmpty>
+                                         <CommandEmpty>No company found. This will be a new entry.</CommandEmpty>
                                          <CommandGroup>
                                              {uniqueCompanies.filter(c => c.toLowerCase().includes(companyName.toLowerCase())).map((company) => (
                                                  <CommandItem
@@ -838,7 +915,7 @@ function PreApproveDialog({ activities, onPreApprove }: { activities: Activity[]
                                                      <Check
                                                          className={cn(
                                                              "mr-2 h-4 w-4",
-                                                             companyName === company ? "opacity-100" : "opacity-0"
+                                                             companyName.toLowerCase() === company.toLowerCase() ? "opacity-100" : "opacity-0"
                                                          )}
                                                      />
                                                      {company}
