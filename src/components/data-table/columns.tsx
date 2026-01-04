@@ -12,12 +12,16 @@ const getBadgeVariant = (status: Activity['status']) => {
       case 'Checked Out': return 'secondary';
       case 'Pending': return 'destructive';
       case 'Approved': return 'secondary';
-      case 'Rejected': return 'destructive';
+      case 'Rejected': 'destructive';
       default: return 'outline';
     }
 };
 
 export const columns: ColumnDef<Activity & { approverNames?: string[] }>[] = [
+  {
+    accessorKey: "id",
+    header: "Visitor ID",
+  },
   {
     accessorKey: "visitorName",
     header: "Visitor",
@@ -32,6 +36,13 @@ export const columns: ColumnDef<Activity & { approverNames?: string[] }>[] = [
               <div className="font-medium">{activity.visitorName}</div>
           </div>
         )
+    }
+  },
+  {
+    accessorKey: "companyName",
+    header: "Company Name",
+    cell: ({ row }) => {
+        return row.original.companyName ? <span>{row.original.companyName}</span> : <span className="text-muted-foreground">N/A</span>
     }
   },
   {
