@@ -6,7 +6,9 @@ import {
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
+  getFilteredRowModel,
   useReactTable,
+  type ColumnFiltersState,
 } from "@tanstack/react-table"
 
 import {
@@ -22,24 +24,40 @@ import { DataTablePagination } from "./data-table-pagination"
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  filterValue?: string
+  filterColumn?: string
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  filterValue,
+  filterColumn,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({})
-  
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  )
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onRowSelectionChange: setRowSelection,
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
     state: {
       rowSelection,
+      columnFilters,
     },
   })
+
+  React.useEffect(() => {
+    if (filterColumn) {
+      table.getColumn(filterColumn)?.setFilterValue(filterValue || "");
+    }
+  }, [filterValue, filterColumn, table])
 
   return (
     <div className="space-y-4">

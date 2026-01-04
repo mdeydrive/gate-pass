@@ -10,10 +10,11 @@ import {
 import { DataTable } from "@/components/data-table/data-table";
 import { useGatePass } from "@/contexts/gate-pass-context";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Activity } from "@/lib/data";
 import type { ColumnDef } from "@tanstack/react-table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
 
 type UniqueVisitor = {
     id: string;
@@ -61,6 +62,7 @@ const visitorColumns: ColumnDef<UniqueVisitor>[] = [
 
 export default function VisitorsPage() {
   const { activities, loading } = useGatePass();
+  const [filter, setFilter] = useState('');
 
   const uniqueVisitors = useMemo(() => {
     if (loading) {
@@ -94,10 +96,21 @@ export default function VisitorsPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Visitor List</CardTitle>
-        <CardDescription>
-          A list of all unique visitors who have previously entered the complex.
-        </CardDescription>
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+          <div>
+            <CardTitle>Visitor List</CardTitle>
+            <CardDescription>
+              A list of all unique visitors who have previously entered the complex.
+            </CardDescription>
+          </div>
+          <div className="w-full sm:w-auto sm:max-w-xs">
+            <Input
+              placeholder="Search by visitor name..."
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            />
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -108,7 +121,7 @@ export default function VisitorsPage() {
             <Skeleton className="h-12 w-full" />
           </div>
         ) : (
-          <DataTable columns={visitorColumns} data={uniqueVisitors} />
+          <DataTable columns={visitorColumns} data={uniqueVisitors} filterColumn="visitorName" filterValue={filter} />
         )}
       </CardContent>
     </Card>
