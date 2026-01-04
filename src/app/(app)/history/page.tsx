@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/card";
 import { DataTable } from "@/components/data-table/data-table";
 import { columns } from "@/components/data-table/columns";
-import { activities } from "@/lib/data";
 import initialActivities from '@/data/gate-pass-data.json';
 import { type Activity } from "@/lib/data";
 
