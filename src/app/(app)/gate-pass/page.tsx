@@ -575,7 +575,7 @@ export default function GatePassPage() {
             <CardDescription>
               List of visitors pre-approved by residents for entry.
             </CardDescription>
-          </Header>
+          </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">The list of pre-approved visitors will be shown here.</p>
           </CardContent>
