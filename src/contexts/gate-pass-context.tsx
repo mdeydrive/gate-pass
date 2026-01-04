@@ -1,7 +1,7 @@
 
 'use client';
 
-import { createContext, useContext, useState, type ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, type ReactNode, useEffect, useCallback } from 'react';
 import type { Activity } from '@/lib/data';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -20,29 +20,30 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    async function fetchActivities() {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/activities');
-        if (!response.ok) {
-          throw new Error('Failed to fetch activities');
-        }
-        const data = await response.json();
-        setActivities(data);
-      } catch (error) {
-        console.error(error);
-        toast({
-            variant: "destructive",
-            title: "Error fetching data",
-            description: "Could not load existing gate passes.",
-        });
-      } finally {
-        setLoading(false);
+  const fetchActivities = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/activities');
+      if (!response.ok) {
+        throw new Error('Failed to fetch activities');
       }
+      const data = await response.json();
+      setActivities(data);
+    } catch (error) {
+      console.error(error);
+      toast({
+          variant: "destructive",
+          title: "Error fetching data",
+          description: "Could not load existing gate passes.",
+      });
+    } finally {
+      setLoading(false);
     }
-    fetchActivities();
   }, [toast]);
+
+  useEffect(() => {
+    fetchActivities();
+  }, [fetchActivities]);
 
   const addActivity = async (newPassData: Omit<Activity, 'id' | 'time' | 'date' | 'status'>) => {
     const newPass: Activity = {
@@ -65,9 +66,9 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
             console.error('Server Error:', errorBody);
             throw new Error(errorBody.message || `Error ${response.status}: Failed to save the new pass`);
         }
-
-        const savedPass = await response.json();
-        setActivities(prevActivities => [savedPass, ...prevActivities]);
+        
+        // Refetch activities to get the latest list
+        await fetchActivities();
 
     } catch (error: any) {
         console.error(error);
@@ -128,3 +129,5 @@ export function useGatePass() {
   }
   return context;
 }
+
+    

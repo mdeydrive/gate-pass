@@ -24,7 +24,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { QrCode, PlusCircle, Camera, Check, X, AlertTriangle, Calendar as CalendarIcon, ShieldCheck } from "lucide-react";
+import { QrCode, PlusCircle, Camera, Check, X, AlertTriangle, Calendar as CalendarIcon, ShieldCheck, Search } from "lucide-react";
 import { type Activity } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -47,6 +47,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useGatePass } from "@/contexts/gate-pass-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRole } from "@/contexts/role-context";
+import type { ApprovingAuthority } from "@/lib/data";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 function DateTimePicker({ value, onChange, placeholder, disabled }: { value: Date | undefined, onChange: (date: Date | undefined) => void, placeholder: string, disabled?: boolean }) {
@@ -134,6 +136,32 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
     const [vehicleNumber, setVehicleNumber] = useState('');
     const [isNow, setIsNow] = useState(false);
     const [validityOption, setValidityOption] = useState('today');
+    
+    // Approvers state
+    const [authorities, setAuthorities] = useState<ApprovingAuthority[]>([]);
+    const [loadingAuthorities, setLoadingAuthorities] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedApproverIds, setSelectedApproverIds] = useState<string[]>([]);
+
+
+    useEffect(() => {
+        async function fetchAuthorities() {
+            try {
+                setLoadingAuthorities(true);
+                const response = await fetch('/api/authorities');
+                if (!response.ok) throw new Error("Failed to fetch authorities.");
+                const data = await response.json();
+                setAuthorities(data);
+            } catch (error) {
+                console.error(error);
+                toast({ variant: 'destructive', title: "Error", description: "Could not fetch approving authorities." });
+            } finally {
+                setLoadingAuthorities(false);
+            }
+        }
+        fetchAuthorities();
+    }, [toast]);
+    
 
     useEffect(() => {
         const getCameraPermission = async () => {
@@ -201,6 +229,15 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
             return;
         }
 
+        if (selectedApproverIds.length === 0) {
+            toast({
+                variant: "destructive",
+                title: "No Approver Selected",
+                description: "Please select at least one approving authority.",
+            });
+            return;
+        }
+
         const newPass = {
             visitorName,
             mobileNumber,
@@ -209,6 +246,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
             passType: passType as Activity['passType'],
             vehicle: vehicleNumber || undefined,
             photo: capturedImage || undefined,
+            approverIds: selectedApproverIds,
         };
 
         onGeneratePass(newPass);
@@ -225,6 +263,9 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
         setCapturedImage(null);
         setIsNow(false);
         setValidityOption('today');
+        setSelectedApproverIds([]);
+        setSearchTerm('');
+
 
         toast({
             title: "Pass Sent for Approval!",
@@ -264,11 +305,24 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
             }
         }
     };
+    
+    const handleApproverSelection = (approverId: string) => {
+        setSelectedApproverIds(prev =>
+            prev.includes(approverId)
+                ? prev.filter(id => id !== approverId)
+                : [...prev, approverId]
+        );
+    };
+
+    const filteredAuthorities = authorities.filter(auth =>
+        auth.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        auth.mobileNumber.includes(searchTerm)
+    );
 
     return (
         <div className="grid gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="grid gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2 grid gap-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="visitor-name">Visitor Name</Label>
@@ -337,45 +391,93 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                         <Label htmlFor="vehicle-number">Vehicle Number (Optional)</Label>
                         <Input id="vehicle-number" placeholder="e.g., MH12AB1234" value={vehicleNumber} onChange={e => setVehicleNumber(e.target.value)} />
                     </div>
+                    
+                    <div className="grid gap-4 pt-4">
+                        <div className="grid gap-2">
+                            <Label>Visitor Photo (Optional)</Label>
+                            <div className="w-full max-w-sm aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden relative">
+                               {capturedImage ? (
+                                    <img src={capturedImage} alt="Captured" className="object-cover w-full h-full" />
+                               ) : hasCameraPermission ? (
+                                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                               ): (
+                                <div className="text-center p-4">
+                                    <Camera className="mx-auto h-12 w-12 text-muted-foreground" />
+                                    <p className="mt-2 text-sm text-muted-foreground">
+                                        {hasCameraPermission === null ? "Requesting camera permission..." : "Camera not available."}
+                                    </p>
+                                </div>
+                               )}
+                               <canvas ref={photoRef} className="hidden" />
+                            </div>
+                            {cameraError && (
+                                 <Alert variant="destructive">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <AlertTitle>Camera Error</AlertTitle>
+                                    <AlertDescription>
+                                        {cameraError}
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+                             <div className="flex gap-2">
+                                <Button variant="outline" onClick={takePicture} disabled={!hasCameraPermission}>
+                                    <Camera className="mr-2 h-4 w-4" />
+                                    {capturedImage ? 'Retake Photo' : 'Take Photo'}
+                                </Button>
+                                <Input id="id-upload" type="file" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"/>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="grid gap-4">
-                     <div className="grid gap-2">
-                        <Label>Visitor Photo (Optional)</Label>
-                        <div className="w-full aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden relative">
-                           {capturedImage ? (
-                                <img src={capturedImage} alt="Captured" className="object-cover w-full h-full" />
-                           ) : hasCameraPermission ? (
-                             <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                           ): (
-                            <div className="text-center p-4">
-                                <Camera className="mx-auto h-12 w-12 text-muted-foreground" />
-                                <p className="mt-2 text-sm text-muted-foreground">
-                                    {hasCameraPermission === null ? "Requesting camera permission..." : "Camera not available."}
-                                </p>
+                     <Label>Select Approving Authority</Label>
+                     <Card>
+                        <CardHeader className="p-4">
+                            <div className="relative">
+                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    placeholder="Search by name or mobile..." 
+                                    className="pl-8"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
                             </div>
-                           )}
-                           <canvas ref={photoRef} className="hidden" />
-                        </div>
-                        {cameraError && (
-                             <Alert variant="destructive">
-                                <AlertTriangle className="h-4 w-4" />
-                                <AlertTitle>Camera Error</AlertTitle>
-                                <AlertDescription>
-                                    {cameraError}
-                                </AlertDescription>
-                            </Alert>
-                        )}
-                         <Button variant="outline" onClick={takePicture} disabled={!hasCameraPermission}>
-                            <Camera className="mr-2 h-4 w-4" />
-                            {capturedImage ? 'Retake Photo' : 'Take Photo'}
-                        </Button>
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="id-upload">Upload ID (Optional)</Label>
-                        <Input id="id-upload" type="file" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"/>
-                    </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <ScrollArea className="h-96">
+                                <div className="p-4 space-y-4">
+                                    {loadingAuthorities ? (
+                                        <div className="space-y-4">
+                                            <Skeleton className="h-10 w-full" />
+                                            <Skeleton className="h-10 w-full" />
+                                            <Skeleton className="h-10 w-full" />
+                                        </div>
+                                    ) : filteredAuthorities.length > 0 ? filteredAuthorities.map(authority => (
+                                        <div key={authority.id} className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-9 w-9">
+                                                    <AvatarImage src={authority.avatar} />
+                                                    <AvatarFallback>{authority.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <div className="font-medium">{authority.name}</div>
+                                                    <div className="text-xs text-muted-foreground">{authority.mobileNumber}</div>
+                                                </div>
+                                            </div>
+                                            <Checkbox
+                                                id={`approver-${authority.id}`}
+                                                checked={selectedApproverIds.includes(authority.id)}
+                                                onCheckedChange={() => handleApproverSelection(authority.id)}
+                                            />
+                                        </div>
+                                    )) : (
+                                        <p className="text-center text-sm text-muted-foreground">No authorities found.</p>
+                                    )}
+                                </div>
+                            </ScrollArea>
+                        </CardContent>
+                     </Card>
                 </div>
             </div>
             <Button className="w-full sm:w-auto justify-self-start" onClick={handleGeneratePass}>Request Approval</Button>
@@ -504,7 +606,7 @@ export default function GatePassPage() {
           <CardHeader>
             <CardTitle>Create New Gate Pass</CardTitle>
             <CardDescription>
-              Fill in the details for the new visitor to generate their pass.
+              Fill in the details for the new visitor and select an approver to generate a pass.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -522,7 +624,7 @@ export default function GatePassPage() {
             <CardDescription>
               List of visitors pre-approved by residents for entry.
             </CardDescription>
-          </CardHeader>
+          </Header>
           <CardContent>
             <p className="text-muted-foreground">The list of pre-approved visitors will be shown here.</p>
           </CardContent>
@@ -531,3 +633,5 @@ export default function GatePassPage() {
     </Tabs>
   );
 }
+
+    

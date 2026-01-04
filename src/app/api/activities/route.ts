@@ -111,7 +111,7 @@ export async function POST(request: Request) {
         }
 
         const newActivity: Activity = {
-          id: body.id,
+          id: `pass-${Date.now()}`,
           visitorName: body.visitorName,
           mobileNumber: body.mobileNumber,
           companyName: body.companyName,
@@ -122,6 +122,7 @@ export async function POST(request: Request) {
           time: body.time,
           date: body.date,
           status: body.status,
+          approverIds: body.approverIds,
         };
         
         activities.unshift(newActivity); // Add to the beginning of the list
@@ -136,3 +137,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Failed to process request', error: errorMessage }, { status: 500 });
   }
 }
+
+    

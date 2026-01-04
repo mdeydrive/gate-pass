@@ -1,3 +1,4 @@
+
 import type { UserRole } from "@/contexts/role-context";
 
 export type Activity = {
@@ -13,6 +14,7 @@ export type Activity = {
   checkoutTime?: string;
   companyName?: string;
   location?: string;
+  approverIds?: string[];
 };
 
 export type ApprovingAuthority = {
@@ -73,3 +75,5 @@ export const approvingAuthorities: ApprovingAuthority[] = [
   { id: 'auth3', name: 'Jim Halpert', role: 'Administrator', mobileNumber: '9123456782', email: 'jim.h@securepass.com', avatar: 'https://avatar.vercel.sh/jim.png' },
   { id: 'auth4', name: 'Pam Beesly', role: 'Administrator', mobileNumber: '9123456783', email: 'pam.b@securepass.com', avatar: 'https://avatar.vercel.sh/pam.png' },
 ];
+
+    
