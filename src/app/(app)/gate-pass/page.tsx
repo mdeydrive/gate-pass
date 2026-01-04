@@ -729,23 +729,27 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
 
 export default function GatePassPage() {
     const { activities, addActivity, updateActivityStatus, assignApprover, loading } = useGatePass();
+    const { role } = useRole();
+    const defaultTab = role === 'Approver' ? 'active' : 'generate';
 
   return (
-    <Tabs defaultValue="generate" className="w-full">
+    <Tabs defaultValue={defaultTab} className="w-full">
       <div className="flex items-center">
         <TabsList>
-          <TabsTrigger value="generate">Generate Pass</TabsTrigger>
+          {role !== 'Approver' && <TabsTrigger value="generate">Generate Pass</TabsTrigger>}
           <TabsTrigger value="active">Active Passes</TabsTrigger>
           <TabsTrigger value="pre-approved">Pre-approved</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
-            <Button size="sm" variant="outline" className="h-8 gap-1">
-                <QrCode className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Scan Pass</span>
-            </Button>
+            {role !== 'Approver' && (
+              <Button size="sm" variant="outline" className="h-8 gap-1">
+                  <QrCode className="h-4 w-4" />
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Scan Pass</span>
+              </Button>
+            )}
             <Button size="sm" className="h-8 gap-1">
                 <PlusCircle className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Pre-approve</span>
+                <span className="sr-only sm:not-sr-only sm:whitespace-rap">Pre-approve</span>
             </Button>
         </div>
       </div>
