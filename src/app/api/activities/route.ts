@@ -67,24 +67,44 @@ export async function GET() {
 // POST /api/activities - Creates a new activity
 export async function POST(request: Request) {
   try {
-    const newActivityData = await request.json();
-    let imageUrl = newActivityData.photo;
+    const body = await request.json();
 
-    // If there's a photo, save it and get the URL
-    if (imageUrl && imageUrl.startsWith('data:image')) {
-      imageUrl = await saveImage(imageUrl);
+    // Check if this is a new pass or a status update
+    if (body.id && body.status) {
+        // This is a status update
+        const { id, status, checkoutTime } = body;
+        const activities = await readData();
+        const activityIndex = activities.findIndex(a => a.id === id);
+
+        if (activityIndex === -1) {
+            return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
+        }
+
+        activities[activityIndex] = { ...activities[activityIndex], status, checkoutTime };
+        await writeData(activities);
+        return NextResponse.json(activities[activityIndex]);
+
+    } else {
+        // This is a new pass creation
+        const newActivityData = body;
+        let imageUrl = newActivityData.photo;
+
+        if (imageUrl && imageUrl.startsWith('data:image')) {
+          imageUrl = await saveImage(imageUrl);
+        }
+
+        const newActivityWithImageUrl = { ...newActivityData, photo: imageUrl };
+
+        const activities = await readData();
+        activities.unshift(newActivityWithImageUrl); // Add to the beginning of the list
+        await writeData(activities);
+
+        return NextResponse.json(newActivityWithImageUrl, { status: 201 });
     }
 
-    const newActivityWithImageUrl = { ...newActivityData, photo: imageUrl };
-
-    const activities = await readData();
-    activities.unshift(newActivityWithImageUrl); // Add to the beginning of the list
-    await writeData(activities);
-
-    return NextResponse.json(newActivityWithImageUrl, { status: 201 });
   } catch (error) {
-    console.error("Failed to create activity:", error);
-    return NextResponse.json({ message: 'Failed to create activity' }, { status: 500 });
+    console.error("Failed to process request:", error);
+    return NextResponse.json({ message: 'Failed to process request' }, { status: 500 });
   }
 }
 

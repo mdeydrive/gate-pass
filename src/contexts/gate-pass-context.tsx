@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 interface GatePassContextType {
   activities: Activity[];
   addActivity: (newPass: Omit<Activity, 'id' | 'time' | 'date' | 'status'>) => Promise<void>;
-  updateActivityStatus: (id: string, status: Activity['status']) => void;
+  updateActivityStatus: (id: string, status: Activity['status']) => Promise<void>;
   loading: boolean;
 }
 
@@ -56,9 +56,7 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
     try {
         const response = await fetch('/api/activities', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newPass),
         });
 
@@ -79,18 +77,39 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateActivityStatus = (id: string, status: Activity['status']) => {
-    // This part would also need an API endpoint to be truly persistent.
-    // For now, it will only update in the client-side state.
-    setActivities(prevActivities =>
-      prevActivities.map(pass =>
-        pass.id === id ? { ...pass, status: status, ...(status === 'Checked Out' && { checkoutTime: format(new Date(), "hh:mm a") }) } : pass
-      )
-    );
-     toast({
-        title: "Status Updated",
-        description: `Pass for ${activities.find(p=>p.id === id)?.visitorName} is now ${status}.`,
-    });
+  const updateActivityStatus = async (id: string, status: Activity['status']) => {
+    const checkoutTime = status === 'Checked Out' ? format(new Date(), "hh:mm a") : undefined;
+    
+    try {
+        const response = await fetch('/api/activities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, status, checkoutTime }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update pass status');
+        }
+        
+        const updatedPass = await response.json();
+
+        setActivities(prevActivities =>
+            prevActivities.map(pass => (pass.id === id ? updatedPass : pass))
+        );
+
+        toast({
+            title: "Status Updated",
+            description: `Pass for ${activities.find(p=>p.id === id)?.visitorName} is now ${status}.`,
+        });
+
+    } catch (error) {
+         console.error(error);
+         toast({
+            variant: "destructive",
+            title: "Error Updating Status",
+            description: "The pass status could not be saved to the database.",
+        });
+    }
   };
 
   return (
