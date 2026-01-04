@@ -44,7 +44,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
-import initialActivities from '@/data/gate-pass-data.json';
+import { useGatePass } from "@/contexts/gate-pass-context";
 
 
 function DateTimePicker({ value, onChange, placeholder, disabled }: { value: Date | undefined, onChange: (date: Date | undefined) => void, placeholder: string, disabled?: boolean }) {
@@ -112,7 +112,7 @@ function DateTimePicker({ value, onChange, placeholder, disabled }: { value: Dat
     );
   }
 
-function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => void }) {
+function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity, 'id' | 'time' | 'date' | 'status'>) => void }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const photoRef = useRef<HTMLCanvasElement>(null);
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -198,16 +198,12 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Activity) => v
             return;
         }
 
-        const newPass: Activity = {
-            id: `pass-${Date.now()}`,
+        const newPass = {
             visitorName,
             mobileNumber,
             companyName,
             location,
             passType: passType as Activity['passType'],
-            status: 'Checked In',
-            time: format(new Date(), "hh:mm a"),
-            date: format(new Date(), "yyyy-MM-dd"),
             vehicle: vehicleNumber || undefined,
             photo: capturedImage || undefined,
         };
@@ -439,20 +435,7 @@ function ActivePassesList({ passes, onUpdatePass }: { passes: Activity[], onUpda
   }
 
 export default function GatePassPage() {
-  const [activities, setActivities] = useState<Activity[]>(initialActivities as Activity[]);
-
-  const handleGeneratePass = (newPass: Activity) => {
-    setActivities(prevActivities => [newPass, ...prevActivities]);
-  };
-
-  const handleUpdatePass = (id: string, status: Activity['status']) => {
-    setActivities(prevActivities => 
-        prevActivities.map(pass => 
-            pass.id === id ? { ...pass, status: status, ...(status === 'Checked Out' && { checkoutTime: format(new Date(), "hh:mm a") }) } : pass
-        )
-    );
-  };
-
+    const { activities, addActivity, updateActivityStatus } = useGatePass();
 
   return (
     <Tabs defaultValue="generate" className="w-full">
@@ -482,12 +465,12 @@ export default function GatePassPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <PassForm onGeneratePass={handleGeneratePass} />
+            <PassForm onGeneratePass={addActivity} />
           </CardContent>
         </Card>
       </TabsContent>
       <TabsContent value="active">
-        <ActivePassesList passes={activities} onUpdatePass={handleUpdatePass} />
+        <ActivePassesList passes={activities} onUpdatePass={updateActivityStatus} />
       </TabsContent>
       <TabsContent value="pre-approved">
         <Card>
