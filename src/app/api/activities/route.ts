@@ -97,13 +97,18 @@ export async function POST(request: Request) {
           imageUrl = await saveImage(imageUrl);
         }
 
-        const newActivityWithImageUrl = { ...newActivityData, photo: imageUrl };
+        const newActivity = { ...newActivityData, photo: imageUrl };
+        
+        // Ensure checkoutTime is not part of a new pass object
+        if ('checkoutTime' in newActivity) {
+            delete (newActivity as Partial<Activity>).checkoutTime;
+        }
 
         const activities = await readData();
-        activities.unshift(newActivityWithImageUrl); // Add to the beginning of the list
+        activities.unshift(newActivity); // Add to the beginning of the list
         await writeData(activities);
 
-        return NextResponse.json(newActivityWithImageUrl, { status: 201 });
+        return NextResponse.json(newActivity, { status: 201 });
     }
 
   } catch (error) {
