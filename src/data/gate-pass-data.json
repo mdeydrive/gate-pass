@@ -104,7 +104,10 @@
     "time": "01:00 PM",
     "date": "2023-10-27",
     "companyName": "Friend",
-    "location": "Downtown"
+    "location": "Downtown",
+    "approverIds": [
+      "auth1"
+    ]
   },
   {
     "id": "5",
