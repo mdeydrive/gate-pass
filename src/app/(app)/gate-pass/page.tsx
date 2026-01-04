@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -401,11 +402,10 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                                         <CommandInput placeholder="Search visitor by name or mobile..." />
                                         <CommandList>
                                             <CommandEmpty>
-                                                 <Button variant="ghost" className="w-full" onClick={() => {
-                                                    resetForm();
+                                                 <Button variant="ghost" className="w-full justify-start" onClick={() => {
                                                     setComboboxOpen(false);
                                                 }}>
-                                                    No visitor found. Click to add new.
+                                                    No visitor found. Use "Add New Visitor".
                                                 </Button>
                                             </CommandEmpty>
                                             <CommandGroup>
@@ -414,7 +414,10 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                                                     key={visitor.id}
                                                     value={`${visitor.visitorName} ${visitor.mobileNumber}`}
                                                     onSelect={(currentValue) => {
-                                                        prefillVisitorData(visitor);
+                                                        const selected = uniqueVisitors.find(v => `${v.visitorName} ${v.mobileNumber}` === currentValue);
+                                                        if (selected) {
+                                                           prefillVisitorData(selected);
+                                                        }
                                                     }}
                                                     >
                                                     <Check
@@ -505,39 +508,45 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                     </div>
                     
                     <div className="grid gap-4 pt-4">
-                        <div className="grid gap-2">
-                            <Label>Visitor Photo (Optional)</Label>
-                            <div className="w-full max-w-sm aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden relative">
-                               {capturedImage ? (
-                                    <img src={capturedImage} alt="Captured" className="object-cover w-full h-full" />
-                               ) : hasCameraPermission ? (
+                        <Label>Visitor Photo (Optional)</Label>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="w-full aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden relative">
+                               {hasCameraPermission ? (
                                  <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                                ): (
                                 <div className="text-center p-4">
                                     <Camera className="mx-auto h-12 w-12 text-muted-foreground" />
                                     <p className="mt-2 text-sm text-muted-foreground">
-                                        {hasCameraPermission === null ? "Requesting camera permission..." : "Camera not available."}
+                                        {hasCameraPermission === null ? "Requesting camera..." : "Camera not available."}
                                     </p>
                                 </div>
                                )}
                                <canvas ref={photoRef} className="hidden" />
                             </div>
-                            {cameraError && (
-                                 <Alert variant="destructive">
-                                    <AlertTriangle className="h-4 w-4" />
-                                    <AlertTitle>Camera Error</AlertTitle>
-                                    <AlertDescription>
-                                        {cameraError}
-                                    </AlertDescription>
-                                </Alert>
-                            )}
-                             <div className="flex gap-2">
-                                <Button variant="outline" onClick={takePicture} disabled={!hasCameraPermission}>
-                                    <Camera className="mr-2 h-4 w-4" />
-                                    {capturedImage ? 'Retake Photo' : 'Take Photo'}
-                                </Button>
-                                <Input id="id-upload" type="file" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"/>
+                             <div className="w-full aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                                {capturedImage ? (
+                                    <img src={capturedImage} alt="Captured" className="object-cover w-full h-full" />
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">Photo Preview</p>
+                                )}
                             </div>
+                        </div>
+
+                        {cameraError && (
+                             <Alert variant="destructive">
+                                <AlertTriangle className="h-4 w-4" />
+                                <AlertTitle>Camera Error</AlertTitle>
+                                <AlertDescription>
+                                    {cameraError}
+                                </AlertDescription>
+                            </Alert>
+                        )}
+                         <div className="flex gap-2">
+                            <Button variant="outline" onClick={takePicture} disabled={!hasCameraPermission}>
+                                <Camera className="mr-2 h-4 w-4" />
+                                {capturedImage ? 'Retake Photo' : 'Take Photo'}
+                            </Button>
+                            <Input id="id-upload" type="file" accept="image/*" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"/>
                         </div>
                     </div>
                     <Button onClick={handleGeneratePass} className="w-full sm:w-auto justify-self-start">
@@ -575,7 +584,7 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
     const passesToDisplay = useMemo(() => {
         if (!user) return [];
         if (role === 'Approver') {
-            return passes.filter(p => p.approverIds?.includes(user.id));
+            return passes.filter(p => p.approverIds?.includes(user.id) || p.status === 'Pending' && (!p.approverIds || p.approverIds.length === 0));
         }
         if (role === 'Manager' || role === 'Resident') {
             return passes.filter(p => 
@@ -668,7 +677,7 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                     <div className="flex justify-end gap-2 items-center">
                       {activity.status === 'Pending' && (
                         <>
-                          {(!activity.approverIds || activity.approverIds.length === 0) && (role === 'Admin' || role === 'Manager') ? (
+                          {(!activity.approverIds || activity.approverIds.length === 0) && (role === 'Admin' || role === 'Manager' || role === 'Approver') ? (
                             <Select onValueChange={(approverId) => onAssignApprover(activity.id, approverId)}>
                                 <SelectTrigger className="w-[180px]">
                                     <SelectValue placeholder="Assign Approver" />
@@ -854,7 +863,10 @@ function PreApproveDialog({ activities, onPreApprove }: { activities: Activity[]
                                                     <CommandItem
                                                     key={visitor.id}
                                                     value={`${visitor.visitorName} ${visitor.mobileNumber}`}
-                                                    onSelect={() => prefillVisitorData(visitor)}
+                                                    onSelect={() => {
+                                                        const selected = uniqueVisitors.find(v => `${v.visitorName} ${v.mobileNumber}` === `${visitor.visitorName} ${visitor.mobileNumber}`);
+                                                        if(selected) prefillVisitorData(selected);
+                                                    }}
                                                     >
                                                     <Check
                                                         className={cn(
@@ -1053,5 +1065,7 @@ export default function GatePassPage() {
     </Tabs>
   );
 }
+
+    
 
     
