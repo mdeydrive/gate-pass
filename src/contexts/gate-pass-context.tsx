@@ -8,8 +8,9 @@ import { useToast } from '@/hooks/use-toast';
 
 interface GatePassContextType {
   activities: Activity[];
-  addActivity: (newPass: Omit<Activity, 'id' | 'time' | 'date' | 'status'>) => Promise<void>;
+  addActivity: (newPass: Omit<Activity, 'id' | 'time' | 'date' | 'status' | 'approverIds'>) => Promise<void>;
   updateActivityStatus: (id: string, status: Activity['status']) => Promise<void>;
+  assignApprover: (id: string, approverId: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -45,13 +46,14 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
     fetchActivities();
   }, [fetchActivities]);
 
-  const addActivity = async (newPassData: Omit<Activity, 'id' | 'time' | 'date' | 'status'>) => {
+  const addActivity = async (newPassData: Omit<Activity, 'id' | 'time' | 'date' | 'status' | 'approverIds'>) => {
     const newPass: Activity = {
       ...newPassData,
       id: `pass-${Date.now()}`,
       time: format(new Date(), "hh:mm a"),
       date: format(new Date(), "yyyy-MM-dd"),
       status: 'Pending',
+      approverIds: [],
     };
 
     try {
@@ -115,8 +117,42 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const assignApprover = async (id: string, approverId: string) => {
+    try {
+        const response = await fetch('/api/activities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, approverIds: [approverId] }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to assign approver');
+        }
+        
+        const updatedPass = await response.json();
+
+        setActivities(prevActivities =>
+            prevActivities.map(pass => (pass.id === id ? updatedPass : pass))
+        );
+
+        toast({
+            title: "Approver Assigned",
+            description: `Pass has been sent for approval.`,
+        });
+
+    } catch (error) {
+        console.error(error);
+        toast({
+            variant: "destructive",
+            title: "Error Assigning Approver",
+            description: "The approver could not be assigned.",
+        });
+    }
+  };
+
+
   return (
-    <GatePassContext.Provider value={{ activities, addActivity, updateActivityStatus, loading }}>
+    <GatePassContext.Provider value={{ activities, addActivity, updateActivityStatus, assignApprover, loading }}>
       {children}
     </GatePassContext.Provider>
   );
@@ -129,5 +165,3 @@ export function useGatePass() {
   }
   return context;
 }
-
-    

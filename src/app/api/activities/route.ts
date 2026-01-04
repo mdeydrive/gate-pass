@@ -69,20 +69,23 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const activities = await readData();
+    const { id } = body;
 
-    // Logic for UPDATING an existing pass status
-    if (body.id && body.status && activities.some(a => a.id === body.id)) {
-        const { id, status } = body;
+    // Logic for UPDATING an existing pass
+    if (id && activities.some(a => a.id === id)) {
         const activityIndex = activities.findIndex(a => a.id === id);
 
         if (activityIndex === -1) {
             return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
         }
         
-        const updatedActivity = { ...activities[activityIndex], status: status };
+        const existingActivity = activities[activityIndex];
 
-        if (status === 'Checked Out') {
-            updatedActivity.checkoutTime = body.checkoutTime || new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        // Merge the existing activity with the new body data
+        const updatedActivity = { ...existingActivity, ...body };
+
+        if (body.status === 'Checked Out' && !body.checkoutTime) {
+            updatedActivity.checkoutTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
         }
 
         activities[activityIndex] = updatedActivity;
@@ -122,7 +125,7 @@ export async function POST(request: Request) {
           time: body.time,
           date: body.date,
           status: body.status,
-          approverIds: body.approverIds,
+          approverIds: body.approverIds || [],
         };
         
         activities.unshift(newActivity); // Add to the beginning of the list
@@ -137,5 +140,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Failed to process request', error: errorMessage }, { status: 500 });
   }
 }
-
-    

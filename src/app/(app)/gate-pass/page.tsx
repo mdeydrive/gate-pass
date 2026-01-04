@@ -26,7 +26,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { QrCode, PlusCircle, Camera, Check, X, AlertTriangle, Calendar as CalendarIcon, ShieldCheck, Search } from "lucide-react";
-import { type Activity } from "@/lib/data";
+import type { Activity } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -117,7 +117,7 @@ function DateTimePicker({ value, onChange, placeholder, disabled }: { value: Dat
     );
   }
 
-function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity, 'id' | 'time' | 'date' | 'status'>) => void }) {
+function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity, 'id' | 'time' | 'date' | 'status' | 'approverIds'>) => void }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const photoRef = useRef<HTMLCanvasElement>(null);
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -232,8 +232,8 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
 
 
         toast({
-            title: "Pass Sent for Approval!",
-            description: `A new gate pass for ${visitorName} has been created and is pending approval.`,
+            title: "Pass Generated!",
+            description: `A new gate pass for ${visitorName} has been created and is ready for approver assignment.`,
         });
     }
 
@@ -384,15 +384,31 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                         Generate Gate Pass
                     </Button>
                 </div>
-
             </div>
         </div>
     );
 }
 
-function ActivePassesList({ passes, onUpdatePass, loading }: { passes: Activity[], onUpdatePass: (id: string, status: Activity['status']) => void, loading: boolean }) {
+function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: { passes: Activity[], onUpdatePass: (id: string, status: Activity['status']) => void, onAssignApprover: (id: string, approverId: string) => void, loading: boolean }) {
     const { role } = useRole();
     const activePasses = passes.filter(a => a.status === 'Checked In' || a.status === 'Pending' || a.status === 'Approved');
+    const [authorities, setAuthorities] = useState<ApprovingAuthority[]>([]);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        async function fetchAuthorities() {
+            try {
+                const response = await fetch('/api/authorities');
+                if (!response.ok) throw new Error("Failed to fetch authorities.");
+                const data = await response.json();
+                setAuthorities(data);
+            } catch (error) {
+                console.error(error);
+                toast({ variant: 'destructive', title: "Error", description: "Could not fetch approving authorities." });
+            }
+        }
+        fetchAuthorities();
+    }, [toast]);
 
     const getBadgeVariant = (status: Activity['status']) => {
         switch (status) {
@@ -402,7 +418,11 @@ function ActivePassesList({ passes, onUpdatePass, loading }: { passes: Activity[
           case 'Approved': return 'secondary';
           default: return 'outline';
         }
-      };
+    };
+
+    const getApproverName = (approverId: string) => {
+        return authorities.find(a => a.id === approverId)?.name || "N/A";
+    }
   
     return (
       <Card>
@@ -440,7 +460,12 @@ function ActivePassesList({ passes, onUpdatePass, loading }: { passes: Activity[
                       </Avatar>
                       <div>
                         <div className="font-medium">{activity.visitorName}</div>
-                        <div className="text-sm text-muted-foreground">Requested: {activity.time}</div>
+                        <div className="text-sm text-muted-foreground">
+                            {activity.approverIds && activity.approverIds.length > 0 ? 
+                                `Assigned to: ${getApproverName(activity.approverIds[0])}` : 
+                                `Requested: ${activity.time}`
+                            }
+                        </div>
                       </div>
                     </div>
                   </TableCell>
@@ -450,11 +475,24 @@ function ActivePassesList({ passes, onUpdatePass, loading }: { passes: Activity[
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                    {activity.status === 'Pending' && (role === 'Admin' || role === 'Manager') && (
-                        <Button variant="outline" size="sm" onClick={() => onUpdatePass(activity.id, 'Approved')}>
-                            <ShieldCheck className="mr-1 h-3.5 w-3.5" />
-                            Approve
-                        </Button>
+                      {activity.status === 'Pending' && (role === 'Admin' || role === 'Manager') && (
+                        !activity.approverIds || activity.approverIds.length === 0 ? (
+                           <Select onValueChange={(approverId) => onAssignApprover(activity.id, approverId)}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Assign Approver" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {authorities.map(auth => (
+                                        <SelectItem key={auth.id} value={auth.id}>{auth.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        ) : (
+                            <Button variant="outline" size="sm" onClick={() => onUpdatePass(activity.id, 'Approved')}>
+                                <ShieldCheck className="mr-1 h-3.5 w-3.5" />
+                                Approve
+                            </Button>
+                        )
                       )}
                       {activity.status === 'Approved' && role === 'Security' && (
                         <Button variant="outline" size="sm" onClick={() => onUpdatePass(activity.id, 'Checked In')}>
@@ -485,7 +523,7 @@ function ActivePassesList({ passes, onUpdatePass, loading }: { passes: Activity[
   }
 
 export default function GatePassPage() {
-    const { activities, addActivity, updateActivityStatus, loading } = useGatePass();
+    const { activities, addActivity, updateActivityStatus, assignApprover, loading } = useGatePass();
 
   return (
     <Tabs defaultValue="generate" className="w-full">
@@ -511,7 +549,7 @@ export default function GatePassPage() {
           <CardHeader>
             <CardTitle>Create New Gate Pass</CardTitle>
             <CardDescription>
-              Fill in the details for the new visitor and select an approver to generate a pass.
+              Fill in the details for the new visitor to generate a pass.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -520,7 +558,7 @@ export default function GatePassPage() {
         </Card>
       </TabsContent>
       <TabsContent value="active">
-        <ActivePassesList passes={activities} onUpdatePass={updateActivityStatus} loading={loading} />
+        <ActivePassesList passes={activities} onUpdatePass={updateActivityStatus} onAssignApprover={assignApprover} loading={loading} />
       </TabsContent>
       <TabsContent value="pre-approved">
         <Card>
