@@ -15,7 +15,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useAuth();
   const router = useRouter();
@@ -23,14 +23,14 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await login(username, password);
+    const success = await login(mobileNumber, password);
     if (success) {
       router.push('/dashboard');
     } else {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Invalid username or password.',
+        description: 'Invalid mobile number or password.',
       });
     }
   };
@@ -48,14 +48,14 @@ export default function LoginPage() {
           <form onSubmit={handleLogin}>
             <div className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="mobile-number">Mobile Number</Label>
                 <Input
-                  id="username"
+                  id="mobile-number"
                   type="text"
-                  placeholder="admin"
+                  placeholder="e.g., 9123456780"
                   required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={mobileNumber}
+                  onChange={(e) => setMobileNumber(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
