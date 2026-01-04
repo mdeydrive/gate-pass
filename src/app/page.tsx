@@ -129,13 +129,55 @@ function ApproverLoginForm({ onLogin }: { onLogin: (id: string, pass: string, ty
   );
 }
 
+function ManagerLoginForm({ onLogin }: { onLogin: (id: string, pass: string, type: 'manager') => void }) {
+    const [mobileNumber, setMobileNumber] = useState('');
+    const [password, setPassword] = useState('');
+  
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      onLogin(mobileNumber, password, 'manager');
+    };
+  
+    return (
+      <form onSubmit={handleSubmit}>
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+             <Label htmlFor="manager-mobile">Mobile Number</Label>
+             <Input
+              id="manager-mobile"
+              type="text"
+              placeholder="e.g., 9123456780"
+              required
+              value={mobileNumber}
+              onChange={(e) => setMobileNumber(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="manager-password">Password</Label>
+            <Input
+              id="manager-password"
+              type="password"
+              placeholder="••••••••"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <Button type="submit" className="w-full">
+            Manager Login
+          </Button>
+        </div>
+      </form>
+    );
+  }
+
 
 export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleLogin = async (identifier: string, pass: string, type: 'user' | 'admin' | 'approver') => {
+  const handleLogin = async (identifier: string, pass: string, type: 'user' | 'admin' | 'approver' | 'manager') => {
     const success = await login(identifier, pass, type);
     if (success) {
       if (type === 'approver') {
@@ -163,10 +205,11 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="user" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="user">User</TabsTrigger>
               <TabsTrigger value="admin">Admin</TabsTrigger>
               <TabsTrigger value="approver">Approver</TabsTrigger>
+              <TabsTrigger value="manager">Manager</TabsTrigger>
             </TabsList>
             <TabsContent value="user" className="pt-4">
               <UserLoginForm onLogin={handleLogin} />
@@ -176,6 +219,9 @@ export default function LoginPage() {
             </TabsContent>
             <TabsContent value="approver" className="pt-4">
               <ApproverLoginForm onLogin={handleLogin} />
+            </TabsContent>
+            <TabsContent value="manager" className="pt-4">
+              <ManagerLoginForm onLogin={handleLogin} />
             </TabsContent>
           </Tabs>
         </CardContent>

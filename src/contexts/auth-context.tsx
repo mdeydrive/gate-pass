@@ -14,7 +14,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (identifier: string, pass: string, type: 'user' | 'admin' | 'approver') => Promise<boolean>;
+  login: (identifier: string, pass: string, type: 'user' | 'admin' | 'approver' | 'manager') => Promise<boolean>;
   logout: () => void;
   loading: boolean;
 }
@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  const login = async (identifier: string, pass: string, type: 'user' | 'admin' | 'approver'): Promise<boolean> => {
+  const login = async (identifier: string, pass: string, type: 'user' | 'admin' | 'approver' | 'manager'): Promise<boolean> => {
     // Admin login check
     if (type === 'admin' && identifier === 'admin' && pass === 'admin123') {
         const loggedInUser: User = {
@@ -78,6 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (type === 'approver') {
           userRole = 'Approver';
+      } else if (type === 'manager') {
+          userRole = 'Manager';
       } else {
         const potentialRole = authority.role as UserRole;
         if (['Admin', 'Security', 'Resident', 'Manager'].includes(potentialRole)) {
