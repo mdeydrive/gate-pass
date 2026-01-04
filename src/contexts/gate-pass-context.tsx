@@ -61,18 +61,20 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to save the new pass');
+            const errorBody = await response.json().catch(() => ({ message: 'Failed to parse error response' }));
+            console.error('Server Error:', errorBody);
+            throw new Error(errorBody.message || `Error ${response.status}: Failed to save the new pass`);
         }
 
         const savedPass = await response.json();
         setActivities(prevActivities => [savedPass, ...prevActivities]);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error(error);
         toast({
             variant: "destructive",
             title: "Error Saving Pass",
-            description: "The new gate pass could not be saved to the database.",
+            description: error.message || "The new gate pass could not be saved to the database.",
         });
     }
   };

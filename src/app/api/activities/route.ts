@@ -43,7 +43,7 @@ async function saveImage(base64Data: string): Promise<string> {
     
     // Create a unique filename
     const fileExtension = base64Data.substring("data:image/".length, base64Data.indexOf(";base64"));
-    const filename = `pass-${Date.now()}.${fileExtension}`;
+    const filename = `pass-${Date.now()}.${fileExtension || 'png'}`;
     const imagePath = path.join(imagesDirPath, filename);
 
     await fs.writeFile(imagePath, buffer);
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     const activities = await readData();
 
     // Logic for UPDATING an existing pass status
-    if (body.id && body.status) {
+    if (body.id && body.status && activities.some(a => a.id === body.id)) {
         const { id, status } = body;
         const activityIndex = activities.findIndex(a => a.id === id);
 
@@ -95,8 +95,19 @@ export async function POST(request: Request) {
         let imageUrl = body.photo;
 
         // If a photo is included and it's a base64 string, save it
-        if (imageUrl && imageUrl.startsWith('data:image')) {
-          imageUrl = await saveImage(imageUrl);
+        if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('data:image')) {
+          try {
+            imageUrl = await saveImage(imageUrl);
+          } catch(e) {
+            console.error("Image saving failed:", e);
+            // Decide if you want to fail or just save the pass without an image
+            imageUrl = undefined;
+          }
+        } else if (imageUrl && typeof imageUrl === 'string') {
+          // It's likely already a URL, so do nothing.
+        } else {
+          // Photo is not provided or in an unexpected format
+          imageUrl = undefined;
         }
 
         const newActivity: Activity = {
@@ -120,7 +131,7 @@ export async function POST(request: Request) {
     }
 
   } catch (error) {
-    console.error("Failed to process request:", error);
+    console.error("[API_ERROR] Failed to process request:", error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     return NextResponse.json({ message: 'Failed to process request', error: errorMessage }, { status: 500 });
   }
