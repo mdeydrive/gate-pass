@@ -99,20 +99,18 @@ export async function POST(request: Request) {
           imageUrl = await saveImage(imageUrl);
         }
 
-        // Build the final new activity object by explicitly picking fields
-        // This prevents incorrect fields like 'checkoutTime' from being added on creation
         const newActivity: Activity = {
-            id: body.id,
-            visitorName: body.visitorName,
-            passType: body.passType,
-            status: body.status,
-            time: body.time,
-            date: body.date,
-            mobileNumber: body.mobileNumber,
-            companyName: body.companyName,
-            location: body.location,
-            vehicle: body.vehicle,
-            photo: imageUrl,
+          id: `pass-${Date.now()}`,
+          visitorName: body.visitorName,
+          mobileNumber: body.mobileNumber,
+          companyName: body.companyName,
+          location: body.location,
+          passType: body.passType,
+          vehicle: body.vehicle,
+          photo: imageUrl,
+          time: body.time,
+          date: body.date,
+          status: body.status,
         };
         
         activities.unshift(newActivity); // Add to the beginning of the list
