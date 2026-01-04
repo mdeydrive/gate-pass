@@ -877,8 +877,7 @@ function PreApproveDialog({ activities, onPreApprove }: { activities: Activity[]
                                                     key={visitor.id}
                                                     value={`${visitor.visitorName} ${visitor.mobileNumber}`}
                                                     onSelect={() => {
-                                                        const selected = uniqueVisitors.find(v => `${v.visitorName} ${v.mobileNumber}` === `${visitor.visitorName} ${visitor.mobileNumber}`);
-                                                        if(selected) prefillVisitorData(selected);
+                                                        prefillVisitorData(visitor);
                                                     }}
                                                     >
                                                     <Check
@@ -1038,13 +1037,14 @@ function PreApprovedList({ passes, loading }: { passes: Activity[], loading: boo
 export default function GatePassPage() {
     const { activities, addActivity, updateActivityStatus, assignApprover, loading, preApproveVisitor } = useGatePass();
     const { role } = useRole();
-    const defaultTab = role === 'Approver' ? 'active' : 'generate';
+    const defaultTab = (role === 'Resident' || role === 'Approver') ? 'active' : 'generate';
 
   return (
     <Tabs defaultValue={defaultTab} className="w-full">
       <div className="flex items-center">
         <TabsList>
           {role !== 'Approver' && <TabsTrigger value="generate">Generate Pass</TabsTrigger>}
+          {(role === 'Approver') && <TabsTrigger value="generate">Generate Pass</TabsTrigger>}
           <TabsTrigger value="active">Active Passes</TabsTrigger>
           <TabsTrigger value="pre-approved">Pre-approved</TabsTrigger>
         </TabsList>
@@ -1080,9 +1080,3 @@ export default function GatePassPage() {
     </Tabs>
   );
 }
-
-    
-
-    
-
-    
