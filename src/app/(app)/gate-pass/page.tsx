@@ -25,7 +25,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { QrCode, PlusCircle, Camera, Check, X, AlertTriangle, Calendar as CalendarIcon, ShieldCheck, Search, Ban, Clock } from "lucide-react";
+import { QrCode, PlusCircle, Camera, Check, X, AlertTriangle, Calendar as CalendarIcon, ShieldCheck, Search, Ban, Clock, ChevronsUpDown, UserPlus } from "lucide-react";
 import type { Activity } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format, endOfDay } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -51,6 +51,7 @@ import { useRole } from "@/contexts/role-context";
 import type { ApprovingAuthority } from "@/lib/data";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/auth-context";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
 
 function DateTimePicker({ value, onChange, placeholder, disabled }: { value: Date | undefined, onChange: (date: Date | undefined) => void, placeholder: string, disabled?: boolean }) {
@@ -138,6 +139,46 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
     const [vehicleNumber, setVehicleNumber] = useState('');
     const [isNow, setIsNow] = useState(false);
     const [validityOption, setValidityOption] = useState('today');
+
+    // Combobox state
+    const [comboboxOpen, setComboboxOpen] = useState(false);
+    
+    const uniqueVisitors = useMemo(() => {
+        const visitorsMap = new Map<string, Activity>();
+        activities.forEach(activity => {
+            const key = `${activity.visitorName}-${activity.mobileNumber}`;
+            if (!visitorsMap.has(key)) {
+                visitorsMap.set(key, activity);
+            }
+        });
+        return Array.from(visitorsMap.values());
+    }, [activities]);
+
+    const resetForm = () => {
+        setVisitorName('');
+        setMobileNumber('');
+        setCompanyName('');
+        setLocation('');
+        setPassType('');
+        setValidFrom(undefined);
+        setValidTo(undefined);
+        setVehicleNumber('');
+        setCapturedImage(null);
+        setIsNow(false);
+        setValidityOption('today');
+    }
+
+    const prefillVisitorData = (visitor: Activity) => {
+        setVisitorName(visitor.visitorName);
+        setMobileNumber(visitor.mobileNumber || '');
+        setCompanyName(visitor.companyName || '');
+        setLocation(visitor.location || '');
+        toast({
+            title: "Existing Visitor Found",
+            description: `Details for ${visitor.visitorName} have been pre-filled.`,
+        });
+        setComboboxOpen(false);
+    }
     
 
     useEffect(() => {
@@ -217,20 +258,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
         };
 
         onGeneratePass(newPass);
-
-        // Reset form
-        setVisitorName('');
-        setMobileNumber('');
-        setCompanyName('');
-        setLocation('');
-        setPassType('');
-        setValidFrom(undefined);
-        setValidTo(undefined);
-        setVehicleNumber('');
-        setCapturedImage(null);
-        setIsNow(false);
-        setValidityOption('today');
-
+        resetForm();
 
         toast({
             title: "Pass Generated!",
@@ -256,48 +284,66 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
         }
       }, [validityOption]);
       
-    const prefillVisitorData = (visitor: Activity) => {
-        setVisitorName(visitor.visitorName);
-        setMobileNumber(visitor.mobileNumber || '');
-        setCompanyName(visitor.companyName || '');
-        setLocation(visitor.location || '');
-        toast({
-            title: "Existing Visitor Found",
-            description: `Details for ${visitor.visitorName} have been pre-filled.`,
-        });
-    }
-
-    const handleMobileNumberBlur = () => {
-        if (mobileNumber.length > 0) {
-            const existingVisitor = activities.find(activity => activity.mobileNumber === mobileNumber);
-            if (existingVisitor) {
-                prefillVisitorData(existingVisitor);
-            }
-        }
-    };
-    
-    const handleVisitorNameBlur = () => {
-        if (visitorName.length > 0) {
-            const existingVisitor = activities.find(activity => activity.visitorName.toLowerCase() === visitorName.toLowerCase());
-            if (existingVisitor) {
-                prefillVisitorData(existingVisitor);
-            }
-        }
-    };
-
-
     return (
         <div className="grid gap-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2 grid gap-4">
+                    <div className="grid gap-2">
+                        <Label>Search Existing Visitor</Label>
+                        <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={comboboxOpen}
+                                className="w-full justify-between"
+                                >
+                                {visitorName
+                                    ? `${visitorName} - ${mobileNumber}`
+                                    : "Select or search visitor..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search visitor by name or mobile..." />
+                                    <CommandList>
+                                        <CommandEmpty>No visitor found.</CommandEmpty>
+                                        <CommandGroup>
+                                            <CommandItem onSelect={() => { resetForm(); setComboboxOpen(false); }}>
+                                                <UserPlus className="mr-2 h-4 w-4" />
+                                                Add New Visitor
+                                            </CommandItem>
+                                            {uniqueVisitors.map((visitor) => (
+                                                <CommandItem
+                                                key={visitor.id}
+                                                value={`${visitor.visitorName} ${visitor.mobileNumber}`}
+                                                onSelect={() => prefillVisitorData(visitor)}
+                                                >
+                                                <Check
+                                                    className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    visitorName === visitor.visitorName ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                                {visitor.visitorName} ({visitor.mobileNumber})
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="visitor-name">Visitor Name</Label>
-                            <Input id="visitor-name" placeholder="e.g., John Doe" value={visitorName} onChange={e => setVisitorName(e.target.value)} onBlur={handleVisitorNameBlur} />
+                            <Input id="visitor-name" placeholder="e.g., John Doe" value={visitorName} onChange={e => setVisitorName(e.target.value)} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="mobile-number">Mobile Number</Label>
-                            <Input id="mobile-number" placeholder="e.g., 9876543210" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} onBlur={handleMobileNumberBlur} />
+                            <Input id="mobile-number" placeholder="e.g., 9876543210" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -495,7 +541,7 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                       <div>
                         <div className="font-medium">{activity.visitorName}</div>
                         <div className="text-sm text-muted-foreground">
-                            {activity.approverIds && activity.approverIds.length > 0 ? 
+                            {activity.status === 'Pending' && activity.approverIds && activity.approverIds.length > 0 ?
                                 `Waiting for: ${getApproverName(activity.approverIds[0])}` : 
                                 `Requested: ${activity.time}`
                             }
@@ -629,5 +675,6 @@ export default function GatePassPage() {
     
 
     
+
 
 
