@@ -1,11 +1,2 @@
 
-[
-  { "id": "1", "visitorName": "John Doe", "mobileNumber": "9876543210", "passType": "Guest", "status": "Checked In", "time": "10:30 AM", "date": "2023-10-27", "vehicle": "TS09AB1234" },
-  { "id": "2", "visitorName": "Jane Smith (Amazon)", "mobileNumber": "9876543211", "passType": "Delivery", "status": "Checked Out", "time": "11:15 AM", "date": "2023-10-27", "companyName": "Amazon", "location": "Local Hub" },
-  { "id": "3", "visitorName": "Maintenance Team", "mobileNumber": "9876543212", "passType": "Staff", "status": "Checked In", "time": "09:00 AM", "date": "2023-10-27", "companyName": "Urban Company", "location": "City Branch" },
-  { "id": "4", "visitorName": "Emily White", "mobileNumber": "9876543213", "passType": "Guest", "status": "Pending", "time": "01:00 PM", "date": "2023-10-27" },
-  { "id": "5", "visitorName": "UPS Delivery", "mobileNumber": "9876543214", "passType": "Delivery", "status": "Checked In", "time": "12:05 PM", "date": "2023-10-27", "companyName": "UPS", "location": "Main Depot" },
-  { "id": "6", "visitorName": "Alex Green", "mobileNumber": "9876543215", "passType": "Guest", "status": "Checked Out", "time": "02:30 PM", "date": "2023-10-26" },
-  { "id": "7", "visitorName": "Food Delivery", "mobileNumber": "9876543216", "passType": "Delivery", "status": "Checked Out", "time": "08:45 PM", "date": "2023-10-26" },
-  { "id": "8", "visitorName": "Robert Brown", "mobileNumber": "9876543217", "passType": "Guest", "status": "Checked In", "time": "03:00 PM", "date": "2023-10-27", "vehicle": "KA01CD5678"}
-]
+[]
