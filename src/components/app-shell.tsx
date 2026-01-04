@@ -12,13 +12,15 @@ import {
 import MainNav from "@/components/main-nav";
 import UserNav from "@/components/user-nav";
 import { usePathname } from 'next/navigation';
-import { ShieldCheck } from "lucide-react";
 import { ThemeProvider } from "next-themes";
 import { cn } from "@/lib/utils";
+import { useCompany } from "@/contexts/company-context";
+import Image from "next/image";
 
 function AppShellContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { state: sidebarState } = useSidebar();
+  const { companyName, logoUrl } = useCompany();
 
   const pageTitles: { [key: string]: string } = {
     "/dashboard": "Dashboard",
@@ -41,21 +43,25 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
       <Sidebar>
         <SidebarHeader className="p-4">
           <a href="/dashboard" className="flex items-center gap-2 font-semibold">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-8 w-8 text-primary"
-            >
-              <path d="M13 16h- момент-4v-4h4v4Z" fill="currentColor" strokeWidth="0" />
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
-              <path d="M13 16h-4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2Z" />
-            </svg>
-            <h1 className="text-xl font-bold text-foreground">SecurePass</h1>
+            {logoUrl ? (
+                <Image src={logoUrl} alt={companyName} width={32} height={32} className="h-8 w-8 object-contain" />
+            ) : (
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-8 w-8 text-primary"
+                >
+                    <path d="M13 16h- момент-4v-4h4v4Z" fill="currentColor" strokeWidth="0" />
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+                    <path d="M13 16h-4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2Z" />
+                </svg>
+            )}
+            <h1 className="text-xl font-bold text-foreground">{companyName}</h1>
           </a>
         </SidebarHeader>
         <SidebarContent className="p-2 pr-4">

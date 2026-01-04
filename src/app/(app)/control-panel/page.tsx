@@ -13,9 +13,82 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
+import { useCompany } from '@/contexts/company-context';
+import { useToast } from '@/hooks/use-toast';
+import { useState, useRef, ChangeEvent } from 'react';
+import Image from 'next/image';
 
 export default function ControlPanelPage() {
   const { role } = useRole();
+  const { companyName, setCompanyName, logoUrl, setLogoUrl } = useCompany();
+  const { toast } = useToast();
+  const [currentName, setCurrentName] = useState(companyName);
+  const [currentLogo, setCurrentLogo] = useState(logoUrl);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSaveInfo = async () => {
+    try {
+      const response = await fetch('/api/company', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ companyName: currentName }),
+      });
+      if (!response.ok) throw new Error('Failed to save company name');
+      setCompanyName(currentName);
+      toast({ title: 'Success', description: 'Company name updated successfully.' });
+    } catch (error) {
+      console.error(error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not save company name.' });
+    }
+  };
+
+  const handleLogoUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCurrentLogo(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveLogo = async () => {
+    if (!logoFile) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Please select a logo file to upload.' });
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.readAsDataURL(logoFile);
+    reader.onloadend = async () => {
+        const base64data = reader.result;
+        try {
+            const response = await fetch('/api/company', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ logoUrl: base64data }),
+            });
+            if (!response.ok) throw new Error('Failed to upload logo');
+            const { logoUrl: newLogoUrl } = await response.json();
+            setLogoUrl(newLogoUrl);
+            setCurrentLogo(newLogoUrl);
+            toast({ title: 'Success', description: 'Logo updated successfully.' });
+        } catch (error) {
+            console.error(error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not upload logo.' });
+        }
+    }
+  };
+
 
   if (role !== 'Admin') {
     return (
@@ -50,9 +123,9 @@ export default function ControlPanelPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="company-name">Company Name</Label>
-              <Input id="company-name" placeholder="Enter company name" />
+              <Input id="company-name" placeholder="Enter company name" value={currentName} onChange={(e) => setCurrentName(e.target.value)} />
             </div>
-            <Button>Save Information</Button>
+            <Button onClick={handleSaveInfo}>Save Information</Button>
           </CardContent>
         </Card>
         <Card>
@@ -63,12 +136,20 @@ export default function ControlPanelPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="w-full aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted">
-              <p className="text-muted-foreground">Logo Preview</p>
+            <div className="w-full aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+              {currentLogo ? (
+                  <Image src={currentLogo} alt="Logo Preview" width={160} height={90} className="object-contain" />
+              ) : (
+                <p className="text-muted-foreground">Logo Preview</p>
+              )}
             </div>
-            <Button variant="outline">
-              <Upload className="mr-2 h-4 w-4" /> Upload Logo
-            </Button>
+            <div className="flex gap-2">
+                <Input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                <Button variant="outline" onClick={handleLogoUploadClick}>
+                <Upload className="mr-2 h-4 w-4" /> {currentLogo ? 'Change Logo' : 'Upload Logo'}
+                </Button>
+                {logoFile && <Button onClick={handleSaveLogo}>Save Logo</Button>}
+            </div>
           </CardContent>
         </Card>
       </div>
