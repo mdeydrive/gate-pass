@@ -17,6 +17,7 @@ import {
   ClipboardCheck,
   Users,
   Settings,
+  Database,
 } from "lucide-react";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 
@@ -37,6 +38,7 @@ const allNavItems: NavItem[] = [
     { href: "/approving-authorities", label: "Approving Authorities", icon: ClipboardCheck, roles: ["Admin"] },
     { href: "/alerts", label: "Alerts", icon: AlertTriangle, roles: ["Security", "Admin"] },
     { href: "/vehicles", label: "Vehicles", icon: Car, roles: ["Admin", "Security"] },
+    { href: "/database", label: "Database", icon: Database, roles: ["Admin"] },
     { href: "/deliveries", label: "Deliveries", icon: Package, roles: ["Security"] },
     { href: "/staff", label: "Staff", icon: Wrench, roles: ["Admin"] },
     { href: "/control-panel", label: "Control Panel", icon: Settings, roles: ["Admin"] },
