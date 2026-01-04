@@ -12,7 +12,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (mobileNumber: string, pass: string) => Promise<boolean>;
+  login: (identifier: string, pass: string) => Promise<boolean>;
   logout: () => void;
   loading: boolean;
 }
@@ -51,18 +51,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  const login = async (mobileNumber: string, pass: string): Promise<boolean> => {
-    // Password for all users is 'user123'
+  const login = async (identifier: string, pass: string): Promise<boolean> => {
+    // Admin login check
+    if (identifier === 'admin' && pass === 'admin123') {
+        const loggedInUser: User = { 
+            username: 'Administrator', 
+            role: 'Admin',
+            mobileNumber: 'N/A'
+        };
+        setUser(loggedInUser);
+        return true;
+    }
+    
+    // Regular user login check
     if (pass !== 'user123') {
       return false;
     }
 
     const authorities = await getAuthorities();
-    const authority = authorities.find(auth => auth.mobileNumber === mobileNumber);
+    const authority = authorities.find(auth => auth.mobileNumber === identifier);
 
     if (authority) {
       // Map the authority's role to a UserRole. Defaulting to 'Manager' if not a direct match.
-      // This part can be made more robust if roles have more variations.
       let userRole: UserRole = 'Manager'; // Default role
       const potentialRole = authority.role as UserRole;
       if (['Admin', 'Security', 'Resident', 'Manager'].includes(potentialRole)) {
@@ -89,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(
     () => ({ user, login, logout, loading }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [user, loading]
   );
 
