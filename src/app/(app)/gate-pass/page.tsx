@@ -458,7 +458,10 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Visitor ID</TableHead>
                 <TableHead>Visitor</TableHead>
+                <TableHead>Mobile No.</TableHead>
+                <TableHead>Company</TableHead>
                 <TableHead>Pass Type</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -467,6 +470,7 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
             <TableBody>
               {activePasses.length > 0 ? activePasses.map((activity) => (
                 <TableRow key={activity.id}>
+                  <TableCell className="font-mono text-xs">{activity.id.substring(0, 10)}...</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
@@ -484,6 +488,8 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                       </div>
                     </div>
                   </TableCell>
+                  <TableCell>{activity.mobileNumber}</TableCell>
+                  <TableCell>{activity.companyName || 'N/A'}</TableCell>
                   <TableCell>{activity.passType}</TableCell>
                   <TableCell>
                     <Badge variant={getBadgeVariant(activity.status)}>{activity.status}</Badge>
@@ -539,7 +545,7 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                 </TableRow>
               )) : (
                 <TableRow>
-                    <TableCell colSpan={4} className="text-center">No active passes found.</TableCell>
+                    <TableCell colSpan={7} className="text-center">No active passes found.</TableCell>
                 </TableRow>
               )}
             </TableBody>
