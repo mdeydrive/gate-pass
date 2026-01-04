@@ -401,7 +401,14 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                                     <Command>
                                         <CommandInput placeholder="Search visitor by name or mobile..." />
                                         <CommandList>
-                                            <CommandEmpty>No visitor found.</CommandEmpty>
+                                            <CommandEmpty>
+                                                 <Button variant="ghost" className="w-full" onClick={() => {
+                                                    resetForm();
+                                                    setComboboxOpen(false);
+                                                }}>
+                                                    No visitor found. Click to add new.
+                                                </Button>
+                                            </CommandEmpty>
                                             <CommandGroup>
                                                 {uniqueVisitors.map((visitor) => (
                                                     <CommandItem
@@ -566,9 +573,19 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
         fetchAuthorities();
     }, [toast]);
 
-    const passesToDisplay = (role === 'Manager' || role === 'Resident' || role === 'Approver') && user
-    ? passes.filter(p => (p.status === 'Pending' && (!p.approverIds || p.approverIds.length === 0)) || (p.approverIds && p.approverIds.includes(user.id)))
-    : passes;
+    const passesToDisplay = useMemo(() => {
+        if (!user) return [];
+        if (role === 'Approver') {
+            return passes.filter(p => p.approverIds?.includes(user.id));
+        }
+        if (role === 'Manager' || role === 'Resident') {
+            return passes.filter(p => 
+                (p.status === 'Pending' && (!p.approverIds || p.approverIds.length === 0)) || 
+                (p.approverIds && p.approverIds.includes(user.id))
+            );
+        }
+        return passes;
+    }, [passes, role, user]);
 
     const activePasses = passesToDisplay.filter(a => a.status === 'Checked In' || a.status === 'Pending' || a.status === 'Approved');
 
@@ -663,7 +680,7 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                                     ))}
                                 </SelectContent>
                             </Select>
-                          ) : isCurrentUserApprover(activity.approverIds) ? (
+                          ) : isCurrentUserApprover(activity.approverIds) && role === 'Approver' ? (
                             <>
                               <Button variant="outline" size="sm" onClick={() => onUpdatePass(activity.id, 'Approved')}>
                                   <ShieldCheck className="mr-1 h-3.5 w-3.5" />
@@ -764,5 +781,3 @@ export default function GatePassPage() {
     </Tabs>
   );
 }
-
-    

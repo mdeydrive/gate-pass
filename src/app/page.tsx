@@ -172,13 +172,55 @@ function ManagerLoginForm({ onLogin }: { onLogin: (id: string, pass: string, typ
     );
   }
 
+  function SecurityLoginForm({ onLogin }: { onLogin: (id: string, pass: string, type: 'security') => void }) {
+    const [mobileNumber, setMobileNumber] = useState('');
+    const [password, setPassword] = useState('');
+  
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      onLogin(mobileNumber, password, 'security');
+    };
+  
+    return (
+      <form onSubmit={handleSubmit}>
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+             <Label htmlFor="security-mobile">Mobile Number</Label>
+             <Input
+              id="security-mobile"
+              type="text"
+              placeholder="Enter your mobile number"
+              required
+              value={mobileNumber}
+              onChange={(e) => setMobileNumber(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="security-password">Password</Label>
+            <Input
+              id="security-password"
+              type="password"
+              placeholder="Enter your password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <Button type="submit" className="w-full">
+            Security Login
+          </Button>
+        </div>
+      </form>
+    );
+  }
+
 
 export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleLogin = async (identifier: string, pass: string, type: 'user' | 'admin' | 'approver' | 'manager') => {
+  const handleLogin = async (identifier: string, pass: string, type: 'user' | 'admin' | 'approver' | 'manager' | 'security') => {
     const success = await login(identifier, pass, type);
     if (success) {
       if (type === 'approver') {
@@ -206,11 +248,12 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="user" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="user">User</TabsTrigger>
               <TabsTrigger value="admin">Admin</TabsTrigger>
               <TabsTrigger value="approver">Approver</TabsTrigger>
               <TabsTrigger value="manager">Manager</TabsTrigger>
+              <TabsTrigger value="security">Security</TabsTrigger>
             </TabsList>
             <TabsContent value="user" className="pt-4">
               <UserLoginForm onLogin={handleLogin} />
@@ -223,6 +266,9 @@ export default function LoginPage() {
             </TabsContent>
             <TabsContent value="manager" className="pt-4">
               <ManagerLoginForm onLogin={handleLogin} />
+            </TabsContent>
+             <TabsContent value="security" className="pt-4">
+              <SecurityLoginForm onLogin={handleLogin} />
             </TabsContent>
           </Tabs>
         </CardContent>

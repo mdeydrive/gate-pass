@@ -14,7 +14,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (identifier: string, pass: string, type: 'user' | 'admin' | 'approver' | 'manager') => Promise<boolean>;
+  login: (identifier: string, pass: string, type: 'user' | 'admin' | 'approver' | 'manager' | 'security') => Promise<boolean>;
   logout: () => void;
   loading: boolean;
 }
@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  const login = async (identifier: string, pass: string, type: 'user' | 'admin' | 'approver' | 'manager'): Promise<boolean> => {
+  const login = async (identifier: string, pass: string, type: 'user' | 'admin' | 'approver' | 'manager' | 'security'): Promise<boolean> => {
     // Admin login check
     if (type === 'admin' && identifier === 'admin' && pass === 'admin123') {
         const loggedInUser: User = {
@@ -74,31 +74,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const authority = authorities.find(auth => auth.mobileNumber === identifier);
 
     if (authority) {
-      let userRole: UserRole;
+        let userRole: UserRole;
 
-      if (type === 'approver') {
-          userRole = 'Approver';
-      } else if (type === 'manager') {
-          userRole = 'Manager';
-      } else {
-        const potentialRole = authority.role as UserRole;
-        if (['Admin', 'Security', 'Resident', 'Manager'].includes(potentialRole)) {
-            userRole = potentialRole;
-        } else {
-            userRole = 'Manager'; // Default role for general users
+        switch (type) {
+            case 'approver':
+                userRole = 'Approver';
+                break;
+            case 'manager':
+                userRole = 'Manager';
+                break;
+            case 'security':
+                userRole = 'Security';
+                break;
+            case 'admin':
+                userRole = 'Admin';
+                break;
+            case 'user':
+                // For a general user, derive role from their authority record, or default
+                const potentialRole = authority.role as UserRole;
+                if (['Admin', 'Security', 'Resident', 'Manager'].includes(potentialRole)) {
+                    userRole = potentialRole;
+                } else if (authority.role === 'Administrator') {
+                    userRole = 'Admin';
+                }
+                else {
+                    userRole = 'Resident'; // Default role for general users
+                }
+                break;
+            default:
+                return false; // Should not happen
         }
-        if (authority.role === 'Administrator') userRole = 'Admin';
-      }
 
-      const loggedInUser: User = { 
-        id: authority.id,
-        username: authority.name, 
-        role: userRole,
-        mobileNumber: authority.mobileNumber
-      };
-      setUser(loggedInUser);
-      return true;
+        const loggedInUser: User = { 
+            id: authority.id,
+            username: authority.name, 
+            role: userRole,
+            mobileNumber: authority.mobileNumber
+        };
+        setUser(loggedInUser);
+        return true;
     }
+
+    // Fallback for demo users not in the authorities list
+    if (type === 'security' && identifier === 'security' && pass === 'user123') {
+        setUser({ id: 'demo-security', username: 'Security Guard', role: 'Security', mobileNumber: '0000000000' });
+        return true;
+    }
+     if (type === 'user' && identifier === 'resident' && pass === 'user123') {
+        setUser({ id: 'demo-resident', username: 'John Resident', role: 'Resident', mobileNumber: '1111111111' });
+        return true;
+    }
+
 
     return false;
   };
