@@ -78,16 +78,11 @@ export async function POST(request: Request) {
         if (activityIndex === -1) {
             return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
         }
+        
+        const updatedActivity = { ...activities[activityIndex], status: status };
 
-        // Create a clean updated activity object
-        const updatedActivity = { 
-          ...activities[activityIndex], 
-          status: status,
-        };
-
-        // Only add checkoutTime if the status is 'Checked Out'
         if (status === 'Checked Out') {
-            updatedActivity.checkoutTime = body.checkoutTime || new Date().toLocaleTimeString();
+            updatedActivity.checkoutTime = body.checkoutTime || new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
         }
 
         activities[activityIndex] = updatedActivity;
