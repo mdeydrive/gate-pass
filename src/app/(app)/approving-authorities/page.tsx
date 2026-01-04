@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -17,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Phone, PlusCircle } from 'lucide-react';
+import { Phone, PlusCircle, Edit } from 'lucide-react';
 import { useRole } from '@/contexts/role-context';
 import { Button } from '@/components/ui/button';
 import {
@@ -134,6 +135,90 @@ function AddAuthorityDialog({ onAddAuthority }: { onAddAuthority: (newAuthority:
   )
 }
 
+function EditAuthorityDialog({ authority, onUpdateAuthority }: { authority: Authority, onUpdateAuthority: (updatedAuthority: Authority) => void }) {
+  const [name, setName] = useState(authority.name);
+  const [role, setRole] = useState(authority.role);
+  const [mobileNumber, setMobileNumber] = useState(authority.mobileNumber);
+  const [email, setEmail] = useState(authority.email);
+  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    setName(authority.name);
+    setRole(authority.role);
+    setMobileNumber(authority.mobileNumber);
+    setEmail(authority.email);
+  }, [authority]);
+
+  const handleSubmit = () => {
+    if (!name || !role || !mobileNumber || !email) {
+      toast({
+        variant: "destructive",
+        title: "Missing Fields",
+        description: "Please fill out all fields.",
+      });
+      return;
+    }
+    const updatedAuthority = { ...authority, name, role, mobileNumber, email };
+    onUpdateAuthority(updatedAuthority);
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <Edit className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Edit Approving Authority</DialogTitle>
+          <DialogDescription>
+            Update the details for the staff member.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-name" className="text-right">Name</Label>
+            <Input id="edit-name" className="col-span-3" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-role" className="text-right">Role</Label>
+            <Select onValueChange={setRole} value={role}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="Resident">User</SelectItem>
+                    <SelectItem value="Approver">Approver</SelectItem>
+                    <SelectItem value="Admin">Admin</SelectItem>
+                    <SelectItem value="Manager">Gatepass Manager</SelectItem>
+                    <SelectItem value="Security">Security</SelectItem>
+                </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-mobile" className="text-right">Mobile No.</Label>
+            <Input id="edit-mobile" className="col-span-3" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-email" className="text-right">Email</Label>
+            <Input id="edit-email" type="email" className="col-span-3" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+        </div>
+        <DialogFooter>
+            <DialogClose asChild>
+                <Button type="button" variant="secondary">Cancel</Button>
+            </DialogClose>
+            <Button type="submit" onClick={handleSubmit}>Save Changes</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+
 export default function ApprovingAuthoritiesPage() {
   const { role } = useRole();
   const [authorities, setAuthorities] = useState<Authority[]>([]);
@@ -177,6 +262,26 @@ export default function ApprovingAuthoritiesPage() {
     }
   };
 
+  const handleUpdateAuthority = async (updatedAuthorityData: Authority) => {
+    try {
+      const response = await fetch('/api/authorities', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedAuthorityData),
+      });
+
+      if (!response.ok) throw new Error('Failed to update the authority');
+
+      const updatedAuthority = await response.json();
+      setAuthorities(prev => prev.map(auth => auth.id === updatedAuthority.id ? updatedAuthority : auth));
+      toast({ title: "Success", description: "Authority details have been updated." });
+    } catch (error) {
+      console.error(error);
+      toast({ variant: "destructive", title: "Error", description: "Failed to update authority." });
+    }
+  };
+
+
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
@@ -202,6 +307,7 @@ export default function ApprovingAuthoritiesPage() {
                 <TableHead>Staff Member</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Contact Number</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -227,6 +333,9 @@ export default function ApprovingAuthoritiesPage() {
                           <Phone className="h-4 w-4 text-muted-foreground" />
                           <span>{authority.mobileNumber}</span>
                       </div>
+                  </TableCell>
+                  <TableCell>
+                    {role === 'Admin' && <EditAuthorityDialog authority={authority} onUpdateAuthority={handleUpdateAuthority} />}
                   </TableCell>
                 </TableRow>
               ))}

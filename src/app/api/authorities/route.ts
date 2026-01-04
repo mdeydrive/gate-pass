@@ -57,3 +57,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Failed to process request' }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const authorities = await readData();
+    const { id } = body;
+
+    if (!id) {
+        return NextResponse.json({ message: 'Authority ID is required' }, { status: 400 });
+    }
+
+    const authorityIndex = authorities.findIndex(a => a.id === id);
+
+    if (authorityIndex === -1) {
+        return NextResponse.json({ message: 'Authority not found' }, { status: 404 });
+    }
+    
+    // Update the authority data
+    const updatedAuthority = { ...authorities[authorityIndex], ...body };
+    authorities[authorityIndex] = updatedAuthority;
+
+    await writeData(authorities);
+    return NextResponse.json(updatedAuthority);
+
+  } catch (error) {
+    console.error("[API_ERROR] Failed to process update request:", error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    return NextResponse.json({ message: 'Failed to process request', error: errorMessage }, { status: 500 });
+  }
+}
