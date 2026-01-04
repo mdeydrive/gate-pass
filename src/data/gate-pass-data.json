@@ -103,12 +103,13 @@
     "visitorName": "John Doe",
     "mobileNumber": "9876543210",
     "passType": "Guest",
-    "status": "Checked In",
+    "status": "Checked Out",
     "time": "10:30 AM",
     "date": "2023-10-27",
     "vehicle": "TS09AB1234",
     "companyName": "Self",
-    "location": "City Center"
+    "location": "City Center",
+    "checkedOutAt": "2026-01-04T18:11:48.226Z"
   },
   {
     "id": "2",
