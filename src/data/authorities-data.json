@@ -1,0 +1,35 @@
+
+[
+  {
+    "id": "auth1",
+    "name": "Michael Scott",
+    "role": "Manager",
+    "mobileNumber": "9123456780",
+    "email": "michael.s@securepass.com",
+    "avatar": "https://avatar.vercel.sh/michael.png"
+  },
+  {
+    "id": "auth2",
+    "name": "Dwight Schrute",
+    "role": "Asst. to the Manager",
+    "mobileNumber": "9123456781",
+    "email": "dwight.s@securepass.com",
+    "avatar": "https://avatar.vercel.sh/dwight.png"
+  },
+  {
+    "id": "auth3",
+    "name": "Jim Halpert",
+    "role": "Administrator",
+    "mobileNumber": "9123456782",
+    "email": "jim.h@securepass.com",
+    "avatar": "https://avatar.vercel.sh/jim.png"
+  },
+  {
+    "id": "auth4",
+    "name": "Pam Beesly",
+    "role": "Administrator",
+    "mobileNumber": "9123456783",
+    "email": "pam.b@securepass.com",
+    "avatar": "https://avatar.vercel.sh/pam.png"
+  }
+]

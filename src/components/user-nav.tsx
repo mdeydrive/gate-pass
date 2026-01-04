@@ -1,6 +1,7 @@
 "use client";
 
 import { useRole } from "@/contexts/role-context";
+import { useAuth } from "@/contexts/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,14 +20,23 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { users } from "@/lib/data";
-import { Moon, Sun, Laptop, Languages } from "lucide-react";
+import { Moon, Sun, Laptop, Languages, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
 
 
 export default function UserNav() {
   const { role, setRole, roles } = useRole();
-  const currentUser = users.find(u => u.role === role) || users[0];
+  const { logout, user } = useAuth();
+  const router = useRouter();
+
+  const currentUser = users.find(u => u.role === (user as any)?.role) || users[0];
   const { setTheme } = useTheme();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  }
 
   return (
     <div className="flex items-center gap-4">
@@ -104,7 +114,10 @@ export default function UserNav() {
             </DropdownMenuPortal>
           </DropdownMenuSub>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Log out</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Log out
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

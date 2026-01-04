@@ -1,4 +1,3 @@
-
 import type { UserRole } from "@/contexts/role-context";
 
 export type Activity = {
@@ -14,6 +13,15 @@ export type Activity = {
   checkoutTime?: string;
   companyName?: string;
   location?: string;
+};
+
+export type ApprovingAuthority = {
+  id: string;
+  name: string;
+  role: string;
+  mobileNumber: string;
+  email: string;
+  avatar: string;
 };
 
 export const activities: Activity[] = [
@@ -59,7 +67,7 @@ export const complexes = [
   { id: 'c4', name: 'Villa Community', blocks: 5, floors: 2, units: 30 },
 ];
 
-export const approvingAuthorities = [
+export const approvingAuthorities: ApprovingAuthority[] = [
   { id: 'auth1', name: 'Michael Scott', role: 'Manager', mobileNumber: '9123456780', email: 'michael.s@securepass.com', avatar: 'https://avatar.vercel.sh/michael.png' },
   { id: 'auth2', name: 'Dwight Schrute', role: 'Asst. to the Manager', mobileNumber: '9123456781', email: 'dwight.s@securepass.com', avatar: 'https://avatar.vercel.sh/dwight.png' },
   { id: 'auth3', name: 'Jim Halpert', role: 'Administrator', mobileNumber: '9123456782', email: 'jim.h@securepass.com', avatar: 'https://avatar.vercel.sh/jim.png' },
