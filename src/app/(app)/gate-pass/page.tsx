@@ -121,6 +121,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
     const [cameraError, setCameraError] = useState<string | null>(null);
     const { toast } = useToast();
+    const { activities } = useGatePass();
 
     // Form state
     const [visitorName, setVisitorName] = useState('');
@@ -248,6 +249,21 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
           setValidTo(undefined);
         }
       }, [validityOption]);
+      
+    const handleMobileNumberBlur = () => {
+        if (mobileNumber.length > 0) {
+            const existingVisitor = activities.find(activity => activity.mobileNumber === mobileNumber);
+            if (existingVisitor) {
+                setVisitorName(existingVisitor.visitorName);
+                setCompanyName(existingVisitor.companyName || '');
+                setLocation(existingVisitor.location || '');
+                toast({
+                    title: "Existing Visitor Found",
+                    description: `Details for ${existingVisitor.visitorName} have been pre-filled.`,
+                });
+            }
+        }
+    };
 
     return (
         <div className="grid gap-6">
@@ -260,7 +276,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="mobile-number">Mobile Number</Label>
-                            <Input id="mobile-number" placeholder="e.g., 9876543210" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} />
+                            <Input id="mobile-number" placeholder="e.g., 9876543210" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} onBlur={handleMobileNumberBlur} />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
