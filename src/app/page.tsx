@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,7 +16,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-function UserLoginForm({ onLogin }: { onLogin: (mobile: string, pass: string, type: 'user') => void }) {
+function UserLoginForm({ onLogin, mobileInputRef }: { onLogin: (mobile: string, pass: string, type: 'user') => void, mobileInputRef: React.RefObject<HTMLInputElement> }) {
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
 
@@ -31,6 +31,7 @@ function UserLoginForm({ onLogin }: { onLogin: (mobile: string, pass: string, ty
         <div className="grid gap-2">
           <Label htmlFor="mobile-number">Mobile Number</Label>
           <Input
+            ref={mobileInputRef}
             id="mobile-number"
             type="text"
             placeholder="Enter your mobile number"
@@ -58,7 +59,7 @@ function UserLoginForm({ onLogin }: { onLogin: (mobile: string, pass: string, ty
   );
 }
 
-function AdminLoginForm({ onLogin }: { onLogin: (id: string, pass: string, type: 'admin') => void }) {
+function AdminLoginForm({ onLogin, passwordInputRef }: { onLogin: (id: string, pass: string, type: 'admin') => void, passwordInputRef: React.RefObject<HTMLInputElement> }) {
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -72,6 +73,7 @@ function AdminLoginForm({ onLogin }: { onLogin: (id: string, pass: string, type:
         <div className="grid gap-2">
           <Label htmlFor="admin-password">Password</Label>
           <Input
+            ref={passwordInputRef}
             id="admin-password"
             type="password"
             placeholder="Enter admin password"
@@ -88,7 +90,7 @@ function AdminLoginForm({ onLogin }: { onLogin: (id: string, pass: string, type:
   );
 }
 
-function ApproverLoginForm({ onLogin }: { onLogin: (id: string, pass: string, type: 'approver') => void }) {
+function ApproverLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, pass: string, type: 'approver') => void, mobileInputRef: React.RefObject<HTMLInputElement> }) {
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
 
@@ -103,6 +105,7 @@ function ApproverLoginForm({ onLogin }: { onLogin: (id: string, pass: string, ty
         <div className="grid gap-2">
            <Label htmlFor="approver-mobile">Mobile Number</Label>
            <Input
+            ref={mobileInputRef}
             id="approver-mobile"
             type="text"
             placeholder="Enter your mobile number"
@@ -130,7 +133,7 @@ function ApproverLoginForm({ onLogin }: { onLogin: (id: string, pass: string, ty
   );
 }
 
-function ManagerLoginForm({ onLogin }: { onLogin: (id: string, pass: string, type: 'manager') => void }) {
+function ManagerLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, pass: string, type: 'manager') => void, mobileInputRef: React.RefObject<HTMLInputElement> }) {
     const [mobileNumber, setMobileNumber] = useState('');
     const [password, setPassword] = useState('');
   
@@ -145,6 +148,7 @@ function ManagerLoginForm({ onLogin }: { onLogin: (id: string, pass: string, typ
           <div className="grid gap-2">
              <Label htmlFor="manager-mobile">Mobile Number</Label>
              <Input
+              ref={mobileInputRef}
               id="manager-mobile"
               type="text"
               placeholder="Enter your mobile number"
@@ -172,7 +176,7 @@ function ManagerLoginForm({ onLogin }: { onLogin: (id: string, pass: string, typ
     );
   }
 
-  function SecurityLoginForm({ onLogin }: { onLogin: (id: string, pass: string, type: 'security') => void }) {
+  function SecurityLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, pass: string, type: 'security') => void, mobileInputRef: React.RefObject<HTMLInputElement> }) {
     const [mobileNumber, setMobileNumber] = useState('');
     const [password, setPassword] = useState('');
   
@@ -187,6 +191,7 @@ function ManagerLoginForm({ onLogin }: { onLogin: (id: string, pass: string, typ
           <div className="grid gap-2">
              <Label htmlFor="security-mobile">Mobile Number</Label>
              <Input
+              ref={mobileInputRef}
               id="security-mobile"
               type="text"
               placeholder="Enter your mobile number"
@@ -222,26 +227,55 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('user');
 
+  const userMobileInputRef = useRef<HTMLInputElement>(null);
+  const adminPasswordInputRef = useRef<HTMLInputElement>(null);
+  const approverMobileInputRef = useRef<HTMLInputElement>(null);
+  const managerMobileInputRef = useRef<HTMLInputElement>(null);
+  const securityMobileInputRef = useRef<HTMLInputElement>(null);
+
+
   useEffect(() => {
     const role = searchParams.get('role');
     const validRoles = ['user', 'admin', 'approver', 'manager', 'security'];
-    if (role && validRoles.includes(role)) {
-      setActiveTab(role);
-    } else {
-        // If there's no role in query param, default to user
-        // and remove any existing role param from URL
-        router.replace('/', undefined);
+    const newTab = role && validRoles.includes(role) ? role : 'user';
+    
+    if (newTab !== activeTab) {
+      setActiveTab(newTab);
     }
-  }, [searchParams, router]);
+
+    if (!role) {
+      router.replace('/', undefined);
+    }
+  }, [searchParams, router, activeTab]);
+
+  useEffect(() => {
+    // Focus the input when the tab becomes active
+    setTimeout(() => {
+        switch (activeTab) {
+            case 'user':
+                userMobileInputRef.current?.focus();
+                break;
+            case 'admin':
+                adminPasswordInputRef.current?.focus();
+                break;
+            case 'approver':
+                approverMobileInputRef.current?.focus();
+                break;
+            case 'manager':
+                managerMobileInputRef.current?.focus();
+                break;
+            case 'security':
+                securityMobileInputRef.current?.focus();
+                break;
+        }
+    }, 100); // Small delay to ensure the input is visible
+}, [activeTab]);
+
 
   const handleLogin = async (identifier: string, pass: string, type: 'user' | 'admin' | 'approver' | 'manager' | 'security') => {
     const success = await login(identifier, pass, type);
     if (success) {
-      if (type === 'approver') {
-        router.push('/gate-pass');
-      } else {
         router.push('/dashboard');
-      }
     } else {
       toast({
         variant: 'destructive',
@@ -275,19 +309,19 @@ export default function LoginPage() {
               <TabsTrigger value="security">Security</TabsTrigger>
             </TabsList>
             <TabsContent value="user" className="pt-4">
-              <UserLoginForm onLogin={handleLogin} />
+              <UserLoginForm onLogin={handleLogin} mobileInputRef={userMobileInputRef} />
             </TabsContent>
             <TabsContent value="admin" className="pt-4">
-              <AdminLoginForm onLogin={handleLogin} />
+              <AdminLoginForm onLogin={handleLogin} passwordInputRef={adminPasswordInputRef} />
             </TabsContent>
             <TabsContent value="approver" className="pt-4">
-              <ApproverLoginForm onLogin={handleLogin} />
+              <ApproverLoginForm onLogin={handleLogin} mobileInputRef={approverMobileInputRef} />
             </TabsContent>
             <TabsContent value="manager" className="pt-4">
-              <ManagerLoginForm onLogin={handleLogin} />
+              <ManagerLoginForm onLogin={handleLogin} mobileInputRef={managerMobileInputRef} />
             </TabsContent>
              <TabsContent value="security" className="pt-4">
-              <SecurityLoginForm onLogin={handleLogin} />
+              <SecurityLoginForm onLogin={handleLogin} mobileInputRef={securityMobileInputRef} />
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -295,4 +329,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
