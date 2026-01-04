@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -727,12 +726,25 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
     );
   }
 
-function PreApproveDialog({ onPreApprove }: { onPreApprove: (newPass: Omit<Activity, 'id' | 'time' | 'date' | 'status' | 'approverIds'>) => void }) {
+function PreApproveDialog({ activities, onPreApprove }: { activities: Activity[], onPreApprove: (newPass: Omit<Activity, 'id' | 'time' | 'date' | 'status' | 'approverIds'>) => void }) {
     const [open, setOpen] = useState(false);
     const [visitorName, setVisitorName] = useState('');
     const [mobileNumber, setMobileNumber] = useState('');
+    const [companyName, setCompanyName] = useState('');
     const [passType, setPassType] = useState('');
     const { toast } = useToast();
+    const [companyComboboxOpen, setCompanyComboboxOpen] = useState(false);
+
+
+    const uniqueCompanies = useMemo(() => {
+        const companyNames = new Set<string>();
+        activities.forEach(activity => {
+            if (activity.companyName) {
+                companyNames.add(activity.companyName);
+            }
+        });
+        return Array.from(companyNames);
+    }, [activities]);
 
     const handlePreApprove = () => {
         if (!visitorName || !passType || !mobileNumber) {
@@ -748,7 +760,7 @@ function PreApproveDialog({ onPreApprove }: { onPreApprove: (newPass: Omit<Activ
             visitorName,
             mobileNumber,
             passType: passType as Activity['passType'],
-            companyName: '', // Optional, can be added
+            companyName: companyName,
             location: '', // Optional, can be added
         };
 
@@ -763,6 +775,7 @@ function PreApproveDialog({ onPreApprove }: { onPreApprove: (newPass: Omit<Activ
         setVisitorName('');
         setMobileNumber('');
         setPassType('');
+        setCompanyName('');
         setOpen(false);
     };
 
@@ -789,6 +802,53 @@ function PreApproveDialog({ onPreApprove }: { onPreApprove: (newPass: Omit<Activ
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="pre-mobile-number" className="text-right">Mobile Number</Label>
                         <Input id="pre-mobile-number" placeholder="Enter 10-digit mobile number" className="col-span-3" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                         <Label htmlFor="pre-company-name" className="text-right">Company</Label>
+                         <Popover open={companyComboboxOpen} onOpenChange={setCompanyComboboxOpen}>
+                            <PopoverTrigger asChild>
+                                <div className="col-span-3">
+                                    <Input 
+                                        id="pre-company-name"
+                                        placeholder="Search or enter company name"
+                                        value={companyName}
+                                        onFocus={() => setCompanyComboboxOpen(true)}
+                                        onChange={(e) => {
+                                            setCompanyName(e.target.value)
+                                            if(!companyComboboxOpen) setCompanyComboboxOpen(true)
+                                        }}
+                                    />
+                                </div>
+                            </PopoverTrigger>
+                             <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                 <Command>
+                                     <CommandInput placeholder="Search company..." />
+                                     <CommandList>
+                                         <CommandEmpty>No company found.</CommandEmpty>
+                                         <CommandGroup>
+                                             {uniqueCompanies.filter(c => c.toLowerCase().includes(companyName.toLowerCase())).map((company) => (
+                                                 <CommandItem
+                                                     key={company}
+                                                     value={company}
+                                                     onSelect={(currentValue) => {
+                                                         setCompanyName(currentValue === companyName ? "" : currentValue);
+                                                         setCompanyComboboxOpen(false);
+                                                     }}
+                                                 >
+                                                     <Check
+                                                         className={cn(
+                                                             "mr-2 h-4 w-4",
+                                                             companyName === company ? "opacity-100" : "opacity-0"
+                                                         )}
+                                                     />
+                                                     {company}
+                                                 </CommandItem>
+                                             ))}
+                                         </CommandGroup>
+                                     </CommandList>
+                                 </Command>
+                             </PopoverContent>
+                         </Popover>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="pre-pass-type" className="text-right">Pass Type</Label>
@@ -890,10 +950,10 @@ export default function GatePassPage() {
             {role !== 'Approver' && (
               <Button size="sm" variant="outline" className="h-8 gap-1">
                   <QrCode className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Scan Pass</span>
+                  <span className="sr-only sm:not-sr-only sm:whitespace-rap">Scan Pass</span>
               </Button>
             )}
-            <PreApproveDialog onPreApprove={preApproveVisitor} />
+            <PreApproveDialog activities={activities} onPreApprove={preApproveVisitor} />
         </div>
       </div>
       {role !== 'Approver' && 
