@@ -1,4 +1,5 @@
 
+
 import type { UserRole } from "@/contexts/role-context";
 
 export type Activity = {
@@ -11,10 +12,13 @@ export type Activity = {
   date: string;
   vehicle?: string;
   photo?: string;
-  checkoutTime?: string;
   companyName?: string;
   location?: string;
   approverIds?: string[];
+  requesterId?: string;
+  approvedAt?: string;
+  checkedInAt?: string;
+  checkedOutAt?: string;
 };
 
 export type ApprovingAuthority = {
@@ -28,12 +32,12 @@ export type ApprovingAuthority = {
 
 export const activities: Activity[] = [
   { id: '1', visitorName: 'John Doe', mobileNumber: '9876543210', passType: 'Guest', status: 'Approved', time: '10:30 AM', date: '2023-10-27', vehicle: 'TS09AB1234' },
-  { id: '2', visitorName: 'Jane Smith (Amazon)', mobileNumber: '9876543211', passType: 'Delivery', status: 'Checked Out', time: '11:15 AM', date: '2023-10-27', checkoutTime: '11:45 AM', companyName: 'Amazon', location: 'Local Hub' },
+  { id: '2', visitorName: 'Jane Smith (Amazon)', mobileNumber: '9876543211', passType: 'Delivery', status: 'Checked Out', time: '11:15 AM', date: '2023-10-27', checkedOutAt: '2023-10-27T11:45:00Z', companyName: 'Amazon', location: 'Local Hub' },
   { id: '3', visitorName: 'Maintenance Team', mobileNumber: '9876543212', passType: 'Staff', status: 'Checked In', time: '09:00 AM', date: '2023-10-27', companyName: 'Urban Company', location: 'City Branch' },
   { id: '4', visitorName: 'Emily White', mobileNumber: '9876543213', passType: 'Guest', status: 'Pending', time: '01:00 PM', date: '2023-10-27' },
   { id: '5', visitorName: 'UPS Delivery', mobileNumber: '9876543214', passType: 'Delivery', status: 'Checked In', time: '12:05 PM', date: '2023-10-27', companyName: 'UPS', location: 'Main Depot' },
-  { id: '6', visitorName: 'Alex Green', mobileNumber: '9876543215', passType: 'Guest', status: 'Checked Out', time: '02:30 PM', date: '2023-10-26', checkoutTime: '04:00 PM' },
-  { id: '7', visitorName: 'Food Delivery', mobileNumber: '9876543216', passType: 'Delivery', status: 'Checked Out', time: '08:45 PM', date: '2023-10-26', checkoutTime: '09:00 PM' },
+  { id: '6', visitorName: 'Alex Green', mobileNumber: '9876543215', passType: 'Guest', status: 'Checked Out', time: '02:30 PM', date: '2023-10-26', checkedOutAt: '2023-10-26T16:00:00Z' },
+  { id: '7', visitorName: 'Food Delivery', mobileNumber: '9876543216', passType: 'Delivery', status: 'Checked Out', time: '08:45 PM', date: '2023-10-26', checkedOutAt: '2023-10-26T21:00:00Z' },
   { id: '8', visitorName: 'Robert Brown', mobileNumber: '9876543217', passType: 'Guest', status: 'Checked In', time: '03:00 PM', date: '2023-10-27', vehicle: 'KA01CD5678'},
 ];
 
@@ -75,5 +79,7 @@ export const approvingAuthorities: ApprovingAuthority[] = [
   { id: 'auth3', name: 'Jim Halpert', role: 'Administrator', mobileNumber: '9123456782', email: 'jim.h@securepass.com', avatar: 'https://avatar.vercel.sh/jim.png' },
   { id: 'auth4', name: 'Pam Beesly', role: 'Administrator', mobileNumber: '9123456783', email: 'pam.b@securepass.com', avatar: 'https://avatar.vercel.sh/pam.png' },
 ];
+
+    
 
     

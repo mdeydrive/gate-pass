@@ -6,6 +6,7 @@ import { createContext, useContext, useState, type ReactNode, useEffect, useCall
 import type { Activity } from '@/lib/data';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from './auth-context';
 
 interface GatePassContextType {
   activities: Activity[];
@@ -22,6 +23,7 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchActivities = useCallback(async () => {
     try {
@@ -49,13 +51,13 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
   }, [fetchActivities]);
 
   const addActivity = async (newPassData: Omit<Activity, 'id' | 'time' | 'date' | 'status' | 'approverIds'>) => {
-    const newPass: Activity = {
+    const newPass: Omit<Activity, 'id'> & {user: typeof user} = {
       ...newPassData,
-      id: `pass-${Date.now()}`,
       time: format(new Date(), "hh:mm a"),
       date: format(new Date(), "yyyy-MM-dd"),
       status: 'Pending',
       approverIds: [],
+      user
     };
 
     try {
@@ -71,7 +73,6 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
             throw new Error(errorBody.message || `Error ${response.status}: Failed to save the new pass`);
         }
         
-        // Refetch activities to get the latest list
         await fetchActivities();
 
     } catch (error: any) {
@@ -91,7 +92,8 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
         time: format(new Date(), "hh:mm a"),
         date: format(new Date(), "yyyy-MM-dd"),
         status: 'Approved',
-        approverIds: [], // Can be the current user's ID if needed
+        approvedAt: new Date().toISOString(),
+        approverIds: user ? [user.id] : [],
     };
 
      try {
@@ -116,13 +118,21 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
 
 
   const updateActivityStatus = async (id: string, status: Activity['status']) => {
-    const checkoutTime = status === 'Checked Out' ? format(new Date(), "hh:mm a") : undefined;
+    const body: { id: string; status: Activity['status']; approvedAt?: string; checkedInAt?: string; checkedOutAt?: string } = { id, status };
+    
+    if (status === 'Approved') {
+        body.approvedAt = new Date().toISOString();
+    } else if (status === 'Checked In') {
+        body.checkedInAt = new Date().toISOString();
+    } else if (status === 'Checked Out') {
+        body.checkedOutAt = new Date().toISOString();
+    }
     
     try {
         const response = await fetch('/api/activities', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, status, checkoutTime }),
+            body: JSON.stringify(body),
         });
 
         if (!response.ok) {
@@ -198,3 +208,5 @@ export function useGatePass() {
   }
   return context;
 }
+
+    

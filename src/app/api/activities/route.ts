@@ -1,4 +1,5 @@
 
+
 import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
@@ -84,8 +85,14 @@ export async function POST(request: Request) {
         // Merge the existing activity with the new body data
         const updatedActivity = { ...existingActivity, ...body };
 
-        if (body.status === 'Checked Out' && !body.checkoutTime) {
-            updatedActivity.checkoutTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        if (body.status === 'Approved' && !body.approvedAt) {
+            updatedActivity.approvedAt = new Date().toISOString();
+        }
+        if (body.status === 'Checked In' && !body.checkedInAt) {
+            updatedActivity.checkedInAt = new Date().toISOString();
+        }
+        if (body.status === 'Checked Out' && !body.checkedOutAt) {
+            updatedActivity.checkedOutAt = new Date().toISOString();
         }
 
         activities[activityIndex] = updatedActivity;
@@ -96,6 +103,7 @@ export async function POST(request: Request) {
     // Logic for CREATING a new pass
     else {
         let imageUrl = body.photo;
+        const { user } = body;
 
         // If a photo is included and it's a base64 string, save it
         if (imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('data:image')) {
@@ -126,6 +134,7 @@ export async function POST(request: Request) {
           date: body.date,
           status: body.status,
           approverIds: body.approverIds || [],
+          requesterId: user?.id,
         };
         
         activities.unshift(newActivity); // Add to the beginning of the list
@@ -140,3 +149,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Failed to process request', error: errorMessage }, { status: 500 });
   }
 }
+
+
+    

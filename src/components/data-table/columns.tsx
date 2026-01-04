@@ -1,10 +1,12 @@
 
+
 "use client"
 
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Activity } from "@/lib/data"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { format } from "date-fns"
 
 const getBadgeVariant = (status: Activity['status']) => {
     switch (status) {
@@ -16,6 +18,15 @@ const getBadgeVariant = (status: Activity['status']) => {
       default: return 'outline';
     }
 };
+
+const formatTimestamp = (timestamp?: string) => {
+    if (!timestamp) return 'N/A';
+    try {
+        return format(new Date(timestamp), 'PPpp'); // Example: Oct 27, 2023, 10:30:00 AM
+    } catch (e) {
+        return 'Invalid Date';
+    }
+}
 
 export const columns: ColumnDef<Activity & { approverNames?: string[] }>[] = [
   {
@@ -54,17 +65,17 @@ export const columns: ColumnDef<Activity & { approverNames?: string[] }>[] = [
     header: "Pass Type",
   },
   {
-    accessorKey: "date",
+    accessorKey: "checkedInAt",
     header: "Check-in Time",
     cell: ({ row }) => {
-      return `${row.original.date} ${row.original.time}`
+      return formatTimestamp(row.original.checkedInAt)
     }
   },
   {
-    accessorKey: "checkoutTime",
+    accessorKey: "checkedOutAt",
     header: "Check-out Time",
     cell: ({ row }) => {
-        return row.original.checkoutTime ? <span>{`${row.original.date} ${row.original.checkoutTime}`}</span> : <span className="text-muted-foreground">N/A</span>
+        return formatTimestamp(row.original.checkedOutAt);
     }
   },
   {
@@ -99,3 +110,5 @@ export const columns: ColumnDef<Activity & { approverNames?: string[] }>[] = [
     }
   },
 ]
+
+    

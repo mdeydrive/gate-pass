@@ -403,9 +403,10 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                                         <CommandList>
                                             <CommandEmpty>
                                                  <Button variant="ghost" className="w-full justify-start" onClick={() => {
+                                                    resetForm();
                                                     setComboboxOpen(false);
                                                 }}>
-                                                    No visitor found. Use "Add New Visitor".
+                                                    No visitor found. Click to add manually.
                                                 </Button>
                                             </CommandEmpty>
                                             <CommandGroup>
@@ -586,11 +587,14 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
         if (role === 'Approver') {
             return passes.filter(p => p.approverIds?.includes(user.id) || p.status === 'Pending' && (!p.approverIds || p.approverIds.length === 0));
         }
-        if (role === 'Manager' || role === 'Resident') {
-            return passes.filter(p => 
+        if (role === 'Manager') {
+             return passes.filter(p => 
                 (p.status === 'Pending' && (!p.approverIds || p.approverIds.length === 0)) || 
                 (p.approverIds && p.approverIds.includes(user.id))
             );
+        }
+        if (role === 'Resident') {
+            return passes.filter(p => p.requesterId === user.id);
         }
         return passes;
     }, [passes, role, user]);
@@ -616,6 +620,15 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
     const isCurrentUserApprover = (approverIds?: string[]) => {
         if (!user || !approverIds || approverIds.length === 0) return false;
         return approverIds.includes(user.id);
+    }
+
+    const formatTimestamp = (timestamp?: string) => {
+        if (!timestamp) return '';
+        try {
+            return format(new Date(timestamp), 'PPpp');
+        } catch (e) {
+            return timestamp;
+        }
     }
   
     return (
@@ -659,10 +672,10 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                       <div>
                         <div className="font-medium">{activity.visitorName}</div>
                         <div className="text-sm text-muted-foreground">
-                            {activity.status === 'Pending' && activity.approverIds && activity.approverIds.length > 0 ?
-                                `Waiting for: ${getApproverName(activity.approverIds[0])}` : 
-                                `Requested: ${activity.time}`
-                            }
+                            {activity.status === 'Pending' && activity.approverIds && activity.approverIds.length > 0 && `Waiting for: ${getApproverName(activity.approverIds[0])}`}
+                            {activity.status === 'Approved' && activity.approvedAt && `Approved: ${formatTimestamp(activity.approvedAt)}`}
+                            {activity.status === 'Checked In' && activity.checkedInAt && `Checked In: ${formatTimestamp(activity.checkedInAt)}`}
+                            {activity.status === 'Pending' && (!activity.approverIds || activity.approverIds.length === 0) && `Requested: ${activity.time}`}
                         </div>
                       </div>
                     </div>
@@ -677,13 +690,13 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                     <div className="flex justify-end gap-2 items-center">
                       {activity.status === 'Pending' && (
                         <>
-                          {(!activity.approverIds || activity.approverIds.length === 0) && (role === 'Admin' || role === 'Manager' || role === 'Approver') ? (
+                          {(!activity.approverIds || activity.approverIds.length === 0) && (role === 'Admin' || role === 'Manager') ? (
                             <Select onValueChange={(approverId) => onAssignApprover(activity.id, approverId)}>
                                 <SelectTrigger className="w-[180px]">
                                     <SelectValue placeholder="Assign Approver" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {authorities.map(auth => (
+                                    {authorities.filter(a => a.role === 'Approver').map(auth => (
                                         <SelectItem key={auth.id} value={auth.id}>{auth.name}</SelectItem>
                                     ))}
                                 </SelectContent>
@@ -1025,21 +1038,23 @@ function PreApprovedList({ passes, loading }: { passes: Activity[], loading: boo
 export default function GatePassPage() {
     const { activities, addActivity, updateActivityStatus, assignApprover, loading, preApproveVisitor } = useGatePass();
     const { role } = useRole();
-    const defaultTab = 'generate';
+    const defaultTab = role === 'Approver' ? 'active' : 'generate';
 
   return (
     <Tabs defaultValue={defaultTab} className="w-full">
       <div className="flex items-center">
         <TabsList>
-          <TabsTrigger value="generate">Generate Pass</TabsTrigger>
+          {role !== 'Approver' && <TabsTrigger value="generate">Generate Pass</TabsTrigger>}
           <TabsTrigger value="active">Active Passes</TabsTrigger>
           <TabsTrigger value="pre-approved">Pre-approved</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
-            <Button size="sm" variant="outline" className="h-8 gap-1">
-                <QrCode className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-rap">Scan Pass</span>
-            </Button>
+            {role !== 'Approver' && (
+                <Button size="sm" variant="outline" className="h-8 gap-1">
+                    <QrCode className="h-4 w-4" />
+                    <span className="sr-only sm:not-sr-only sm:whitespace-rap">Scan Pass</span>
+                </Button>
+            )}
             <PreApproveDialog activities={activities} onPreApprove={preApproveVisitor} />
         </div>
       </div>
@@ -1065,6 +1080,8 @@ export default function GatePassPage() {
     </Tabs>
   );
 }
+
+    
 
     
 
