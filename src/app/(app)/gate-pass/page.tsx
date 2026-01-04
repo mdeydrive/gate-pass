@@ -288,6 +288,8 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
         }
       }, [validityOption]);
       
+    const isPrefilled = !!selectedVisitorForDisplay;
+
     return (
         <div className="grid gap-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -346,21 +348,21 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="visitor-name">Visitor Name</Label>
-                            <Input id="visitor-name" placeholder="Enter visitor's full name" value={visitorName} onChange={e => setVisitorName(e.target.value)} />
+                            <Input id="visitor-name" placeholder="Enter visitor's full name" value={visitorName} onChange={e => setVisitorName(e.target.value)} readOnly={isPrefilled} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="mobile-number">Mobile Number</Label>
-                            <Input id="mobile-number" placeholder="Enter 10-digit mobile number" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} />
+                            <Input id="mobile-number" placeholder="Enter 10-digit mobile number" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} readOnly={isPrefilled} />
                         </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                        <div className="grid gap-2">
                             <Label htmlFor="company-name">Company Name (Optional)</Label>
-                            <Input id="company-name" placeholder="Enter company name" value={companyName} onChange={e => setCompanyName(e.target.value)} />
+                            <Input id="company-name" placeholder="Enter company name" value={companyName} onChange={e => setCompanyName(e.target.value)} readOnly={isPrefilled} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="location">Location (Optional)</Label>
-                            <Input id="location" placeholder="Enter visitor's city or location" value={location} onChange={e => setLocation(e.target.value)} />
+                            <Input id="location" placeholder="Enter visitor's city or location" value={location} onChange={e => setLocation(e.target.value)} readOnly={isPrefilled} />
                         </div>
                     </div>
                     <div className="grid gap-2">
