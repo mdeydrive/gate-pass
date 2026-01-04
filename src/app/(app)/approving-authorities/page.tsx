@@ -32,6 +32,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -94,7 +101,18 @@ function AddAuthorityDialog({ onAddAuthority }: { onAddAuthority: (newAuthority:
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="role" className="text-right">Role</Label>
-            <Input id="role" placeholder="e.g. Manager" className="col-span-3" value={role} onChange={(e) => setRole(e.target.value)} />
+            <Select onValueChange={setRole} value={role}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="Resident">User</SelectItem>
+                    <SelectItem value="Approver">Approver</SelectItem>
+                    <SelectItem value="Admin">Admin</SelectItem>
+                    <SelectItem value="Manager">Gatepass Manager</SelectItem>
+                    <SelectItem value="Security">Security</SelectItem>
+                </SelectContent>
+            </Select>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="mobile" className="text-right">Mobile No.</Label>
