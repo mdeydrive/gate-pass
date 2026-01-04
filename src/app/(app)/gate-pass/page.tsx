@@ -45,6 +45,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGatePass } from "@/contexts/gate-pass-context";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 function DateTimePicker({ value, onChange, placeholder, disabled }: { value: Date | undefined, onChange: (date: Date | undefined) => void, placeholder: string, disabled?: boolean }) {
@@ -365,7 +366,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
     );
 }
 
-function ActivePassesList({ passes, onUpdatePass }: { passes: Activity[], onUpdatePass: (id: string, status: Activity['status']) => void }) {
+function ActivePassesList({ passes, onUpdatePass, loading }: { passes: Activity[], onUpdatePass: (id: string, status: Activity['status']) => void, loading: boolean }) {
     const activePasses = passes.filter(a => a.status === 'Checked In' || a.status === 'Pending');
   
     return (
@@ -377,6 +378,13 @@ function ActivePassesList({ passes, onUpdatePass }: { passes: Activity[], onUpda
           </CardDescription>
         </CardHeader>
         <CardContent>
+        {loading ? (
+            <div className="space-y-3">
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+            </div>
+        ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -429,13 +437,14 @@ function ActivePassesList({ passes, onUpdatePass }: { passes: Activity[], onUpda
               )}
             </TableBody>
           </Table>
+        )}
         </CardContent>
       </Card>
     );
   }
 
 export default function GatePassPage() {
-    const { activities, addActivity, updateActivityStatus } = useGatePass();
+    const { activities, addActivity, updateActivityStatus, loading } = useGatePass();
 
   return (
     <Tabs defaultValue="generate" className="w-full">
@@ -470,7 +479,7 @@ export default function GatePassPage() {
         </Card>
       </TabsContent>
       <TabsContent value="active">
-        <ActivePassesList passes={activities} onUpdatePass={updateActivityStatus} />
+        <ActivePassesList passes={activities} onUpdatePass={updateActivityStatus} loading={loading} />
       </TabsContent>
       <TabsContent value="pre-approved">
         <Card>
