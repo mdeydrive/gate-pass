@@ -70,7 +70,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const activities = await readData();
 
-    // Check if this is a status update for an existing pass
+    // Logic for UPDATING an existing pass status
     if (body.id && body.status) {
         const { id, status, checkoutTime } = body;
         const activityIndex = activities.findIndex(a => a.id === id);
@@ -79,18 +79,24 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: 'Activity not found' }, { status: 404 });
         }
 
+        // Create a clean updated activity object
         const updatedActivity = { 
           ...activities[activityIndex], 
-          status,
-          ...(checkoutTime && { checkoutTime }) // Only add checkoutTime if it exists
+          status: status,
         };
+
+        // Only add checkoutTime if it's provided (for 'Checked Out' status)
+        if (checkoutTime) {
+            (updatedActivity as any).checkoutTime = checkoutTime;
+        }
 
         activities[activityIndex] = updatedActivity;
         await writeData(activities);
-        return NextResponse.json(activities[activityIndex]);
+        return NextResponse.json(updatedActivity);
 
-    } else {
-        // This is a new pass creation
+    } 
+    // Logic for CREATING a new pass
+    else {
         const newActivityData = body;
         let imageUrl = newActivityData.photo;
 
@@ -99,7 +105,7 @@ export async function POST(request: Request) {
           imageUrl = await saveImage(imageUrl);
         }
 
-        // Build the final new activity object, ensuring no unwanted properties are included
+        // Build the final new activity object
         const newActivity: Activity = {
             id: newActivityData.id,
             visitorName: newActivityData.visitorName,
@@ -107,11 +113,11 @@ export async function POST(request: Request) {
             status: newActivityData.status,
             time: newActivityData.time,
             date: newActivityData.date,
-            mobileNumber: newActivityData.mobileNumber || undefined,
-            companyName: newActivityData.companyName || undefined,
-            location: newActivityData.location || undefined,
-            vehicle: newActivityData.vehicle || undefined,
-            photo: imageUrl || undefined,
+            mobileNumber: newActivityData.mobileNumber,
+            companyName: newActivityData.companyName,
+            location: newActivityData.location,
+            vehicle: newActivityData.vehicle,
+            photo: imageUrl,
         };
         
         activities.unshift(newActivity); // Add to the beginning of the list
