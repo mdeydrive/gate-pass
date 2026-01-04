@@ -13,7 +13,8 @@ import {
   Car,
   Package,
   Wrench,
-  ClipboardCheck
+  ClipboardCheck,
+  Users,
 } from "lucide-react";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 
@@ -29,6 +30,7 @@ const navItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["Admin", "Security", "Resident", "Manager"] },
   { href: "/gate-pass", label: "Gate Pass", icon: Ticket, roles: ["Security", "Resident", "Admin", "Manager"] },
   { href: "/history", label: "History", icon: History, roles: ["Admin", "Security", "Resident", "Manager"] },
+  { href: "/visitors", label: "Visitors", icon: Users, roles: ["Admin", "Security", "Manager"] },
   { href: "/management", label: "Management", icon: Building, roles: ["Admin", "Manager"] },
   { href: "/approving-authorities", label: "Approving Authorities", icon: ClipboardCheck, roles: ["Admin", "Manager"] },
   { href: "/alerts", label: "Alerts", icon: AlertTriangle, roles: ["Security", "Admin", "Manager"] },
