@@ -1,2 +1,96 @@
 
-[]
+[
+  {
+    "id": "1",
+    "visitorName": "John Doe",
+    "mobileNumber": "9876543210",
+    "passType": "Guest",
+    "status": "Checked In",
+    "time": "10:30 AM",
+    "date": "2023-10-27",
+    "vehicle": "TS09AB1234",
+    "companyName": "Self",
+    "location": "City Center"
+  },
+  {
+    "id": "2",
+    "visitorName": "Jane Smith (Amazon)",
+    "mobileNumber": "9876543211",
+    "passType": "Delivery",
+    "status": "Checked Out",
+    "time": "11:15 AM",
+    "date": "2023-10-27",
+    "checkoutTime": "11:45 AM",
+    "companyName": "Amazon",
+    "location": "Local Hub"
+  },
+  {
+    "id": "3",
+    "visitorName": "Maintenance Team",
+    "mobileNumber": "9876543212",
+    "passType": "Staff",
+    "status": "Checked In",
+    "time": "09:00 AM",
+    "date": "2023-10-27",
+    "companyName": "Urban Company",
+    "location": "City Branch"
+  },
+  {
+    "id": "4",
+    "visitorName": "Emily White",
+    "mobileNumber": "9876543213",
+    "passType": "Guest",
+    "status": "Pending",
+    "time": "01:00 PM",
+    "date": "2023-10-27",
+    "companyName": "Friend",
+    "location": "Downtown"
+  },
+  {
+    "id": "5",
+    "visitorName": "UPS Delivery",
+    "mobileNumber": "9876543214",
+    "passType": "Delivery",
+    "status": "Checked In",
+    "time": "12:05 PM",
+    "date": "2023-10-27",
+    "companyName": "UPS",
+    "location": "Main Depot"
+  },
+  {
+    "id": "6",
+    "visitorName": "Alex Green",
+    "mobileNumber": "9876543215",
+    "passType": "Guest",
+    "status": "Checked Out",
+    "time": "02:30 PM",
+    "date": "2023-10-26",
+    "checkoutTime": "04:00 PM",
+    "companyName": "Relative",
+    "location": "Suburb"
+  },
+  {
+    "id": "7",
+    "visitorName": "Food Delivery",
+    "mobileNumber": "9876543216",
+    "passType": "Delivery",
+    "status": "Checked Out",
+    "time": "08:45 PM",
+    "date": "2023-10-26",
+    "checkoutTime": "09:00 PM",
+    "companyName": "Swiggy",
+    "location": "Local Restaurant"
+  },
+  {
+    "id": "8",
+    "visitorName": "Robert Brown",
+    "mobileNumber": "9876543217",
+    "passType": "Guest",
+    "status": "Checked In",
+    "time": "03:00 PM",
+    "date": "2023-10-27",
+    "vehicle": "KA01CD5678",
+    "companyName": "Self",
+    "location": "Out of Town"
+  }
+]
