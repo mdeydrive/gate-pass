@@ -72,7 +72,7 @@ export async function POST(request: Request) {
 
     // Logic for UPDATING an existing pass status
     if (body.id && body.status) {
-        const { id, status, checkoutTime } = body;
+        const { id, status } = body;
         const activityIndex = activities.findIndex(a => a.id === id);
 
         if (activityIndex === -1) {
@@ -86,8 +86,8 @@ export async function POST(request: Request) {
         };
 
         // Only add checkoutTime if it's provided (for 'Checked Out' status)
-        if (checkoutTime) {
-            (updatedActivity as any).checkoutTime = checkoutTime;
+        if (status === 'Checked Out' && body.checkoutTime) {
+            (updatedActivity as any).checkoutTime = body.checkoutTime;
         }
 
         activities[activityIndex] = updatedActivity;
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
           imageUrl = await saveImage(imageUrl);
         }
 
-        // Build the final new activity object
+        // Build the final new activity object by explicitly picking fields
         const newActivity: Activity = {
             id: newActivityData.id,
             visitorName: newActivityData.visitorName,
@@ -118,6 +118,7 @@ export async function POST(request: Request) {
             location: newActivityData.location,
             vehicle: newActivityData.vehicle,
             photo: imageUrl,
+            // checkoutTime is explicitly NOT included here
         };
         
         activities.unshift(newActivity); // Add to the beginning of the list
