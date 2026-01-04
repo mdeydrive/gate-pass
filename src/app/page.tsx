@@ -238,15 +238,12 @@ export default function LoginPage() {
     const role = searchParams.get('role');
     const validRoles = ['user', 'admin', 'approver', 'manager', 'security'];
     const newTab = role && validRoles.includes(role) ? role : 'user';
-    
-    if (newTab !== activeTab) {
-      setActiveTab(newTab);
-    }
+    setActiveTab(newTab);
 
-    if (!role) {
+    if (!role && window.location.search) {
       router.replace('/', undefined);
     }
-  }, [searchParams, router, activeTab]);
+  }, [searchParams, router]);
 
   useEffect(() => {
     // Focus the input when the tab becomes active
@@ -287,7 +284,7 @@ export default function LoginPage() {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    router.push(`/?role=${value}`, undefined);
+    router.push(`/?role=${value}`, { scroll: false });
   }
 
   return (
