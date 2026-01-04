@@ -23,7 +23,6 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
   const pageTitles: { [key: string]: string } = {
     "/dashboard": "Dashboard",
     "/gate-pass": "Manage Gate Pass",
-    "/manage-gate-passes": "New gate pass",
     "/history": "Visitor History",
     "/management": "Complex Management",
     "/alerts": "Alerts",
