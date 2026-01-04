@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { createContext, useContext, useState, type ReactNode, useEffect, useCallback } from 'react';
@@ -11,6 +12,7 @@ interface GatePassContextType {
   addActivity: (newPass: Omit<Activity, 'id' | 'time' | 'date' | 'status' | 'approverIds'>) => Promise<void>;
   updateActivityStatus: (id: string, status: Activity['status']) => Promise<void>;
   assignApprover: (id: string, approverId: string) => Promise<void>;
+  preApproveVisitor: (newPass: Omit<Activity, 'id' | 'time' | 'date' | 'status' | 'approverIds'>) => Promise<void>;
   loading: boolean;
 }
 
@@ -82,6 +84,37 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const preApproveVisitor = async (newPassData: Omit<Activity, 'id' | 'time' | 'date' | 'status' | 'approverIds'>) => {
+    const newPass: Activity = {
+        ...newPassData,
+        id: `pass-${Date.now()}`,
+        time: format(new Date(), "hh:mm a"),
+        date: format(new Date(), "yyyy-MM-dd"),
+        status: 'Approved',
+        approverIds: [], // Can be the current user's ID if needed
+    };
+
+     try {
+        const response = await fetch('/api/activities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newPass),
+        });
+        if (!response.ok) throw new Error('Failed to save pre-approved pass');
+        
+        await fetchActivities();
+
+    } catch (error: any) {
+        console.error(error);
+        toast({
+            variant: "destructive",
+            title: "Error Saving Pass",
+            description: "The pre-approved pass could not be saved.",
+        });
+    }
+  };
+
+
   const updateActivityStatus = async (id: string, status: Activity['status']) => {
     const checkoutTime = status === 'Checked Out' ? format(new Date(), "hh:mm a") : undefined;
     
@@ -152,7 +185,7 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
 
 
   return (
-    <GatePassContext.Provider value={{ activities, addActivity, updateActivityStatus, assignApprover, loading }}>
+    <GatePassContext.Provider value={{ activities, addActivity, updateActivityStatus, assignApprover, preApproveVisitor, loading }}>
       {children}
     </GatePassContext.Provider>
   );

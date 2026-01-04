@@ -727,8 +727,154 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
     );
   }
 
+function PreApproveDialog({ onPreApprove }: { onPreApprove: (newPass: Omit<Activity, 'id' | 'time' | 'date' | 'status' | 'approverIds'>) => void }) {
+    const [open, setOpen] = useState(false);
+    const [visitorName, setVisitorName] = useState('');
+    const [mobileNumber, setMobileNumber] = useState('');
+    const [passType, setPassType] = useState('');
+    const { toast } = useToast();
+
+    const handlePreApprove = () => {
+        if (!visitorName || !passType || !mobileNumber) {
+            toast({
+                variant: "destructive",
+                title: "Required fields missing",
+                description: "Please enter visitor name, mobile number, and select a pass type.",
+            });
+            return;
+        }
+
+        const newPass = {
+            visitorName,
+            mobileNumber,
+            passType: passType as Activity['passType'],
+            companyName: '', // Optional, can be added
+            location: '', // Optional, can be added
+        };
+
+        onPreApprove(newPass);
+
+        toast({
+            title: "Pass Pre-approved!",
+            description: `A pre-approved pass for ${visitorName} has been created.`,
+        });
+        
+        // Reset form and close dialog
+        setVisitorName('');
+        setMobileNumber('');
+        setPassType('');
+        setOpen(false);
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button size="sm" className="h-8 gap-1">
+                    <PlusCircle className="h-4 w-4" />
+                    <span className="sr-only sm:not-sr-only sm:whitespace-rap">Pre-approve</span>
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Create Pre-approved Pass</DialogTitle>
+                    <DialogDescription>
+                        Enter the visitor's details to create a pass that will be active immediately upon their arrival.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="pre-visitor-name" className="text-right">Visitor Name</Label>
+                        <Input id="pre-visitor-name" placeholder="Enter visitor's full name" className="col-span-3" value={visitorName} onChange={e => setVisitorName(e.target.value)} />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="pre-mobile-number" className="text-right">Mobile Number</Label>
+                        <Input id="pre-mobile-number" placeholder="Enter 10-digit mobile number" className="col-span-3" value={mobileNumber} onChange={e => setMobileNumber(e.target.value)} />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="pre-pass-type" className="text-right">Pass Type</Label>
+                        <Select value={passType} onValueChange={setPassType}>
+                            <SelectTrigger id="pre-pass-type" className="col-span-3">
+                                <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Guest">Guest/Family</SelectItem>
+                                <SelectItem value="Delivery">Delivery</SelectItem>
+                                <SelectItem value="Staff">Staff</SelectItem>
+                                <SelectItem value="Vehicle">Vehicle</SelectItem>
+                                <SelectItem value="Vendor">Vendor</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button type="button" variant="secondary">Cancel</Button>
+                    </DialogClose>
+                    <Button type="submit" onClick={handlePreApprove}>Create Pre-approved Pass</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function PreApprovedList({ passes, loading }: { passes: Activity[], loading: boolean }) {
+    const preApprovedPasses = passes.filter(p => p.status === 'Approved');
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Pre-approved Visitors</CardTitle>
+                <CardDescription>
+                    List of visitors pre-approved for entry. Security can check them in upon arrival.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                 {loading ? (
+                    <div className="space-y-3">
+                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-16 w-full" />
+                    </div>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Visitor</TableHead>
+                                <TableHead>Mobile No.</TableHead>
+                                <TableHead>Pass Type</TableHead>
+                                <TableHead>Date Approved</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {preApprovedPasses.length > 0 ? preApprovedPasses.map((pass) => (
+                                <TableRow key={pass.id}>
+                                    <TableCell>
+                                        <div className="flex items-center gap-3">
+                                            <Avatar>
+                                                <AvatarImage src={pass.photo || `https://avatar.vercel.sh/${pass.visitorName}.png`} />
+                                                <AvatarFallback>{pass.visitorName.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <span className="font-medium">{pass.visitorName}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>{pass.mobileNumber}</TableCell>
+                                    <TableCell>{pass.passType}</TableCell>
+                                    <TableCell>{pass.date} at {pass.time}</TableCell>
+                                </TableRow>
+                            )) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="text-center">No pre-approved passes found.</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
 export default function GatePassPage() {
-    const { activities, addActivity, updateActivityStatus, assignApprover, loading } = useGatePass();
+    const { activities, addActivity, updateActivityStatus, assignApprover, loading, preApproveVisitor } = useGatePass();
     const { role } = useRole();
     const defaultTab = role === 'Approver' ? 'active' : 'generate';
 
@@ -747,40 +893,29 @@ export default function GatePassPage() {
                   <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Scan Pass</span>
               </Button>
             )}
-            <Button size="sm" className="h-8 gap-1">
-                <PlusCircle className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-rap">Pre-approve</span>
-            </Button>
+            <PreApproveDialog onPreApprove={preApproveVisitor} />
         </div>
       </div>
-      <TabsContent value="generate">
-        <Card>
-          <CardHeader>
-            <CardTitle>Create New Gate Pass</CardTitle>
-            <CardDescription>
-              Fill in the details for the new visitor to generate a pass.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PassForm onGeneratePass={addActivity} />
-          </CardContent>
-        </Card>
-      </TabsContent>
+      {role !== 'Approver' && 
+        <TabsContent value="generate">
+            <Card>
+            <CardHeader>
+                <CardTitle>Create New Gate Pass</CardTitle>
+                <CardDescription>
+                Fill in the details for the new visitor to generate a pass.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <PassForm onGeneratePass={addActivity} />
+            </CardContent>
+            </Card>
+        </TabsContent>
+      }
       <TabsContent value="active">
         <ActivePassesList passes={activities} onUpdatePass={updateActivityStatus} onAssignApprover={assignApprover} loading={loading} />
       </TabsContent>
       <TabsContent value="pre-approved">
-        <Card>
-          <CardHeader>
-            <CardTitle>Pre-approved Visitors</CardTitle>
-            <CardDescription>
-              List of visitors pre-approved by residents for entry.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">The list of pre-approved visitors will be shown here.</p>
-          </CardContent>
-        </Card>
+        <PreApprovedList passes={activities} loading={loading} />
       </TabsContent>
     </Tabs>
   );
