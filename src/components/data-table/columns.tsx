@@ -6,11 +6,12 @@ import type { Activity } from "@/lib/data"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-const getBadgeVariant = (status: string) => {
+const getBadgeVariant = (status: Activity['status']) => {
     switch (status) {
       case 'Checked In': return 'default';
       case 'Checked Out': return 'secondary';
       case 'Pending': return 'destructive';
+      case 'Approved': return 'secondary';
       default: return 'outline';
     }
 };
@@ -73,7 +74,7 @@ export const columns: ColumnDef<Activity>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-        const status = row.getValue("status") as string;
+        const status = row.getValue("status") as Activity['status'];
         return <Badge variant={getBadgeVariant(status)}>{status}</Badge>
     }
   },

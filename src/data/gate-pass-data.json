@@ -9,7 +9,8 @@
     "id": "pass-1767520025284",
     "time": "03:17 PM",
     "date": "2026-01-04",
-    "status": "Checked In"
+    "status": "Checked Out",
+    "checkoutTime": "03:26 PM"
   },
   {
     "id": "1",

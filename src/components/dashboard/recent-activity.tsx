@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -14,16 +15,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { activities } from "@/lib/data";
+import { type Activity, activities } from "@/lib/data";
 
 export default function RecentActivity() {
   const recentActivities = activities.slice(0, 5);
 
-  const getBadgeVariant = (status: string) => {
+  const getBadgeVariant = (status: Activity['status']) => {
     switch (status) {
       case 'Checked In': return 'default';
       case 'Checked Out': return 'secondary';
       case 'Pending': return 'destructive';
+      case 'Approved': return 'secondary';
       default: return 'outline';
     }
   };

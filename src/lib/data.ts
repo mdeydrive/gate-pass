@@ -1,3 +1,4 @@
+
 import type { UserRole } from "@/contexts/role-context";
 
 export type Activity = {
@@ -5,7 +6,7 @@ export type Activity = {
   visitorName: string;
   mobileNumber?: string;
   passType: 'Guest' | 'Delivery' | 'Staff' | 'Vehicle' | 'Vendor';
-  status: 'Checked In' | 'Checked Out' | 'Pending';
+  status: 'Checked In' | 'Checked Out' | 'Pending' | 'Approved';
   time: string;
   date: string;
   vehicle?: string;
@@ -16,7 +17,7 @@ export type Activity = {
 };
 
 export const activities: Activity[] = [
-  { id: '1', visitorName: 'John Doe', mobileNumber: '9876543210', passType: 'Guest', status: 'Checked In', time: '10:30 AM', date: '2023-10-27', vehicle: 'TS09AB1234' },
+  { id: '1', visitorName: 'John Doe', mobileNumber: '9876543210', passType: 'Guest', status: 'Approved', time: '10:30 AM', date: '2023-10-27', vehicle: 'TS09AB1234' },
   { id: '2', visitorName: 'Jane Smith (Amazon)', mobileNumber: '9876543211', passType: 'Delivery', status: 'Checked Out', time: '11:15 AM', date: '2023-10-27', checkoutTime: '11:45 AM', companyName: 'Amazon', location: 'Local Hub' },
   { id: '3', visitorName: 'Maintenance Team', mobileNumber: '9876543212', passType: 'Staff', status: 'Checked In', time: '09:00 AM', date: '2023-10-27', companyName: 'Urban Company', location: 'City Branch' },
   { id: '4', visitorName: 'Emily White', mobileNumber: '9876543213', passType: 'Guest', status: 'Pending', time: '01:00 PM', date: '2023-10-27' },

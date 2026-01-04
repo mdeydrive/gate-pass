@@ -24,7 +24,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { QrCode, PlusCircle, Camera, Check, X, AlertTriangle, Calendar as CalendarIcon } from "lucide-react";
+import { QrCode, PlusCircle, Camera, Check, X, AlertTriangle, Calendar as CalendarIcon, ShieldCheck } from "lucide-react";
 import { type Activity } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -46,6 +46,7 @@ import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useGatePass } from "@/contexts/gate-pass-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRole } from "@/contexts/role-context";
 
 
 function DateTimePicker({ value, onChange, placeholder, disabled }: { value: Date | undefined, onChange: (date: Date | undefined) => void, placeholder: string, disabled?: boolean }) {
@@ -225,8 +226,8 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
         setValidityOption('today');
 
         toast({
-            title: "Pass Generated!",
-            description: `A new gate pass for ${visitorName} has been created and checked in.`,
+            title: "Pass Sent for Approval!",
+            description: `A new gate pass for ${visitorName} has been created and is pending approval.`,
         });
     }
 
@@ -361,13 +362,24 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                     </div>
                 </div>
             </div>
-            <Button className="w-full sm:w-auto justify-self-start" onClick={handleGeneratePass}>Generate Pass & Check-In</Button>
+            <Button className="w-full sm:w-auto justify-self-start" onClick={handleGeneratePass}>Request Approval</Button>
         </div>
     );
 }
 
 function ActivePassesList({ passes, onUpdatePass, loading }: { passes: Activity[], onUpdatePass: (id: string, status: Activity['status']) => void, loading: boolean }) {
-    const activePasses = passes.filter(a => a.status === 'Checked In' || a.status === 'Pending');
+    const { role } = useRole();
+    const activePasses = passes.filter(a => a.status === 'Checked In' || a.status === 'Pending' || a.status === 'Approved');
+
+    const getBadgeVariant = (status: Activity['status']) => {
+        switch (status) {
+          case 'Checked In': return 'default';
+          case 'Checked Out': return 'secondary';
+          case 'Pending': return 'destructive';
+          case 'Approved': return 'secondary';
+          default: return 'outline';
+        }
+      };
   
     return (
       <Card>
@@ -405,23 +417,29 @@ function ActivePassesList({ passes, onUpdatePass, loading }: { passes: Activity[
                       </Avatar>
                       <div>
                         <div className="font-medium">{activity.visitorName}</div>
-                        <div className="text-sm text-muted-foreground">Checked In: {activity.time}</div>
+                        <div className="text-sm text-muted-foreground">Requested: {activity.time}</div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>{activity.passType}</TableCell>
                   <TableCell>
-                    <Badge variant={activity.status === 'Checked In' ? 'default' : 'destructive'}>{activity.status}</Badge>
+                    <Badge variant={getBadgeVariant(activity.status)}>{activity.status}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      {activity.status === 'Pending' && (
-                        <Button variant="outline" size="sm" onClick={() => onUpdatePass(activity.id, 'Checked In')}>
-                            <Check className="mr-1 h-3.5 w-3.5" />
-                            Verify
+                    {activity.status === 'Pending' && (role === 'Admin' || role === 'Manager') && (
+                        <Button variant="outline" size="sm" onClick={() => onUpdatePass(activity.id, 'Approved')}>
+                            <ShieldCheck className="mr-1 h-3.5 w-3.5" />
+                            Approve
                         </Button>
                       )}
-                      {activity.status === 'Checked In' && (
+                      {activity.status === 'Approved' && role === 'Security' && (
+                        <Button variant="outline" size="sm" onClick={() => onUpdatePass(activity.id, 'Checked In')}>
+                            <Check className="mr-1 h-3.5 w-3.5" />
+                            Check In
+                        </Button>
+                      )}
+                      {activity.status === 'Checked In' && role === 'Security' && (
                         <Button variant="destructive" size="sm" onClick={() => onUpdatePass(activity.id, 'Checked Out')}>
                             <X className="mr-1 h-3.5 w-3.5" />
                             Check Out

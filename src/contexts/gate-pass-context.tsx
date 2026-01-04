@@ -50,7 +50,7 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
       id: `pass-${Date.now()}`,
       time: format(new Date(), "hh:mm a"),
       date: format(new Date(), "yyyy-MM-dd"),
-      status: 'Checked In',
+      status: 'Pending',
     };
 
     try {
