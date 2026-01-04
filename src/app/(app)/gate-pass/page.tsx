@@ -312,12 +312,13 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                                 <Command>
                                     <CommandInput placeholder="Search visitor by name or mobile..." />
                                     <CommandList>
-                                        <CommandEmpty>No visitor found.</CommandEmpty>
-                                        <CommandGroup>
-                                            <CommandItem onSelect={() => { resetForm(); setComboboxOpen(false); }}>
+                                        <CommandEmpty>
+                                            <Button variant="ghost" className="w-full" onClick={() => { resetForm(); setComboboxOpen(false); }}>
                                                 <UserPlus className="mr-2 h-4 w-4" />
-                                                Add New Visitor
-                                            </CommandItem>
+                                                No visitor found. Add as new.
+                                            </Button>
+                                        </CommandEmpty>
+                                        <CommandGroup>
                                             {uniqueVisitors.map((visitor) => (
                                                 <CommandItem
                                                 key={visitor.id}
