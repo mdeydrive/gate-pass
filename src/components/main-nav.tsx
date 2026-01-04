@@ -29,7 +29,7 @@ type NavItem = {
 
 const allNavItems: NavItem[] = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["Admin", "Security", "Resident", "Manager"] },
-    { href: "/gate-pass", label: "Manage Gate Pass", icon: Ticket, roles: ["Security", "Resident", "Admin", "Manager"] },
+    { href: "/gate-pass", label: "Manage Gate Pass", icon: Ticket, roles: ["Security", "Resident", "Admin", "Manager", "Approver"] },
     { href: "/history", label: "History", icon: History, roles: ["Admin", "Security"] },
     { href: "/visitors", label: "Visitors", icon: Users, roles: ["Admin", "Security"] },
     { href: "/management", label: "Management", icon: Building, roles: ["Admin"] },
@@ -45,11 +45,22 @@ const managerNavItems: NavItem[] = [
     { href: "/gate-pass", label: "Manage Gate Pass", icon: Ticket, roles: ["Manager", "Resident"] },
 ]
 
+const approverNavItems: NavItem[] = [
+    { href: "/gate-pass", label: "Manage Gate Pass", icon: Ticket, roles: ["Approver"] },
+]
+
 export default function MainNav() {
   const pathname = usePathname();
   const { role } = useRole();
 
-  const navItems = (role === "Manager" || role === "Resident") ? managerNavItems : allNavItems;
+  let navItems;
+  if (role === "Manager" || role === "Resident") {
+    navItems = managerNavItems;
+  } else if (role === "Approver") {
+    navItems = approverNavItems;
+  } else {
+    navItems = allNavItems;
+  }
 
   const accessibleNavItems = navItems.filter(item => item.roles.includes(role));
 

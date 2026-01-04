@@ -15,13 +15,13 @@ import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-function UserLoginForm({ onLogin }: { onLogin: (mobile: string, pass: string) => void }) {
+function UserLoginForm({ onLogin }: { onLogin: (mobile: string, pass: string, type: 'user') => void }) {
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin(mobileNumber, password);
+    onLogin(mobileNumber, password, 'user');
   };
 
   return (
@@ -57,13 +57,12 @@ function UserLoginForm({ onLogin }: { onLogin: (mobile: string, pass: string) =>
   );
 }
 
-function AdminLoginForm({ onLogin }: { onLogin: (id: string, pass: string) => void }) {
+function AdminLoginForm({ onLogin }: { onLogin: (id: string, pass: string, type: 'admin') => void }) {
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // The admin ID is hardcoded as 'admin'
-    onLogin('admin', password);
+    onLogin('admin', password, 'admin');
   };
 
   return (
@@ -88,16 +87,62 @@ function AdminLoginForm({ onLogin }: { onLogin: (id: string, pass: string) => vo
   );
 }
 
+function ApproverLoginForm({ onLogin }: { onLogin: (id: string, pass: string, type: 'approver') => void }) {
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onLogin(mobileNumber, password, 'approver');
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="grid gap-4">
+        <div className="grid gap-2">
+           <Label htmlFor="approver-mobile">Mobile Number</Label>
+           <Input
+            id="approver-mobile"
+            type="text"
+            placeholder="e.g., 9123456780"
+            required
+            value={mobileNumber}
+            onChange={(e) => setMobileNumber(e.target.value)}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="approver-password">Password</Label>
+          <Input
+            id="approver-password"
+            type="password"
+            placeholder="••••••••"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <Button type="submit" className="w-full">
+          Approver Login
+        </Button>
+      </div>
+    </form>
+  );
+}
+
 
 export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleLogin = async (identifier: string, pass: string) => {
-    const success = await login(identifier, pass);
+  const handleLogin = async (identifier: string, pass: string, type: 'user' | 'admin' | 'approver') => {
+    const success = await login(identifier, pass, type);
     if (success) {
-      router.push('/dashboard');
+      if (type === 'approver') {
+        router.push('/gate-pass');
+      } else {
+        router.push('/dashboard');
+      }
     } else {
       toast({
         variant: 'destructive',
@@ -118,15 +163,19 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="user" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="user">User</TabsTrigger>
               <TabsTrigger value="admin">Admin</TabsTrigger>
+              <TabsTrigger value="approver">Approver</TabsTrigger>
             </TabsList>
             <TabsContent value="user" className="pt-4">
               <UserLoginForm onLogin={handleLogin} />
             </TabsContent>
             <TabsContent value="admin" className="pt-4">
               <AdminLoginForm onLogin={handleLogin} />
+            </TabsContent>
+            <TabsContent value="approver" className="pt-4">
+              <ApproverLoginForm onLogin={handleLogin} />
             </TabsContent>
           </Tabs>
         </CardContent>

@@ -14,7 +14,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (identifier: string, pass: string) => Promise<boolean>;
+  login: (identifier: string, pass: string, type: 'user' | 'admin' | 'approver') => Promise<boolean>;
   logout: () => void;
   loading: boolean;
 }
@@ -53,9 +53,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  const login = async (identifier: string, pass: string): Promise<boolean> => {
+  const login = async (identifier: string, pass: string, type: 'user' | 'admin' | 'approver'): Promise<boolean> => {
     // Admin login check
-    if (identifier === 'admin' && pass === 'admin123') {
+    if (type === 'admin' && identifier === 'admin' && pass === 'admin123') {
         const loggedInUser: User = {
             id: 'admin-user',
             username: 'Administrator', 
@@ -66,7 +66,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return true;
     }
     
-    // Regular user login check
     if (pass !== 'user123') {
       return false;
     }
@@ -75,14 +74,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const authority = authorities.find(auth => auth.mobileNumber === identifier);
 
     if (authority) {
-      // Map the authority's role to a UserRole. Defaulting to 'Manager' if not a direct match.
-      let userRole: UserRole = 'Manager'; // Default role
-      const potentialRole = authority.role as UserRole;
-      if (['Admin', 'Security', 'Resident', 'Manager'].includes(potentialRole)) {
-          userRole = potentialRole;
-      }
-      if (authority.role === 'Administrator') userRole = 'Admin';
+      let userRole: UserRole;
 
+      if (type === 'approver') {
+          userRole = 'Approver';
+      } else {
+        const potentialRole = authority.role as UserRole;
+        if (['Admin', 'Security', 'Resident', 'Manager'].includes(potentialRole)) {
+            userRole = potentialRole;
+        } else {
+            userRole = 'Manager'; // Default role for general users
+        }
+        if (authority.role === 'Administrator') userRole = 'Admin';
+      }
 
       const loggedInUser: User = { 
         id: authority.id,

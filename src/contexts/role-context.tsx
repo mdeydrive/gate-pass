@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { createContext, useContext, useState, useMemo } from "react";
 
-export type UserRole = "Admin" | "Security" | "Resident" | "Manager";
+export type UserRole = "Admin" | "Security" | "Resident" | "Manager" | "Approver";
 
 interface RoleContextType {
   role: UserRole;
@@ -14,7 +14,7 @@ interface RoleContextType {
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export function RoleProvider({ children }: { children: ReactNode }) {
-  const roles: UserRole[] = ["Admin", "Security", "Resident", "Manager"];
+  const roles: UserRole[] = ["Admin", "Security", "Resident", "Manager", "Approver"];
   const [role, setRole] = useState<UserRole>("Admin");
 
   const contextValue = useMemo(() => ({ role, setRole, roles }), [role]);
