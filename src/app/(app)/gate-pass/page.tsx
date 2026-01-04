@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { QrCode, PlusCircle, Camera, Check, X, AlertTriangle, Calendar as CalendarIcon } from "lucide-react";
-import { activities as initialActivities, type Activity } from "@/lib/data";
+import { type Activity } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -43,6 +44,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
+import initialActivities from '@/data/gate-pass-data.json';
 
 
 function DateTimePicker({ value, onChange, placeholder, disabled }: { value: Date | undefined, onChange: (date: Date | undefined) => void, placeholder: string, disabled?: boolean }) {
@@ -437,7 +439,7 @@ function ActivePassesList({ passes, onUpdatePass }: { passes: Activity[], onUpda
   }
 
 export default function GatePassPage() {
-  const [activities, setActivities] = useState<Activity[]>(initialActivities);
+  const [activities, setActivities] = useState<Activity[]>(initialActivities as Activity[]);
 
   const handleGeneratePass = (newPass: Activity) => {
     setActivities(prevActivities => [newPass, ...prevActivities]);
