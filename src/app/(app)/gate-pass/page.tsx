@@ -322,7 +322,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
 
     return (
         <div className="grid gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="md:col-span-2 grid gap-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
@@ -431,55 +431,6 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                     </div>
                 </div>
 
-                <div className="grid gap-4">
-                     <Label>Select Approving Authority</Label>
-                     <Card>
-                        <CardHeader className="p-4">
-                            <div className="relative">
-                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input 
-                                    placeholder="Search by name or mobile..." 
-                                    className="pl-8"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </div>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                            <ScrollArea className="h-96">
-                                <div className="p-4 space-y-4">
-                                    {loadingAuthorities ? (
-                                        <div className="space-y-4">
-                                            <Skeleton className="h-10 w-full" />
-                                            <Skeleton className="h-10 w-full" />
-                                            <Skeleton className="h-10 w-full" />
-                                        </div>
-                                    ) : filteredAuthorities.length > 0 ? filteredAuthorities.map(authority => (
-                                        <div key={authority.id} className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-9 w-9">
-                                                    <AvatarImage src={authority.avatar} />
-                                                    <AvatarFallback>{authority.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <div className="font-medium">{authority.name}</div>
-                                                    <div className="text-xs text-muted-foreground">{authority.mobileNumber}</div>
-                                                </div>
-                                            </div>
-                                            <Checkbox
-                                                id={`approver-${authority.id}`}
-                                                checked={selectedApproverIds.includes(authority.id)}
-                                                onCheckedChange={() => handleApproverSelection(authority.id)}
-                                            />
-                                        </div>
-                                    )) : (
-                                        <p className="text-center text-sm text-muted-foreground">No authorities found.</p>
-                                    )}
-                                </div>
-                            </ScrollArea>
-                        </CardContent>
-                     </Card>
-                </div>
             </div>
         </div>
     );
@@ -624,7 +575,7 @@ export default function GatePassPage() {
             <CardDescription>
               List of visitors pre-approved by residents for entry.
             </CardDescription>
-          </CardHeader>
+          </Header>
           <CardContent>
             <p className="text-muted-foreground">The list of pre-approved visitors will be shown here.</p>
           </CardContent>
@@ -633,5 +584,3 @@ export default function GatePassPage() {
     </Tabs>
   );
 }
-
-    
