@@ -52,6 +52,92 @@ import type { ApprovingAuthority } from "@/lib/data";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/auth-context";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose
+} from "@/components/ui/dialog";
+
+type NewVisitor = {
+    visitorName: string;
+    mobileNumber: string;
+    companyName: string;
+    location: string;
+}
+
+function AddVisitorDialog({ onAddVisitor }: { onAddVisitor: (visitor: NewVisitor) => void }) {
+  const [name, setName] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [company, setCompany] = useState('');
+  const [location, setLocation] = useState('');
+  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = () => {
+    if (!name || !mobile) {
+      toast({
+        variant: "destructive",
+        title: "Missing Fields",
+        description: "Please enter at least a name and mobile number.",
+      });
+      return;
+    }
+    onAddVisitor({ visitorName: name, mobileNumber: mobile, companyName: company, location: location });
+    setOpen(false);
+    // Reset form
+    setName('');
+    setMobile('');
+    setCompany('');
+    setLocation('');
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <UserPlus className="mr-2 h-4 w-4" /> Add New Visitor
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Add New Visitor</DialogTitle>
+          <DialogDescription>
+            Enter the details for the new visitor.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="new-visitor-name" className="text-right">Name</Label>
+            <Input id="new-visitor-name" placeholder="Enter full name" className="col-span-3" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="new-visitor-mobile" className="text-right">Mobile No.</Label>
+            <Input id="new-visitor-mobile" placeholder="Enter 10-digit mobile" className="col-span-3" value={mobile} onChange={(e) => setMobile(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="new-visitor-company" className="text-right">Company</Label>
+            <Input id="new-visitor-company" placeholder="Enter company name" className="col-span-3" value={company} onChange={(e) => setCompany(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="new-visitor-location" className="text-right">Location</Label>
+            <Input id="new-visitor-location" placeholder="Enter city or location" className="col-span-3" value={location} onChange={(e) => setLocation(e.target.value)} />
+          </div>
+        </div>
+        <DialogFooter>
+            <DialogClose asChild>
+                <Button type="button" variant="secondary">Cancel</Button>
+            </DialogClose>
+            <Button type="submit" onClick={handleSubmit}>Add Visitor</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 
 function DateTimePicker({ value, onChange, placeholder, disabled }: { value: Date | undefined, onChange: (date: Date | undefined) => void, placeholder: string, disabled?: boolean }) {
@@ -171,14 +257,14 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
         setSelectedVisitorForDisplay('');
     }
 
-    const prefillVisitorData = (visitor: Activity) => {
+    const prefillVisitorData = (visitor: Activity | NewVisitor) => {
         setVisitorName(visitor.visitorName);
         setMobileNumber(visitor.mobileNumber || '');
         setCompanyName(visitor.companyName || '');
         setLocation(visitor.location || '');
         setSelectedVisitorForDisplay(`${visitor.visitorName} - ${visitor.mobileNumber}`);
         toast({
-            title: "Existing Visitor Found",
+            title: "Visitor Selected",
             description: `Details for ${visitor.visitorName} have been pre-filled.`,
         });
         setComboboxOpen(false);
@@ -296,53 +382,51 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                 <div className="md:col-span-2 grid gap-4">
                     <div className="grid gap-2">
                         <Label>Search Existing Visitor</Label>
-                        <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                variant="outline"
-                                role="combobox"
-                                aria-expanded={comboboxOpen}
-                                className="w-full justify-between"
-                                >
-                                {selectedVisitorForDisplay
-                                    ? selectedVisitorForDisplay
-                                    : "Select or search visitor..."}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-full p-0">
-                                <Command>
-                                    <CommandInput placeholder="Search visitor by name or mobile..." />
-                                    <CommandList>
-                                        <CommandEmpty>
-                                            <Button variant="ghost" className="w-full" onClick={() => { resetForm(); setComboboxOpen(false); }}>
-                                                <UserPlus className="mr-2 h-4 w-4" />
-                                                No visitor found. Add as new.
-                                            </Button>
-                                        </CommandEmpty>
-                                        <CommandGroup>
-                                            {uniqueVisitors.map((visitor) => (
-                                                <CommandItem
-                                                key={visitor.id}
-                                                value={`${visitor.visitorName} ${visitor.mobileNumber}`}
-                                                onSelect={(currentValue) => {
-                                                    prefillVisitorData(visitor);
-                                                }}
-                                                >
-                                                <Check
-                                                    className={cn(
-                                                    "mr-2 h-4 w-4",
-                                                    selectedVisitorForDisplay === `${visitor.visitorName} - ${visitor.mobileNumber}` ? "opacity-100" : "opacity-0"
-                                                    )}
-                                                />
-                                                {visitor.visitorName} ({visitor.mobileNumber})
-                                                </CommandItem>
-                                            ))}
-                                        </CommandGroup>
-                                    </CommandList>
-                                </Command>
-                            </PopoverContent>
-                        </Popover>
+                        <div className="flex gap-2">
+                            <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={comboboxOpen}
+                                    className="w-full justify-between"
+                                    >
+                                    {selectedVisitorForDisplay
+                                        ? selectedVisitorForDisplay
+                                        : "Select or search visitor..."}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Search visitor by name or mobile..." />
+                                        <CommandList>
+                                            <CommandEmpty>No visitor found.</CommandEmpty>
+                                            <CommandGroup>
+                                                {uniqueVisitors.map((visitor) => (
+                                                    <CommandItem
+                                                    key={visitor.id}
+                                                    value={`${visitor.visitorName} ${visitor.mobileNumber}`}
+                                                    onSelect={(currentValue) => {
+                                                        prefillVisitorData(visitor);
+                                                    }}
+                                                    >
+                                                    <Check
+                                                        className={cn(
+                                                        "mr-2 h-4 w-4",
+                                                        selectedVisitorForDisplay === `${visitor.visitorName} - ${visitor.mobileNumber}` ? "opacity-100" : "opacity-0"
+                                                        )}
+                                                    />
+                                                    {visitor.visitorName} ({visitor.mobileNumber})
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                             <AddVisitorDialog onAddVisitor={prefillVisitorData} />
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -680,3 +764,5 @@ export default function GatePassPage() {
     </Tabs>
   );
 }
+
+    
