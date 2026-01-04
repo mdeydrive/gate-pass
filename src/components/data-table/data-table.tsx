@@ -9,6 +9,7 @@ import {
   getFilteredRowModel,
   useReactTable,
   type ColumnFiltersState,
+  type Row,
 } from "@tanstack/react-table"
 
 import {
@@ -26,6 +27,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   filterValue?: string
   filterColumn?: string
+  onRowClick?: (row: Row<TData>) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -33,6 +35,7 @@ export function DataTable<TData, TValue>({
   data,
   filterValue,
   filterColumn,
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -87,6 +90,8 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  onClick={() => onRowClick?.(row)}
+                  className={onRowClick ? "cursor-pointer" : ""}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

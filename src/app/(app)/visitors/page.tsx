@@ -15,6 +15,9 @@ import type { Activity } from "@/lib/data";
 import type { ColumnDef } from "@tanstack/react-table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 type UniqueVisitor = {
     id: string;
@@ -59,10 +62,20 @@ const visitorColumns: ColumnDef<UniqueVisitor>[] = [
     },
 ];
 
+const getBadgeVariant = (status: Activity['status']) => {
+    switch (status) {
+      case 'Checked In': return 'default';
+      case 'Checked Out': return 'secondary';
+      case 'Pending': return 'destructive';
+      case 'Approved': return 'secondary';
+      default: return 'outline';
+    }
+};
 
 export default function VisitorsPage() {
   const { activities, loading } = useGatePass();
   const [filter, setFilter] = useState('');
+  const [selectedVisitor, setSelectedVisitor] = useState<UniqueVisitor | null>(null);
 
   const uniqueVisitors = useMemo(() => {
     if (loading) {
@@ -92,38 +105,91 @@ export default function VisitorsPage() {
     return Array.from(visitorsMap.values()).sort((a,b) => new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime());
   }, [activities, loading]);
 
+  const selectedVisitorHistory = useMemo(() => {
+    if (!selectedVisitor || !selectedVisitor.mobileNumber) return [];
+    return activities.filter(activity => activity.mobileNumber === selectedVisitor.mobileNumber)
+      .sort((a,b) => new Date(b.date + ' ' + b.time).getTime() - new Date(a.date + ' ' + a.time).getTime());
+  }, [selectedVisitor, activities]);
+
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-          <div>
-            <CardTitle>Visitor List</CardTitle>
-            <CardDescription>
-              A list of all unique visitors who have previously entered the complex.
-            </CardDescription>
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div>
+              <CardTitle>Visitor List</CardTitle>
+              <CardDescription>
+                A list of all unique visitors who have previously entered the complex. Click a row for details.
+              </CardDescription>
+            </div>
+            <div className="w-full sm:w-auto sm:max-w-xs">
+              <Input
+                placeholder="Search by visitor name..."
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              />
+            </div>
           </div>
-          <div className="w-full sm:w-auto sm:max-w-xs">
-            <Input
-              placeholder="Search by visitor name..."
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          ) : (
+            <DataTable 
+              columns={visitorColumns} 
+              data={uniqueVisitors} 
+              filterColumn="visitorName" 
+              filterValue={filter}
+              onRowClick={(row) => setSelectedVisitor(row.original)}
             />
+          )}
+        </CardContent>
+      </Card>
+      
+      <Dialog open={!!selectedVisitor} onOpenChange={(open) => !open && setSelectedVisitor(null)}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Visit History for {selectedVisitor?.visitorName}</DialogTitle>
+            <DialogDescription>
+              Showing all recorded gate passes for {selectedVisitor?.mobileNumber}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-auto">
+             <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Time</TableHead>
+                        <TableHead>Pass Type</TableHead>
+                        <TableHead>Status</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {selectedVisitorHistory.length > 0 ? selectedVisitorHistory.map(activity => (
+                        <TableRow key={activity.id}>
+                            <TableCell>{activity.date}</TableCell>
+                            <TableCell>{activity.time}</TableCell>
+                            <TableCell>{activity.passType}</TableCell>
+                            <TableCell>
+                                <Badge variant={getBadgeVariant(activity.status)}>{activity.status}</Badge>
+                            </TableCell>
+                        </TableRow>
+                    )) : (
+                        <TableRow>
+                            <TableCell colSpan={4} className="text-center">No history found for this visitor.</TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="space-y-4">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        ) : (
-          <DataTable columns={visitorColumns} data={uniqueVisitors} filterColumn="visitorName" filterValue={filter} />
-        )}
-      </CardContent>
-    </Card>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
