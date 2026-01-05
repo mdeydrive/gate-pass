@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -31,7 +32,7 @@ type UniqueVisitor = {
 const visitorColumns: ColumnDef<UniqueVisitor>[] = [
     {
       accessorKey: "id",
-      header: "Visitor ID",
+      header: "Gate Pass ID",
     },
     {
       accessorKey: "visitorName",
