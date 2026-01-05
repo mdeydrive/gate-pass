@@ -31,7 +31,7 @@ const formatTimestamp = (timestamp?: string) => {
 export const columns: ColumnDef<Activity & { approverNames?: string[] }>[] = [
   {
     accessorKey: "id",
-    header: "Visitor ID",
+    header: "Gate Pass ID",
   },
   {
     accessorKey: "visitorName",
