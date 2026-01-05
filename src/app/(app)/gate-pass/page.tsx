@@ -415,7 +415,7 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                                                     key={visitor.id}
                                                     value={`${visitor.visitorName} ${visitor.mobileNumber}`}
                                                     onSelect={(currentValue) => {
-                                                        const selected = uniqueVisitors.find(v => `${v.visitorName} ${v.mobileNumber}` === currentValue);
+                                                        const selected = uniqueVisitors.find(v => `${v.visitorName} ${v.mobileNumber}`.toLowerCase() === currentValue.toLowerCase());
                                                         if (selected) {
                                                            prefillVisitorData(selected);
                                                         }
@@ -662,7 +662,7 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
             <TableBody>
               {activePasses.length > 0 ? activePasses.map((activity) => (
                 <TableRow key={activity.id}>
-                  <TableCell className="font-mono text-xs">{activity.id.substring(0, 10)}...</TableCell>
+                  <TableCell className="font-mono text-xs">{activity.id}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
@@ -1037,24 +1037,23 @@ function PreApprovedList({ passes, loading }: { passes: Activity[], loading: boo
 export default function GatePassPage() {
     const { activities, addActivity, updateActivityStatus, assignApprover, loading, preApproveVisitor } = useGatePass();
     const { role } = useRole();
-    const defaultTab = (role === 'Resident' || role === 'Approver') ? 'active' : 'generate';
+    const defaultTab = (role === 'Resident') ? 'active' : 'generate';
 
   return (
     <Tabs defaultValue={defaultTab} className="w-full">
       <div className="flex items-center">
         <TabsList>
-          {role !== 'Approver' && <TabsTrigger value="generate">Generate Pass</TabsTrigger>}
-          {(role === 'Approver') && <TabsTrigger value="generate">Generate Pass</TabsTrigger>}
+          <TabsTrigger value="generate">Generate Pass</TabsTrigger>
           <TabsTrigger value="active">Active Passes</TabsTrigger>
           <TabsTrigger value="pre-approved">Pre-approved</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
-            {role !== 'Approver' && (
+            
                 <Button size="sm" variant="outline" className="h-8 gap-1">
                     <QrCode className="h-4 w-4" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-rap">Scan Pass</span>
                 </Button>
-            )}
+            
             <PreApproveDialog activities={activities} onPreApprove={preApproveVisitor} />
         </div>
       </div>

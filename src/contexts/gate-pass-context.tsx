@@ -51,10 +51,8 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
   }, [fetchActivities]);
 
   const addActivity = async (newPassData: Omit<Activity, 'id' | 'time' | 'date' | 'status' | 'approverIds'>) => {
-    const newPass: Omit<Activity, 'id'> & {user: typeof user} = {
+    const newPassPayload = {
       ...newPassData,
-      time: format(new Date(), "hh:mm a"),
-      date: format(new Date(), "yyyy-MM-dd"),
       status: 'Pending',
       approverIds: [],
       user
@@ -64,7 +62,7 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
         const response = await fetch('/api/activities', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newPass),
+            body: JSON.stringify(newPassPayload),
         });
 
         if (!response.ok) {
@@ -86,13 +84,9 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
   };
 
   const preApproveVisitor = async (newPassData: Omit<Activity, 'id' | 'time' | 'date' | 'status' | 'approverIds'>) => {
-    const newPass: Activity = {
+    const newPassPayload = {
         ...newPassData,
-        id: `pass-${Date.now()}`,
-        time: format(new Date(), "hh:mm a"),
-        date: format(new Date(), "yyyy-MM-dd"),
         status: 'Approved',
-        approvedAt: new Date().toISOString(),
         approverIds: user ? [user.id] : [],
     };
 
@@ -100,7 +94,7 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
         const response = await fetch('/api/activities', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newPass),
+            body: JSON.stringify(newPassPayload),
         });
         if (!response.ok) throw new Error('Failed to save pre-approved pass');
         
@@ -208,5 +202,3 @@ export function useGatePass() {
   }
   return context;
 }
-
-    

@@ -38,8 +38,12 @@ export async function POST(request: Request) {
     const body = await request.json();
     const authorities = await readData();
 
+    const nextIdNumber = (authorities.length > 0) 
+        ? Math.max(...authorities.map(a => parseInt(a.id.replace('VID', ''), 10) || 0)) + 1 
+        : 1;
+
     const newAuthority: ApprovingAuthority = {
-        id: `auth-${Date.now()}`,
+        id: `VID${String(nextIdNumber).padStart(3, '0')}`,
         name: body.name,
         role: body.role,
         mobileNumber: body.mobileNumber,

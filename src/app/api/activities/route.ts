@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 import type { Activity } from '@/lib/data';
+import { format } from 'date-fns';
 
 // The path to our JSON "database"
 const dataFilePath = path.join(process.cwd(), 'src/data/gate-pass-data.json');
@@ -121,8 +122,19 @@ export async function POST(request: Request) {
           imageUrl = undefined;
         }
 
+        const now = new Date();
+        const todayDateStr = format(now, 'yyyy-MM-dd');
+        
+        const passesToday = activities.filter(a => a.date === todayDateStr);
+        const nextIdNumber = passesToday.length + 1;
+        
+        const formattedDate = format(now, 'MM/yyyy/dd');
+        const [month, year, day] = formattedDate.split('/');
+
+        const newId = `GPID/${month}/${year}/${day}/${String(nextIdNumber).padStart(2, '0')}`;
+
         const newActivity: Activity = {
-          id: `pass-${Date.now()}`,
+          id: newId,
           visitorName: body.visitorName,
           mobileNumber: body.mobileNumber,
           companyName: body.companyName,
@@ -130,11 +142,12 @@ export async function POST(request: Request) {
           passType: body.passType,
           vehicle: body.vehicle,
           photo: imageUrl,
-          time: body.time,
-          date: body.date,
+          time: format(now, "hh:mm a"),
+          date: todayDateStr,
           status: body.status,
           approverIds: body.approverIds || [],
           requesterId: user?.id,
+          ...(body.status === 'Approved' && { approvedAt: now.toISOString() }),
         };
         
         activities.unshift(newActivity); // Add to the beginning of the list
@@ -149,6 +162,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Failed to process request', error: errorMessage }, { status: 500 });
   }
 }
-
-
-    
