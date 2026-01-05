@@ -49,6 +49,7 @@ import { useGatePass } from "@/contexts/gate-pass-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRole } from "@/contexts/role-context";
 import type { ApprovingAuthority } from "@/lib/data";
+import { complexes as allComplexes } from "@/lib/data";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/auth-context";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -205,7 +206,7 @@ function DateTimePicker({ value, onChange, placeholder, disabled }: { value: Dat
     );
   }
 
-function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity, 'id' | 'time' | 'date' | 'status' | 'approverIds'>) => void }) {
+function PassForm({ onGeneratePass, authorities }: { onGeneratePass: (newPass: Omit<Activity, 'id' | 'time' | 'date' | 'status' | 'approverIds'>) => void, authorities: ApprovingAuthority[] }) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const photoRef = useRef<HTMLCanvasElement>(null);
     const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -226,6 +227,8 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
     const [isNow, setIsNow] = useState(false);
     const [validityOption, setValidityOption] = useState('today');
     const [selectedVisitorForDisplay, setSelectedVisitorForDisplay] = useState<string>('');
+    const [visitingLocation, setVisitingLocation] = useState('');
+    const [purposeOfVisit, setPurposeOfVisit] = useState('');
 
 
     // Combobox state
@@ -255,6 +258,8 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
         setIsNow(false);
         setValidityOption('today');
         setSelectedVisitorForDisplay('');
+        setVisitingLocation('');
+        setPurposeOfVisit('');
     }
 
     const prefillVisitorData = (visitor: Activity | NewVisitor) => {
@@ -345,6 +350,8 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
             passType: passType as Activity['passType'],
             vehicle: vehicleNumber || undefined,
             photo: capturedImage || undefined,
+            visitingLocation,
+            purposeOfVisit,
         };
 
         onGeneratePass(newPass);
@@ -457,6 +464,30 @@ function PassForm({ onGeneratePass }: { onGeneratePass: (newPass: Omit<Activity,
                         <div className="grid gap-2">
                             <Label htmlFor="location">Location (Optional)</Label>
                             <Input id="location" placeholder="Enter visitor's city or location" value={location} onChange={e => setLocation(e.target.value)} readOnly={isPrefilled} />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="visiting-location">Where to go</Label>
+                            <Select value={visitingLocation} onValueChange={setVisitingLocation}>
+                                <SelectTrigger id="visiting-location">
+                                    <SelectValue placeholder="Select location" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {allComplexes.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="purpose-of-visit">Who to meet</Label>
+                             <Select value={purposeOfVisit} onValueChange={setPurposeOfVisit}>
+                                <SelectTrigger id="purpose-of-visit">
+                                    <SelectValue placeholder="Select person" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                     {authorities.map(a => <SelectItem key={a.id} value={a.name}>{a.name} ({a.role})</SelectItem>)}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                     <div className="grid gap-2">
@@ -1037,7 +1068,24 @@ function PreApprovedList({ passes, loading }: { passes: Activity[], loading: boo
 export default function GatePassPage() {
     const { activities, addActivity, updateActivityStatus, assignApprover, loading, preApproveVisitor } = useGatePass();
     const { role } = useRole();
-    const defaultTab = (role === 'Resident') ? 'active' : 'generate';
+    const defaultTab = (role === 'Resident' || role === 'Approver') ? 'active' : 'generate';
+    const [authorities, setAuthorities] = useState<ApprovingAuthority[]>([]);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        async function fetchAuthorities() {
+            try {
+                const response = await fetch('/api/authorities');
+                if (!response.ok) throw new Error("Failed to fetch authorities.");
+                const data = await response.json();
+                setAuthorities(data);
+            } catch (error) {
+                console.error(error);
+                toast({ variant: 'destructive', title: "Error", description: "Could not fetch staff list." });
+            }
+        }
+        fetchAuthorities();
+    }, [toast]);
 
   return (
     <Tabs defaultValue={defaultTab} className="w-full">
@@ -1066,7 +1114,7 @@ export default function GatePassPage() {
               </CardDescription>
           </CardHeader>
           <CardContent>
-              <PassForm onGeneratePass={addActivity} />
+              <PassForm onGeneratePass={addActivity} authorities={authorities} />
           </CardContent>
           </Card>
       </TabsContent>

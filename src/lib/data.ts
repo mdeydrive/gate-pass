@@ -19,6 +19,8 @@ export type Activity = {
   approvedAt?: string;
   checkedInAt?: string;
   checkedOutAt?: string;
+  visitingLocation?: string;
+  purposeOfVisit?: string;
 };
 
 export type ApprovingAuthority = {

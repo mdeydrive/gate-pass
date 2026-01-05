@@ -147,6 +147,8 @@ export async function POST(request: Request) {
           status: body.status,
           approverIds: body.approverIds || [],
           requesterId: user?.id,
+          visitingLocation: body.visitingLocation,
+          purposeOfVisit: body.purposeOfVisit,
           ...(body.status === 'Approved' && { approvedAt: now.toISOString() }),
         };
         
