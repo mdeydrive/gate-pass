@@ -727,7 +727,7 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                                     <SelectValue placeholder="Assign Approver" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {authorities.filter(a => a.role === 'Approver').map(auth => (
+                                    {authorities.map(auth => (
                                         <SelectItem key={auth.id} value={auth.id}>{auth.name}</SelectItem>
                                     ))}
                                 </SelectContent>
