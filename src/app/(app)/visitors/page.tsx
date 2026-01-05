@@ -30,6 +30,10 @@ type UniqueVisitor = {
 
 const visitorColumns: ColumnDef<UniqueVisitor>[] = [
     {
+      accessorKey: "id",
+      header: "Visitor ID",
+    },
+    {
       accessorKey: "visitorName",
       header: "Visitor",
       cell: ({ row }) => {
