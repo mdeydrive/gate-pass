@@ -79,6 +79,16 @@ function AddVisitorDialog({ onAddVisitor, existingVisitors }: { onAddVisitor: (v
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
 
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const titleCasedValue = value
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+    setName(titleCasedValue);
+  };
+
   const handleSubmit = () => {
     if (!name || !mobile) {
       toast({
@@ -125,7 +135,7 @@ function AddVisitorDialog({ onAddVisitor, existingVisitors }: { onAddVisitor: (v
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="new-visitor-name" className="text-right">Name</Label>
-            <Input id="new-visitor-name" placeholder="Enter full name" className="col-span-3" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input id="new-visitor-name" placeholder="Enter full name" className="col-span-3" value={name} onChange={handleNameChange} />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="new-visitor-mobile" className="text-right">Mobile No.</Label>
