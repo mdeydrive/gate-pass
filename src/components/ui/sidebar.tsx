@@ -563,7 +563,6 @@ const SidebarMenuButton = React.forwardRef<
         {...props}
       >
         {children}
-        <span className={cn('flex-1 truncate', state === 'collapsed' && 'hidden')}>{props.title}</span>
       </Comp>
     )
 
@@ -769,3 +768,5 @@ export {
   SidebarTrigger,
   useSidebar,
 }
+
+    

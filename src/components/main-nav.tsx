@@ -47,7 +47,7 @@ const allNavItems: NavItem[] = [
 export default function MainNav() {
   const pathname = usePathname();
   const { role } = useRole();
-  const { setOpenMobile, isMobile } = useSidebar();
+  const { setOpenMobile, isMobile, state } = useSidebar();
 
   const accessibleNavItems = allNavItems.filter(item => item.roles.includes(role));
 
@@ -68,7 +68,7 @@ export default function MainNav() {
               tooltip={label}
             >
               <Icon/>
-              <span>{label}</span>
+              <span className={cn('flex-1 truncate', state === 'collapsed' && 'hidden')}>{label}</span>
             </SidebarMenuButton>
           </Link>
         </SidebarMenuItem>
@@ -76,3 +76,5 @@ export default function MainNav() {
     </SidebarMenu>
   );
 }
+
+    
