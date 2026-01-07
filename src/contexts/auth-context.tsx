@@ -54,9 +54,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-        setRole(parsedUser.role);
+        try {
+            const parsedUser = JSON.parse(storedUser);
+            if (parsedUser && parsedUser.role) {
+                setUser(parsedUser);
+                setRole(parsedUser.role);
+            }
+        } catch (e) {
+            console.error("Failed to parse user from localStorage", e);
+            localStorage.removeItem('user');
+        }
     }
     setLoading(false);
   }, [setRole]);
@@ -70,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     let loggedInUser: User | null = null;
+    setLoading(true);
 
     if (type === 'admin' && identifier === 'admin') {
         loggedInUser = {
@@ -81,16 +89,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
     } else {
         const authorities = await getAuthorities();
-        const authority = authorities.find(auth => auth.mobileNumber === identifier);
+        const authority = authorities.find(auth => auth.mobileNumber === identifier && auth.status === 'Active');
 
-        if (authority && authority.status === 'Active') {
+        if (authority) {
             const userRole = authority.role as UserRole;
-            // Check if the login type matches the role from the database
-            if ((type === 'approver' && userRole === 'Approver') ||
-                (type === 'manager' && userRole === 'Manager') ||
-                (type === 'security' && userRole === 'Security') ||
-                (type === 'user' && ['Resident', 'Admin'].includes(userRole))
-            ) {
+            const loginTypeMatchesRole = 
+                (type === 'user' && ['Resident'].includes(userRole)) ||
+                (type === 'approver' && ['Approver'].includes(userRole)) ||
+                (type === 'manager' && ['Manager'].includes(userRole)) ||
+                (type === 'security' && ['Security'].includes(userRole)) ||
+                // Admin can also login via user tab if they are in the database
+                (type === 'user' && ['Admin'].includes(userRole));
+            
+            if (loginTypeMatchesRole) {
                  loggedInUser = { 
                     id: authority.id,
                     username: authority.name, 
@@ -107,9 +118,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(loggedInUser);
         setRole(loggedInUser.role);
         localStorage.setItem('user', JSON.stringify(loggedInUser));
+        setLoading(false);
         return true;
     }
 
+    setLoading(false);
     return false;
   };
 
@@ -121,7 +134,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(
     () => ({ user, login, logout, loading }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [user, loading]
   );
 
