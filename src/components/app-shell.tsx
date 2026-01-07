@@ -34,6 +34,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
     "/visitors": "Visitor List",
     "/approving-authorities": "Approving Authorities",
     "/control-panel": "Control Panel",
+    "/database": "Database Management",
   };
   
   const currentTitle = pageTitles[pathname] || "SecurePass"; 
