@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { AlertTriangle, Clock, Repeat, User } from 'lucide-react';
 import { useGatePass } from '@/contexts/gate-pass-context';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Activity } from '@/lib/data';
 import { differenceInHours, parseISO } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
