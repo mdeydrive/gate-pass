@@ -68,6 +68,7 @@ export default function MainNav() {
               tooltip={label}
             >
               <Icon/>
+              <span>{label}</span>
             </SidebarMenuButton>
           </Link>
         </SidebarMenuItem>

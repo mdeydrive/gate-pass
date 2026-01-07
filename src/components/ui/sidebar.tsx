@@ -79,15 +79,9 @@ const SidebarProvider = React.forwardRef<
 
 
     React.useEffect(() => {
-      setHasMounted(true);
-      const cookieValue = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
-        ?.split("=")[1];
-    
-      if (cookieValue !== undefined) {
-        _setOpen(cookieValue === 'true');
-      }
+        setHasMounted(true);
+        // Force the sidebar to be open by default, ignoring the cookie.
+        _setOpen(true);
     }, []);
 
     const setOpen = React.useCallback(
@@ -775,5 +769,3 @@ export {
   SidebarTrigger,
   useSidebar,
 }
-
-    
