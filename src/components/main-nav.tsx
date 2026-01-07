@@ -19,6 +19,7 @@ import {
   Database,
 } from "lucide-react";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 
 type NavItem = {
@@ -63,7 +64,6 @@ export default function MainNav() {
         <SidebarMenuItem key={label}>
           <Link href={href} onClick={handleLinkClick}>
             <SidebarMenuButton
-              title={label}
               isActive={pathname.startsWith(href)}
               tooltip={label}
             >
@@ -76,5 +76,3 @@ export default function MainNav() {
     </SidebarMenu>
   );
 }
-
-    
