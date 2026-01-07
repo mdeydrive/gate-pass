@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 
 type UniqueVisitor = {
     id: string;
@@ -73,9 +74,20 @@ const getBadgeVariant = (status: Activity['status']) => {
       case 'Checked Out': return 'secondary';
       case 'Pending': return 'destructive';
       case 'Approved': return 'secondary';
+      case 'Rejected': return 'destructive';
       default: return 'outline';
     }
 };
+
+const formatTimestamp = (timestamp?: string) => {
+    if (!timestamp) return 'N/A';
+    try {
+        return format(new Date(timestamp), 'PPpp');
+    } catch (e) {
+        return 'Invalid Date';
+    }
+}
+
 
 export default function VisitorsPage() {
   const { activities, loading } = useGatePass();
@@ -113,7 +125,11 @@ export default function VisitorsPage() {
   const selectedVisitorHistory = useMemo(() => {
     if (!selectedVisitor || !selectedVisitor.mobileNumber) return [];
     return activities.filter(activity => activity.mobileNumber === selectedVisitor.mobileNumber)
-      .sort((a,b) => new Date(b.date + ' ' + b.time).getTime() - new Date(a.date + ' ' + a.time).getTime());
+      .sort((a,b) => {
+          const dateA = a.checkedInAt ? new Date(a.checkedInAt) : new Date(a.date);
+          const dateB = b.checkedInAt ? new Date(b.checkedInAt) : new Date(b.date);
+          return dateB.getTime() - dateA.getTime();
+      });
   }, [selectedVisitor, activities]);
 
 
@@ -158,7 +174,7 @@ export default function VisitorsPage() {
       </Card>
       
       <Dialog open={!!selectedVisitor} onOpenChange={(open) => !open && setSelectedVisitor(null)}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-5xl">
           <DialogHeader>
             <DialogTitle>Visit History for {selectedVisitor?.visitorName}</DialogTitle>
             <DialogDescription>
@@ -169,25 +185,29 @@ export default function VisitorsPage() {
              <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Time</TableHead>
+                        <TableHead>Gate Pass ID</TableHead>
                         <TableHead>Pass Type</TableHead>
+                        <TableHead>Check-in Time</TableHead>
+                        <TableHead>Check-out Time</TableHead>
+                        <TableHead>Vehicle No.</TableHead>
                         <TableHead>Status</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {selectedVisitorHistory.length > 0 ? selectedVisitorHistory.map(activity => (
                         <TableRow key={activity.id}>
-                            <TableCell>{activity.date}</TableCell>
-                            <TableCell>{activity.time}</TableCell>
+                            <TableCell className="font-mono text-xs">{activity.id}</TableCell>
                             <TableCell>{activity.passType}</TableCell>
+                            <TableCell>{formatTimestamp(activity.checkedInAt)}</TableCell>
+                            <TableCell>{formatTimestamp(activity.checkedOutAt)}</TableCell>
+                             <TableCell>{activity.vehicle || "N/A"}</TableCell>
                             <TableCell>
                                 <Badge variant={getBadgeVariant(activity.status)}>{activity.status}</Badge>
                             </TableCell>
                         </TableRow>
                     )) : (
                         <TableRow>
-                            <TableCell colSpan={4} className="text-center">No history found for this visitor.</TableCell>
+                            <TableCell colSpan={6} className="text-center">No history found for this visitor.</TableCell>
                         </TableRow>
                     )}
                 </TableBody>
