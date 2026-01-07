@@ -675,7 +675,8 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
         }
     };
 
-    const getApproverName = (approverId: string) => {
+    const getApproverName = (approverId?: string) => {
+        if (!approverId) return "N/A";
         return authorities.find(a => a.id === approverId)?.name || "N/A";
     }
 
@@ -735,7 +736,7 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                         <div className="font-medium">{activity.visitorName}</div>
                         <div className="text-sm text-muted-foreground">
                             {activity.status === 'Pending' && activity.approverIds && activity.approverIds.length > 0 && `Waiting for: ${getApproverName(activity.approverIds[0])}`}
-                            {activity.status === 'Approved' && activity.approvedAt && `Approved: ${formatTimestamp(activity.approvedAt)}`}
+                            {activity.status === 'Approved' && `Approved by: ${getApproverName(activity.approvedById)}`}
                             {activity.status === 'Checked In' && activity.checkedInAt && `Checked In: ${formatTimestamp(activity.checkedInAt)}`}
                             {activity.status === 'Pending' && (!activity.approverIds || activity.approverIds.length === 0) && `Requested: ${activity.time}`}
                         </div>

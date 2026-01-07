@@ -82,10 +82,21 @@ export const columns: ColumnDef<Activity & { approverNames?: string[] }>[] = [
     accessorKey: "approverNames",
     header: "Approving Authority",
     cell: ({ row }) => {
-        const approverNames = row.original.approverNames;
-        return approverNames && approverNames.length > 0 ? (
+        const activity = row.original;
+        let approverDisplay: string[] | undefined;
+
+        if (activity.status === 'Approved' || activity.status === 'Rejected') {
+            const approverName = activity.approverNames?.find(name => name); // Get first defined name
+            if (approverName) {
+                approverDisplay = [approverName];
+            }
+        } else if (activity.status === 'Pending' && activity.approverNames && activity.approverNames.length > 0) {
+            approverDisplay = activity.approverNames;
+        }
+
+        return approverDisplay && approverDisplay.length > 0 ? (
             <div className="flex flex-col">
-                {approverNames.map((name, index) => (
+                {approverDisplay.map((name, index) => (
                     <span key={index}>{name}</span>
                 ))}
             </div>
@@ -112,3 +123,4 @@ export const columns: ColumnDef<Activity & { approverNames?: string[] }>[] = [
 ]
 
     
+

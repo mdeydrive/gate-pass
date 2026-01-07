@@ -149,7 +149,7 @@ export async function POST(request: Request) {
           requesterId: user?.id,
           visitingLocation: body.visitingLocation,
           purposeOfVisit: body.purposeOfVisit,
-          ...(body.status === 'Approved' && { approvedAt: now.toISOString() }),
+          ...(body.status === 'Approved' && { approvedAt: now.toISOString(), approvedById: body.approvedById }),
         };
         
         activities.unshift(newActivity); // Add to the beginning of the list

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -45,12 +46,21 @@ export default function HistoryPage() {
     const authorityMap = new Map(authorities.map(auth => [auth.id, auth.name]));
 
     return activities.map(activity => {
-      const approverNames = activity.approverIds
-        ?.map(id => authorityMap.get(id))
-        .filter((name): name is string => !!name);
+      let approverNames: string[] = [];
+      if (activity.approvedById) {
+        const name = authorityMap.get(activity.approvedById);
+        if (name) approverNames.push(name);
+      }
+      else if (activity.approverIds && activity.approverIds.length > 0) {
+           activity.approverIds.forEach(id => {
+               const name = authorityMap.get(id);
+               if (name) approverNames.push(name);
+           })
+      }
+
       return {
         ...activity,
-        approverNames,
+        approverNames: approverNames.length > 0 ? approverNames : undefined,
       };
     });
   }, [activities, authorities, loadingActivities, loadingAuthorities]);

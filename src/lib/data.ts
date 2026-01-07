@@ -17,6 +17,7 @@ export type Activity = {
   approverIds?: string[];
   requesterId?: string;
   approvedAt?: string;
+  approvedById?: string;
   checkedInAt?: string;
   checkedOutAt?: string;
   visitingLocation?: string;
@@ -117,3 +118,4 @@ export const approvingAuthorities: ApprovingAuthority[] = [
     
 
     
+

@@ -88,6 +88,7 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
         ...newPassData,
         status: 'Approved',
         approverIds: user ? [user.id] : [],
+        approvedById: user?.id,
     };
 
      try {
@@ -112,10 +113,13 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
 
 
   const updateActivityStatus = async (id: string, status: Activity['status']) => {
-    const body: { id: string; status: Activity['status']; approvedAt?: string; checkedInAt?: string; checkedOutAt?: string } = { id, status };
+    const body: Partial<Activity> = { id, status };
     
     if (status === 'Approved') {
         body.approvedAt = new Date().toISOString();
+        if (user) {
+            body.approvedById = user.id;
+        }
     } else if (status === 'Checked In') {
         body.checkedInAt = new Date().toISOString();
     } else if (status === 'Checked Out') {

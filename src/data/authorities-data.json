@@ -101,7 +101,7 @@
     "mobileNumber": "9123456784",
     "email": "angela.m@securepass.com",
     "avatar": "https://avatar.vercel.sh/angela.png",
-    "status": "Active",
+    "status": "Inactive",
     "permissions": [
       "gate-pass"
     ]
