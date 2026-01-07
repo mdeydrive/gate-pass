@@ -89,6 +89,16 @@ function AddVisitorDialog({ onAddVisitor, existingVisitors }: { onAddVisitor: (v
     setName(titleCasedValue);
   };
 
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const titleCasedValue = value
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+    setLocation(titleCasedValue);
+  };
+
   const handleSubmit = () => {
     if (!name || !mobile) {
       toast({
@@ -147,7 +157,7 @@ function AddVisitorDialog({ onAddVisitor, existingVisitors }: { onAddVisitor: (v
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="new-visitor-location" className="text-right">Location</Label>
-            <Input id="new-visitor-location" placeholder="Enter city or location" className="col-span-3" value={location} onChange={(e) => setLocation(e.target.value)} />
+            <Input id="new-visitor-location" placeholder="Enter city or location" className="col-span-3" value={location} onChange={handleLocationChange} />
           </div>
         </div>
         <DialogFooter>
