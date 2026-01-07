@@ -40,7 +40,7 @@ const allNavItems: NavItem[] = [
     { href: "/vehicles", label: "Vehicles", icon: Car, roles: ["Admin", "Security"] },
     { href: "/database", label: "Database", icon: Database, roles: ["Admin"] },
     { href: "/deliveries", label: "Deliveries", icon: Package, roles: ["Security"] },
-    { href: "/staff", label: "Staff", icon: Wrench, roles: ["Admin"] },
+    { href: "/staff", label: "Staff", icon: Wrench, roles: ["Admin", "Security", "Manager"] },
     { href: "/control-panel", label: "Control Panel", icon: Settings, roles: ["Admin"] },
   ];
 
