@@ -1,4 +1,3 @@
-
 [
   {
     "id": "auth-1767544215373",
@@ -29,7 +28,18 @@
     "status": "Active",
     "permissions": [
       "dashboard",
-      "gate-pass"
+      "gate-pass",
+      "reports",
+      "control-panel",
+      "staff",
+      "deliveries",
+      "database",
+      "vehicles",
+      "alerts",
+      "approving-authorities",
+      "management",
+      "visitors",
+      "history"
     ]
   },
   {
