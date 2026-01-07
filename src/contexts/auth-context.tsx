@@ -59,15 +59,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, [setRole]);
 
-  const login = async (identifier: string, pass: string, type: 'user' | 'admin' | 'approver' | 'manager' | 'security'): Promise<boolean> => {
+  const login = async (identifier: string, pin: string, type: 'user' | 'admin' | 'approver' | 'manager' | 'security'): Promise<boolean> => {
     
-    if (pass !== 'user123' && (type !== 'admin' || pass !== 'admin123')) {
-      return false;
+    if (type === 'admin') {
+      if (pin !== '1978') return false;
+    } else {
+      if (pin !== '1234') return false;
     }
 
     let loggedInUser: User | null = null;
 
-    if (type === 'admin' && identifier === 'admin' && pass === 'admin123') {
+    if (type === 'admin' && identifier === 'admin') {
         loggedInUser = {
             id: 'admin-user',
             username: 'Administrator', 
@@ -97,11 +99,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // Fallback for hardcoded demo users ONLY if no match found in authorities
     if (!loggedInUser) {
-        if (type === 'security' && identifier === 'security' && pass === 'user123') {
+        if (type === 'security' && identifier === 'security') {
             loggedInUser = { id: 'demo-security', username: 'Security Guard', role: 'Security', mobileNumber: '0000000000' };
-        } else if (type === 'user' && identifier === 'resident' && pass === 'user123') {
+        } else if (type === 'user' && identifier === 'resident') {
             loggedInUser = { id: 'demo-resident', username: 'John Resident', role: 'Resident', mobileNumber: '1111111111' };
-        } else if (type === 'manager' && identifier === 'manager' && pass === 'user123') {
+        } else if (type === 'manager' && identifier === 'manager') {
              loggedInUser = { id: 'demo-manager', username: 'Facility Manager', role: 'Manager', mobileNumber: '2222222222' };
         }
     }

@@ -41,14 +41,15 @@ function UserLoginForm({ onLogin, mobileInputRef }: { onLogin: (mobile: string, 
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">4-Digit PIN</Label>
           <Input
             id="password"
             type="password"
-            placeholder="Enter your password"
+            placeholder="Enter your PIN"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            maxLength={4}
           />
         </div>
         <Button type="submit" className="w-full">
@@ -71,15 +72,16 @@ function AdminLoginForm({ onLogin, passwordInputRef }: { onLogin: (id: string, p
     <form onSubmit={handleSubmit}>
       <div className="grid gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="admin-password">Password</Label>
+          <Label htmlFor="admin-password">4-Digit PIN</Label>
           <Input
             ref={passwordInputRef}
             id="admin-password"
             type="password"
-            placeholder="Enter admin password"
+            placeholder="Enter admin PIN"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            maxLength={4}
           />
         </div>
         <Button type="submit" className="w-full">
@@ -115,14 +117,15 @@ function ApproverLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, 
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="approver-password">Password</Label>
+          <Label htmlFor="approver-password">4-Digit PIN</Label>
           <Input
             id="approver-password"
             type="password"
-            placeholder="Enter your password"
+            placeholder="Enter your PIN"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            maxLength={4}
           />
         </div>
         <Button type="submit" className="w-full">
@@ -158,14 +161,15 @@ function ManagerLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, p
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="manager-password">Password</Label>
+            <Label htmlFor="manager-password">4-Digit PIN</Label>
             <Input
               id="manager-password"
               type="password"
-              placeholder="Enter your password"
+              placeholder="Enter your PIN"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              maxLength={4}
             />
           </div>
           <Button type="submit" className="w-full">
@@ -201,14 +205,15 @@ function ManagerLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, p
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="security-password">Password</Label>
+            <Label htmlFor="security-password">4-Digit PIN</Label>
             <Input
               id="security-password"
               type="password"
-              placeholder="Enter your password"
+              placeholder="Enter your PIN"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              maxLength={4}
             />
           </div>
           <Button type="submit" className="w-full">
@@ -288,7 +293,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40">
+    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">SecurePass Login</CardTitle>
@@ -298,13 +303,15 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="user">User</TabsTrigger>
-              <TabsTrigger value="admin">Admin</TabsTrigger>
-              <TabsTrigger value="approver">Approver</TabsTrigger>
-              <TabsTrigger value="manager">Manager</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto">
+              <TabsList className="w-full sm:w-auto grid grid-cols-5 sm:inline-flex">
+                <TabsTrigger value="user">User</TabsTrigger>
+                <TabsTrigger value="admin">Admin</TabsTrigger>
+                <TabsTrigger value="approver">Approver</TabsTrigger>
+                <TabsTrigger value="manager">Manager</TabsTrigger>
+                <TabsTrigger value="security">Security</TabsTrigger>
+              </TabsList>
+            </div>
             <TabsContent value="user" className="pt-4">
               <UserLoginForm onLogin={handleLogin} mobileInputRef={userMobileInputRef} />
             </TabsContent>
