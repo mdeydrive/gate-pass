@@ -133,7 +133,7 @@ function AddVisitorDialog({ onAddVisitor, existingVisitors }: { onAddVisitor: (v
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="new-visitor-company" className="text-right">Company</Label>
-            <Input id="new-visitor-company" placeholder="Enter company name" className="col-span-3" value={company} onChange={(e) => setCompany(e.target.value)} />
+            <Input id="new-visitor-company" placeholder="Enter company name" className="col-span-3" value={company} onChange={(e) => setCompany(e.target.value.toUpperCase())} />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="new-visitor-location" className="text-right">Location</Label>
