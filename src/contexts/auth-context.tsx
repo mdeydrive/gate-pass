@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
 import type { UserRole } from './role-context';
-import type { ApprovingAuthority } from '@/lib/data';
+import type { ApprovingAuthority, Permission } from '@/lib/data';
 import { useRole } from './role-context';
 
 interface User {
@@ -11,6 +11,8 @@ interface User {
   username: string;
   role: UserRole;
   mobileNumber?: string;
+  status: 'Active' | 'Inactive';
+  permissions: Permission[];
 }
 
 interface AuthContextType {
@@ -74,12 +76,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             id: 'admin-user',
             username: 'Administrator', 
             role: 'Admin',
+            status: 'Active',
+            permissions: ["dashboard", "gate-pass", "history", "visitors", "management", "approving-authorities", "alerts", "vehicles", "database", "deliveries", "staff", "control-panel"],
         };
     } else {
         const authorities = await getAuthorities();
         const authority = authorities.find(auth => auth.mobileNumber === identifier);
 
-        if (authority) {
+        if (authority && authority.status === 'Active') {
             const userRole = authority.role as UserRole;
             // Check if the login type matches the role from the database
             if ((type === 'approver' && userRole === 'Approver') ||
@@ -91,23 +95,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     id: authority.id,
                     username: authority.name, 
                     role: userRole,
-                    mobileNumber: authority.mobileNumber
+                    mobileNumber: authority.mobileNumber,
+                    status: authority.status,
+                    permissions: authority.permissions,
                 };
             }
         }
     }
     
-    // Fallback for hardcoded demo users ONLY if no match found in authorities
-    if (!loggedInUser) {
-        if (type === 'security' && identifier === 'security') {
-            loggedInUser = { id: 'demo-security', username: 'Security Guard', role: 'Security', mobileNumber: '0000000000' };
-        } else if (type === 'user' && identifier === 'resident') {
-            loggedInUser = { id: 'demo-resident', username: 'John Resident', role: 'Resident', mobileNumber: '1111111111' };
-        } else if (type === 'manager' && identifier === 'manager') {
-             loggedInUser = { id: 'demo-manager', username: 'Facility Manager', role: 'Manager', mobileNumber: '2222222222' };
-        }
-    }
-
     if (loggedInUser) {
         setUser(loggedInUser);
         setRole(loggedInUser.role);

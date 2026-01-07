@@ -23,6 +23,21 @@ export type Activity = {
   purposeOfVisit?: string;
 };
 
+export type Permission = 
+    | "dashboard"
+    | "gate-pass"
+    | "history"
+    | "visitors"
+    | "management"
+    | "approving-authorities"
+    | "alerts"
+    | "vehicles"
+    | "database"
+    | "deliveries"
+    | "staff"
+    | "control-panel";
+
+
 export type ApprovingAuthority = {
   id: string;
   name: string;
@@ -30,7 +45,24 @@ export type ApprovingAuthority = {
   mobileNumber: string;
   email: string;
   avatar: string;
+  status: 'Active' | 'Inactive';
+  permissions: Permission[];
 };
+
+export const allPermissions: { id: Permission, label: string }[] = [
+    { id: "dashboard", label: "Dashboard" },
+    { id: "gate-pass", label: "Manage Gate Pass" },
+    { id: "history", label: "History" },
+    { id: "visitors", label: "Visitors" },
+    { id: "management", label: "Complex Management" },
+    { id: "approving-authorities", label: "Approving Authorities" },
+    { id: "alerts", label: "Alerts" },
+    { id: "vehicles", label: "Vehicles" },
+    { id: "database", label: "Database" },
+    { id: "deliveries", label: "Deliveries" },
+    { id: "staff", label: "Staff" },
+    { id: "control-panel", label: "Control Panel" },
+];
 
 export const activities: Activity[] = [
   { id: '1', visitorName: 'John Doe', mobileNumber: '9876543210', passType: 'Guest', status: 'Approved', time: '10:30 AM', date: '2023-10-27', vehicle: 'TS09AB1234' },
@@ -76,10 +108,10 @@ export const complexes = [
 ];
 
 export const approvingAuthorities: ApprovingAuthority[] = [
-  { id: 'auth1', name: 'Michael Scott', role: 'Manager', mobileNumber: '9123456780', email: 'michael.s@securepass.com', avatar: 'https://avatar.vercel.sh/michael.png' },
-  { id: 'auth2', name: 'Dwight Schrute', role: 'Asst. to the Manager', mobileNumber: '9123456781', email: 'dwight.s@securepass.com', avatar: 'https://avatar.vercel.sh/dwight.png' },
-  { id: 'auth3', name: 'Jim Halpert', role: 'Administrator', mobileNumber: '9123456782', email: 'jim.h@securepass.com', avatar: 'https://avatar.vercel.sh/jim.png' },
-  { id: 'auth4', name: 'Pam Beesly', role: 'Administrator', mobileNumber: '9123456783', email: 'pam.b@securepass.com', avatar: 'https://avatar.vercel.sh/pam.png' },
+  { id: 'auth1', name: 'Michael Scott', role: 'Manager', mobileNumber: '9123456780', email: 'michael.s@securepass.com', avatar: 'https://avatar.vercel.sh/michael.png', status: 'Active', permissions: [] },
+  { id: 'auth2', name: 'Dwight Schrute', role: 'Asst. to the Manager', mobileNumber: '9123456781', email: 'dwight.s@securepass.com', avatar: 'https://avatar.vercel.sh/dwight.png', status: 'Active', permissions: [] },
+  { id: 'auth3', name: 'Jim Halpert', role: 'Administrator', mobileNumber: '9123456782', email: 'jim.h@securepass.com', avatar: 'https://avatar.vercel.sh/jim.png', status: 'Active', permissions: [] },
+  { id: 'auth4', name: 'Pam Beesly', role: 'Administrator', mobileNumber: '9123456783', email: 'pam.b@securepass.com', avatar: 'https://avatar.vercel.sh/pam.png', status: 'Active', permissions: [] },
 ];
 
     

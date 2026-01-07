@@ -6,7 +6,9 @@
     "role": "Security",
     "mobileNumber": "5555555555",
     "email": "samar@example.com",
-    "avatar": "https://avatar.vercel.sh/samar.png"
+    "avatar": "https://avatar.vercel.sh/samar.png",
+    "status": "Active",
+    "permissions": ["dashboard", "gate-pass", "history", "visitors", "alerts", "vehicles", "deliveries", "staff"]
   },
   {
     "id": "auth-1767532502167",
@@ -14,7 +16,9 @@
     "role": "Approver",
     "mobileNumber": "9230579375",
     "email": "mintu@example.com",
-    "avatar": "https://avatar.vercel.sh/mintu.png"
+    "avatar": "https://avatar.vercel.sh/mintu.png",
+    "status": "Active",
+    "permissions": ["dashboard", "gate-pass"]
   },
   {
     "id": "auth1",
@@ -22,7 +26,9 @@
     "role": "Manager",
     "mobileNumber": "9123456780",
     "email": "michael.s@securepass.com",
-    "avatar": "https://avatar.vercel.sh/michael.png"
+    "avatar": "https://avatar.vercel.sh/michael.png",
+    "status": "Active",
+    "permissions": ["dashboard", "gate-pass", "staff"]
   },
   {
     "id": "auth2",
@@ -30,7 +36,9 @@
     "role": "Resident",
     "mobileNumber": "9123456781",
     "email": "dwight.s@securepass.com",
-    "avatar": "https://avatar.vercel.sh/dwight.png"
+    "avatar": "https://avatar.vercel.sh/dwight.png",
+    "status": "Active",
+    "permissions": ["dashboard", "gate-pass"]
   },
   {
     "id": "auth3",
@@ -38,7 +46,9 @@
     "role": "Admin",
     "mobileNumber": "9123456782",
     "email": "jim.h@securepass.com",
-    "avatar": "https://avatar.vercel.sh/jim.png"
+    "avatar": "https://avatar.vercel.sh/jim.png",
+    "status": "Active",
+    "permissions": ["dashboard", "gate-pass", "history", "visitors", "management", "approving-authorities", "alerts", "vehicles", "database", "deliveries", "staff", "control-panel"]
   },
   {
     "id": "auth4",
@@ -46,7 +56,9 @@
     "role": "Resident",
     "mobileNumber": "9123456783",
     "email": "pam.b@securepass.com",
-    "avatar": "https://avatar.vercel.sh/pam.png"
+    "avatar": "https://avatar.vercel.sh/pam.png",
+    "status": "Active",
+    "permissions": ["dashboard", "gate-pass"]
   },
   {
     "id": "auth5",
@@ -54,6 +66,8 @@
     "role": "Approver",
     "mobileNumber": "9123456784",
     "email": "angela.m@securepass.com",
-    "avatar": "https://avatar.vercel.sh/angela.png"
+    "avatar": "https://avatar.vercel.sh/angela.png",
+    "status": "Inactive",
+    "permissions": ["gate-pass"]
   }
 ]

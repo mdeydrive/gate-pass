@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Phone, PlusCircle, Edit } from 'lucide-react';
+import { Phone, PlusCircle, Edit, UserCheck, UserX } from 'lucide-react';
 import { useRole } from '@/contexts/role-context';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,18 +43,13 @@ import {
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { ApprovingAuthority, Permission } from '@/lib/data';
+import { allPermissions } from '@/lib/data';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
-type Authority = {
-  id: string;
-  name: string;
-  role: string;
-  mobileNumber: string;
-  email: string;
-  avatar: string;
-};
-
-
-function AddAuthorityDialog({ onAddAuthority }: { onAddAuthority: (newAuthority: Omit<Authority, 'id' | 'avatar'>) => void }) {
+function AddAuthorityDialog({ onAddAuthority }: { onAddAuthority: (newAuthority: Omit<ApprovingAuthority, 'id' | 'avatar'>) => void }) {
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
@@ -71,7 +66,7 @@ function AddAuthorityDialog({ onAddAuthority }: { onAddAuthority: (newAuthority:
       });
       return;
     }
-    const newAuthority = { name, role, mobileNumber, email };
+    const newAuthority = { name, role, mobileNumber, email, status: 'Active' as const, permissions: [] };
     onAddAuthority(newAuthority);
     setOpen(false); // Close the dialog after submission
     // Reset form
@@ -135,11 +130,13 @@ function AddAuthorityDialog({ onAddAuthority }: { onAddAuthority: (newAuthority:
   )
 }
 
-function EditAuthorityDialog({ authority, onUpdateAuthority }: { authority: Authority, onUpdateAuthority: (updatedAuthority: Authority) => void }) {
+function EditAuthorityDialog({ authority, onUpdateAuthority }: { authority: ApprovingAuthority, onUpdateAuthority: (updatedAuthority: ApprovingAuthority) => void }) {
   const [name, setName] = useState(authority.name);
   const [role, setRole] = useState(authority.role);
   const [mobileNumber, setMobileNumber] = useState(authority.mobileNumber);
   const [email, setEmail] = useState(authority.email);
+  const [status, setStatus] = useState(authority.status);
+  const [permissions, setPermissions] = useState<Permission[]>(authority.permissions || []);
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
 
@@ -148,7 +145,15 @@ function EditAuthorityDialog({ authority, onUpdateAuthority }: { authority: Auth
     setRole(authority.role);
     setMobileNumber(authority.mobileNumber);
     setEmail(authority.email);
-  }, [authority]);
+    setStatus(authority.status);
+    setPermissions(authority.permissions || []);
+  }, [authority, open]);
+
+  const handlePermissionChange = (permissionId: Permission, checked: boolean) => {
+    setPermissions(prev => 
+        checked ? [...prev, permissionId] : prev.filter(p => p !== permissionId)
+    );
+  };
 
   const handleSubmit = () => {
     if (!name || !role || !mobileNumber || !email) {
@@ -159,7 +164,7 @@ function EditAuthorityDialog({ authority, onUpdateAuthority }: { authority: Auth
       });
       return;
     }
-    const updatedAuthority = { ...authority, name, role, mobileNumber, email };
+    const updatedAuthority = { ...authority, name, role, mobileNumber, email, status, permissions };
     onUpdateAuthority(updatedAuthority);
     setOpen(false);
   };
@@ -171,41 +176,70 @@ function EditAuthorityDialog({ authority, onUpdateAuthority }: { authority: Auth
           <Edit className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Edit Approving Authority</DialogTitle>
+          <DialogTitle>Edit Approving Authority: {authority.name}</DialogTitle>
           <DialogDescription>
-            Update the details for the staff member.
+            Update user details, status, and permissions.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="edit-name" className="text-right">Name</Label>
-            <Input id="edit-name" className="col-span-3" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter full name" />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="edit-role" className="text-right">Role</Label>
-            <Select onValueChange={setRole} value={role}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="Resident">Resident</SelectItem>
-                    <SelectItem value="Approver">Approver</SelectItem>
-                    <SelectItem value="Admin">Admin</SelectItem>
-                    <SelectItem value="Manager">Gatepass Manager</SelectItem>
-                    <SelectItem value="Security">Security</SelectItem>
-                </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="edit-mobile" className="text-right">Mobile No.</Label>
-            <Input id="edit-mobile" className="col-span-3" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} placeholder="Enter 10-digit mobile number" />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="edit-email" className="text-right">Email</Label>
-            <Input id="edit-email" type="email" className="col-span-3" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email address" />
-          </div>
+        <div className="grid md:grid-cols-2 gap-8 py-4">
+            <div className="space-y-4">
+                <h3 className="font-semibold text-lg">User Details</h3>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="edit-name" className="text-right">Name</Label>
+                    <Input id="edit-name" className="col-span-3" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter full name" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="edit-role" className="text-right">Role</Label>
+                    <Select onValueChange={setRole} value={role}>
+                        <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Resident">Resident</SelectItem>
+                            <SelectItem value="Approver">Approver</SelectItem>
+                            <SelectItem value="Admin">Admin</SelectItem>
+                            <SelectItem value="Manager">Gatepass Manager</SelectItem>
+                            <SelectItem value="Security">Security</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="edit-mobile" className="text-right">Mobile No.</Label>
+                    <Input id="edit-mobile" className="col-span-3" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} placeholder="Enter 10-digit mobile number" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="edit-email" className="text-right">Email</Label>
+                    <Input id="edit-email" type="email" className="col-span-3" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email address" />
+                </div>
+                 <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="edit-status" className="text-right">Status</Label>
+                    <div className="col-span-3 flex items-center gap-2">
+                        <Switch id="edit-status" checked={status === 'Active'} onCheckedChange={(checked) => setStatus(checked ? 'Active' : 'Inactive')} />
+                        <span className={status === 'Active' ? 'text-green-600' : 'text-red-600'}>
+                            {status}
+                        </span>
+                    </div>
+                 </div>
+            </div>
+            <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Permissions</h3>
+                <ScrollArea className="h-60 w-full rounded-md border p-4">
+                    <div className="space-y-2">
+                        {allPermissions.map(permission => (
+                            <div key={permission.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                    id={`perm-${permission.id}`}
+                                    checked={permissions.includes(permission.id)}
+                                    onCheckedChange={(checked) => handlePermissionChange(permission.id, !!checked)}
+                                />
+                                <Label htmlFor={`perm-${permission.id}`} className="font-normal">{permission.label}</Label>
+                            </div>
+                        ))}
+                    </div>
+                </ScrollArea>
+            </div>
         </div>
         <DialogFooter>
             <DialogClose asChild>
@@ -221,7 +255,7 @@ function EditAuthorityDialog({ authority, onUpdateAuthority }: { authority: Auth
 
 export default function ApprovingAuthoritiesPage() {
   const { role } = useRole();
-  const [authorities, setAuthorities] = useState<Authority[]>([]);
+  const [authorities, setAuthorities] = useState<ApprovingAuthority[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -243,7 +277,7 @@ export default function ApprovingAuthoritiesPage() {
     fetchAuthorities();
   }, [toast]);
 
-  const handleAddAuthority = async (newAuthorityData: Omit<Authority, 'id' | 'avatar'>) => {
+  const handleAddAuthority = async (newAuthorityData: Omit<ApprovingAuthority, 'id' | 'avatar'>) => {
     try {
       const response = await fetch('/api/authorities', {
         method: 'POST',
@@ -262,7 +296,7 @@ export default function ApprovingAuthoritiesPage() {
     }
   };
 
-  const handleUpdateAuthority = async (updatedAuthorityData: Authority) => {
+  const handleUpdateAuthority = async (updatedAuthorityData: ApprovingAuthority) => {
     try {
       const response = await fetch('/api/authorities', {
         method: 'PUT',
@@ -321,6 +355,7 @@ export default function ApprovingAuthoritiesPage() {
               <TableRow>
                 <TableHead>Staff Member</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Contact Number</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -342,6 +377,14 @@ export default function ApprovingAuthoritiesPage() {
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary">{authority.role}</Badge>
+                  </TableCell>
+                  <TableCell>
+                      <Badge variant={authority.status === 'Active' ? 'success' : 'destructive'}>
+                        <div className="flex items-center gap-1">
+                          {authority.status === 'Active' ? <UserCheck className="h-3 w-3" /> : <UserX className="h-3 w-3" />}
+                          {authority.status}
+                        </div>
+                      </Badge>
                   </TableCell>
                   <TableCell>
                       <div className="flex items-center gap-2">
