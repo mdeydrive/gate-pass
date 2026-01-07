@@ -17,6 +17,7 @@ import {
   Users,
   Settings,
   Database,
+  FileText,
 } from "lucide-react";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,7 @@ const allNavItems: NavItem[] = [
     { href: "/database", label: "Database", icon: Database, permission: "database" },
     { href: "/deliveries", label: "Deliveries", icon: Package, permission: "deliveries" },
     { href: "/staff", label: "Staff", icon: Wrench, permission: "staff" },
+    { href: "/reports", label: "Reports", icon: FileText, permission: "reports" },
     { href: "/control-panel", label: "Control Panel", icon: Settings, permission: "control-panel" },
   ];
 

@@ -1,3 +1,4 @@
+
 [
   {
     "id": "auth-1767544215373",
@@ -78,7 +79,8 @@
       "database",
       "deliveries",
       "staff",
-      "control-panel"
+      "control-panel",
+      "reports"
     ]
   },
   {

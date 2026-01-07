@@ -36,7 +36,8 @@ export type Permission =
     | "database"
     | "deliveries"
     | "staff"
-    | "control-panel";
+    | "control-panel"
+    | "reports";
 
 
 export type ApprovingAuthority = {
@@ -63,6 +64,7 @@ export const allPermissions: { id: Permission, label: string }[] = [
     { id: "deliveries", label: "Deliveries" },
     { id: "staff", label: "Staff" },
     { id: "control-panel", label: "Control Panel" },
+    { id: "reports", label: "Reports" },
 ];
 
 export const activities: Activity[] = [
@@ -118,4 +120,3 @@ export const approvingAuthorities: ApprovingAuthority[] = [
     
 
     
-
