@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PinInput } from '@/components/ui/pin-input';
 
 function UserLoginForm({ onLogin, mobileInputRef }: { onLogin: (mobile: string, pass: string, type: 'user') => void, mobileInputRef: React.RefObject<HTMLInputElement> }) {
   const [mobileNumber, setMobileNumber] = useState('');
@@ -42,15 +43,11 @@ function UserLoginForm({ onLogin, mobileInputRef }: { onLogin: (mobile: string, 
         </div>
         <div className="grid gap-2">
           <Label htmlFor="password">4-Digit PIN</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="Enter your PIN"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            maxLength={4}
-          />
+           <PinInput 
+             value={password}
+             onChange={setPassword}
+             onComplete={(pin) => onLogin(mobileNumber, pin, 'user')}
+           />
         </div>
         <Button type="submit" className="w-full">
           Login
@@ -60,7 +57,7 @@ function UserLoginForm({ onLogin, mobileInputRef }: { onLogin: (mobile: string, 
   );
 }
 
-function AdminLoginForm({ onLogin, passwordInputRef }: { onLogin: (id: string, pass: string, type: 'admin') => void, passwordInputRef: React.RefObject<HTMLInputElement> }) {
+function AdminLoginForm({ onLogin }: { onLogin: (id: string, pass: string, type: 'admin') => void }) {
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -73,16 +70,11 @@ function AdminLoginForm({ onLogin, passwordInputRef }: { onLogin: (id: string, p
       <div className="grid gap-4">
         <div className="grid gap-2">
           <Label htmlFor="admin-password">4-Digit PIN</Label>
-          <Input
-            ref={passwordInputRef}
-            id="admin-password"
-            type="password"
-            placeholder="Enter admin PIN"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            maxLength={4}
-          />
+          <PinInput 
+             value={password}
+             onChange={setPassword}
+             onComplete={(pin) => onLogin('admin', pin, 'admin')}
+           />
         </div>
         <Button type="submit" className="w-full">
           Admin Login
@@ -118,15 +110,11 @@ function ApproverLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, 
         </div>
         <div className="grid gap-2">
           <Label htmlFor="approver-password">4-Digit PIN</Label>
-          <Input
-            id="approver-password"
-            type="password"
-            placeholder="Enter your PIN"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            maxLength={4}
-          />
+           <PinInput 
+             value={password}
+             onChange={setPassword}
+             onComplete={(pin) => onLogin(mobileNumber, pin, 'approver')}
+           />
         </div>
         <Button type="submit" className="w-full">
           Approver Login
@@ -162,15 +150,11 @@ function ManagerLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, p
           </div>
           <div className="grid gap-2">
             <Label htmlFor="manager-password">4-Digit PIN</Label>
-            <Input
-              id="manager-password"
-              type="password"
-              placeholder="Enter your PIN"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              maxLength={4}
-            />
+            <PinInput 
+             value={password}
+             onChange={setPassword}
+             onComplete={(pin) => onLogin(mobileNumber, pin, 'manager')}
+           />
           </div>
           <Button type="submit" className="w-full">
             Manager Login
@@ -206,15 +190,11 @@ function ManagerLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, p
           </div>
           <div className="grid gap-2">
             <Label htmlFor="security-password">4-Digit PIN</Label>
-            <Input
-              id="security-password"
-              type="password"
-              placeholder="Enter your PIN"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              maxLength={4}
-            />
+            <PinInput 
+             value={password}
+             onChange={setPassword}
+             onComplete={(pin) => onLogin(mobileNumber, pin, 'security')}
+           />
           </div>
           <Button type="submit" className="w-full">
             Security Login
@@ -243,11 +223,15 @@ export default function LoginPage() {
     const role = searchParams.get('role');
     const validRoles = ['user', 'admin', 'approver', 'manager', 'security'];
     const newTab = role && validRoles.includes(role) ? role : 'user';
-    setActiveTab(newTab);
+    
+    if (activeTab !== newTab) {
+        setActiveTab(newTab);
+    }
 
     if (!role && window.location.search) {
       router.replace('/', undefined);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, router]);
 
   useEffect(() => {
@@ -256,9 +240,6 @@ export default function LoginPage() {
         switch (activeTab) {
             case 'user':
                 userMobileInputRef.current?.focus();
-                break;
-            case 'admin':
-                adminPasswordInputRef.current?.focus();
                 break;
             case 'approver':
                 approverMobileInputRef.current?.focus();
@@ -275,6 +256,14 @@ export default function LoginPage() {
 
 
   const handleLogin = async (identifier: string, pass: string, type: 'user' | 'admin' | 'approver' | 'manager' | 'security') => {
+    if (pass.length < 4) {
+      toast({
+        variant: 'destructive',
+        title: 'PIN incomplete',
+        description: 'Please enter a 4-digit PIN.',
+      });
+      return;
+    }
     const success = await login(identifier, pass, type);
     if (success) {
         router.push('/dashboard');
@@ -303,7 +292,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto pb-2">
               <TabsList className="w-full sm:w-auto grid grid-cols-5 sm:inline-flex">
                 <TabsTrigger value="user">User</TabsTrigger>
                 <TabsTrigger value="admin">Admin</TabsTrigger>
@@ -316,7 +305,7 @@ export default function LoginPage() {
               <UserLoginForm onLogin={handleLogin} mobileInputRef={userMobileInputRef} />
             </TabsContent>
             <TabsContent value="admin" className="pt-4">
-              <AdminLoginForm onLogin={handleLogin} passwordInputRef={adminPasswordInputRef} />
+              <AdminLoginForm onLogin={handleLogin} />
             </TabsContent>
             <TabsContent value="approver" className="pt-4">
               <ApproverLoginForm onLogin={handleLogin} mobileInputRef={approverMobileInputRef} />
