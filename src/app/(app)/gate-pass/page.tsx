@@ -71,7 +71,7 @@ type NewVisitor = {
     location: string;
 }
 
-function AddVisitorDialog({ onAddVisitor }: { onAddVisitor: (visitor: NewVisitor) => void }) {
+function AddVisitorDialog({ onAddVisitor, existingVisitors }: { onAddVisitor: (visitor: NewVisitor) => void, existingVisitors: Activity[] }) {
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [company, setCompany] = useState('');
@@ -88,6 +88,17 @@ function AddVisitorDialog({ onAddVisitor }: { onAddVisitor: (visitor: NewVisitor
       });
       return;
     }
+
+    const isDuplicate = existingVisitors.some(visitor => visitor.mobileNumber === mobile);
+    if (isDuplicate) {
+        toast({
+            variant: "destructive",
+            title: "Duplicate Visitor",
+            description: "A visitor with this mobile number already exists.",
+        });
+        return;
+    }
+
     onAddVisitor({ visitorName: name, mobileNumber: mobile, companyName: company, location: location });
     setOpen(false);
     // Reset form
@@ -442,7 +453,7 @@ function PassForm({ onGeneratePass, authorities }: { onGeneratePass: (newPass: O
                                     </Command>
                                 </PopoverContent>
                             </Popover>
-                             <AddVisitorDialog onAddVisitor={prefillVisitorData} />
+                             <AddVisitorDialog onAddVisitor={prefillVisitorData} existingVisitors={uniqueVisitors} />
                         </div>
                     </div>
 
