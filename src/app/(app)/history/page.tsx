@@ -29,7 +29,7 @@ export default function HistoryPage() {
   const [authorities, setAuthorities] = useState<ApprovingAuthority[]>([]);
   const [loadingAuthorities, setLoadingAuthorities] = useState(true);
   const [nameFilter, setNameFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     async function fetchAuthorities() {
@@ -101,7 +101,7 @@ export default function HistoryPage() {
                         <SelectValue placeholder="Filter by status" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">All Statuses</SelectItem>
+                        <SelectItem value="all">All Statuses</SelectItem>
                         {passStatuses.map(status => (
                             <SelectItem key={status} value={status}>{status}</SelectItem>
                         ))}
@@ -124,7 +124,7 @@ export default function HistoryPage() {
             data={activitiesWithApprovers}
             filters={{
                 visitorName: nameFilter,
-                status: statusFilter
+                status: statusFilter === 'all' ? '' : statusFilter
             }}
            />
         )}
