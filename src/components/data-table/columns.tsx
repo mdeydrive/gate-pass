@@ -11,7 +11,7 @@ import { format } from "date-fns"
 const getBadgeVariant = (status: Activity['status']) => {
     switch (status) {
       case 'Checked In': return 'default';
-      case 'Checked Out': return 'secondary';
+      case 'Checked Out': return 'success';
       case 'Pending': return 'destructive';
       case 'Approved': return 'secondary';
       case 'Rejected': 'destructive';
