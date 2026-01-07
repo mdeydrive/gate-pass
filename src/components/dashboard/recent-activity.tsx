@@ -1,4 +1,6 @@
 
+'use client';
+
 import {
   Card,
   CardContent,
@@ -15,9 +17,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { type Activity, activities } from "@/lib/data";
+import type { Activity } from "@/lib/data";
+import { useGatePass } from "@/contexts/gate-pass-context";
+import { Skeleton } from "../ui/skeleton";
 
 export default function RecentActivity() {
+  const { activities, loading } = useGatePass();
   const recentActivities = activities.slice(0, 5);
 
   const getBadgeVariant = (status: Activity['status']) => {
@@ -37,6 +42,19 @@ export default function RecentActivity() {
         <CardDescription>A log of the latest entries and exits.</CardDescription>
       </CardHeader>
       <CardContent>
+        {loading ? (
+            <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex justify-between items-center h-10">
+                        <div className="space-y-1">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-3 w-32" />
+                        </div>
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                    </div>
+                ))}
+            </div>
+        ) : (
         <Table>
           <TableHeader>
             <TableRow>
@@ -45,7 +63,7 @@ export default function RecentActivity() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {recentActivities.map((activity) => (
+            {recentActivities.length > 0 ? recentActivities.map((activity) => (
               <TableRow key={activity.id}>
                 <TableCell>
                   <div className="font-medium">{activity.visitorName}</div>
@@ -55,9 +73,16 @@ export default function RecentActivity() {
                   <Badge variant={getBadgeVariant(activity.status)}>{activity.status}</Badge>
                 </TableCell>
               </TableRow>
-            ))}
+            )) : (
+                <TableRow>
+                    <TableCell colSpan={2} className="text-center h-24">
+                        No recent activity found.
+                    </TableCell>
+                </TableRow>
+            )}
           </TableBody>
         </Table>
+        )}
       </CardContent>
     </Card>
   );
