@@ -320,6 +320,7 @@ export default function StaffPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Staff ID</TableHead>
                 <TableHead>Staff Member</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Contact Number</TableHead>
@@ -329,6 +330,9 @@ export default function StaffPage() {
             <TableBody>
               {staff.map((staffMember) => (
                 <TableRow key={staffMember.id}>
+                  <TableCell>
+                    <div className="font-mono text-xs">{staffMember.id}</div>
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
