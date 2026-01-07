@@ -12,6 +12,7 @@ interface PinInputProps {
   value: string;
   className?: string;
   inputClassName?: string;
+  inputRef?: React.RefObject<HTMLInputElement>;
 }
 
 export const PinInput: React.FC<PinInputProps> = ({
@@ -21,9 +22,19 @@ export const PinInput: React.FC<PinInputProps> = ({
   value,
   className,
   inputClassName,
+  inputRef,
 }) => {
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const [pin, setPin] = useState<string[]>(new Array(length).fill(''));
+
+  useEffect(() => {
+    // If an external ref is provided for the first input, assign it.
+    if (inputRef && inputRefs.current[0]) {
+      // A bit of a hack to merge refs, but for this specific case it's fine.
+      (inputRef as React.MutableRefObject<HTMLInputElement | null>).current = inputRefs.current[0];
+    }
+  }, [inputRef]);
+
 
   useEffect(() => {
     const newValue = value.split('');
@@ -55,8 +66,8 @@ export const PinInput: React.FC<PinInputProps> = ({
         }
 
         // Trigger onComplete when all inputs are filled
-        if (newPin.every(digit => digit !== '')) {
-            onComplete?.(newPin.join(''));
+        if (newPinString.length === length) {
+            onComplete?.(newPinString);
         }
     } else {
         // if not a digit, clear it.
@@ -75,18 +86,19 @@ export const PinInput: React.FC<PinInputProps> = ({
     const paste = e.clipboardData.getData('text').slice(0, length);
     if (/^[0-9]+$/.test(paste)) {
       const newPin = paste.split('').concat(new Array(length).fill('')).slice(0, length);
-      setPin(newPin);
+      
       const newPinString = newPin.join('');
-      if (onChange) {
+       if (onChange) {
           onChange(newPinString);
-      }
+       }
       
       const lastFilledIndex = Math.min(paste.length, length) - 1;
       if (inputRefs.current[lastFilledIndex]) {
         inputRefs.current[lastFilledIndex]?.focus();
       }
-      if (paste.length >= length) {
-        onComplete?.(newPin.join(''));
+
+      if (newPinString.length === length) {
+        onComplete?.(newPinString);
       }
     }
   };

@@ -57,7 +57,7 @@ function UserLoginForm({ onLogin, mobileInputRef }: { onLogin: (mobile: string, 
   );
 }
 
-function AdminLoginForm({ onLogin }: { onLogin: (id: string, pass: string, type: 'admin') => void }) {
+function AdminLoginForm({ onLogin, passwordInputRef }: { onLogin: (id: string, pass: string, type: 'admin') => void, passwordInputRef: React.RefObject<HTMLInputElement> }) {
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -74,6 +74,7 @@ function AdminLoginForm({ onLogin }: { onLogin: (id: string, pass: string, type:
              value={password}
              onChange={setPassword}
              onComplete={(pin) => onLogin('admin', pin, 'admin')}
+             inputRef={passwordInputRef}
            />
         </div>
         <Button type="submit" className="w-full">
@@ -241,6 +242,9 @@ export default function LoginPage() {
             case 'user':
                 userMobileInputRef.current?.focus();
                 break;
+            case 'admin':
+                adminPasswordInputRef.current?.focus();
+                break;
             case 'approver':
                 approverMobileInputRef.current?.focus();
                 break;
@@ -305,7 +309,7 @@ export default function LoginPage() {
               <UserLoginForm onLogin={handleLogin} mobileInputRef={userMobileInputRef} />
             </TabsContent>
             <TabsContent value="admin" className="pt-4">
-              <AdminLoginForm onLogin={handleLogin} />
+              <AdminLoginForm onLogin={handleLogin} passwordInputRef={adminPasswordInputRef} />
             </TabsContent>
             <TabsContent value="approver" className="pt-4">
               <ApproverLoginForm onLogin={handleLogin} mobileInputRef={approverMobileInputRef} />
