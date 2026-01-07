@@ -4,7 +4,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRole, type UserRole } from "@/contexts/role-context";
-import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Ticket,
@@ -19,7 +18,7 @@ import {
   Settings,
   Database,
 } from "lucide-react";
-import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
 
 
 type NavItem = {
@@ -48,14 +47,21 @@ const allNavItems: NavItem[] = [
 export default function MainNav() {
   const pathname = usePathname();
   const { role } = useRole();
+  const { setOpenMobile, isMobile } = useSidebar();
 
   const accessibleNavItems = allNavItems.filter(item => item.roles.includes(role));
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }
 
   return (
     <SidebarMenu>
       {accessibleNavItems.map(({ href, label, icon: Icon }) => (
         <SidebarMenuItem key={label}>
-          <Link href={href}>
+          <Link href={href} onClick={handleLinkClick}>
             <SidebarMenuButton
               title={label}
               isActive={pathname.startsWith(href)}
