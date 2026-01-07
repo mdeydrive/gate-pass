@@ -15,11 +15,21 @@ import { useGatePass } from "@/contexts/gate-pass-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState, useMemo } from "react";
 import type { ApprovingAuthority, Activity } from "@/lib/data";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function HistoryPage() {
   const { activities, loading: loadingActivities } = useGatePass();
   const [authorities, setAuthorities] = useState<ApprovingAuthority[]>([]);
   const [loadingAuthorities, setLoadingAuthorities] = useState(true);
+  const [nameFilter, setNameFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
     async function fetchAuthorities() {
@@ -67,13 +77,38 @@ export default function HistoryPage() {
 
   const loading = loadingActivities || loadingAuthorities;
 
+  const passStatuses: Activity['status'][] = ['Checked In', 'Checked Out', 'Pending', 'Approved', 'Rejected'];
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Visitor History</CardTitle>
-        <CardDescription>
-          A complete log of all gate activities.
-        </CardDescription>
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div>
+                <CardTitle>Visitor History</CardTitle>
+                <CardDescription>
+                A complete log of all gate activities.
+                </CardDescription>
+            </div>
+            <div className="flex flex-col sm:flex-row w-full sm:w-auto sm:max-w-md gap-2">
+                <Input
+                    placeholder="Search by visitor name..."
+                    value={nameFilter}
+                    onChange={(e) => setNameFilter(e.target.value)}
+                    className="w-full sm:w-auto"
+                />
+                 <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="">All Statuses</SelectItem>
+                        {passStatuses.map(status => (
+                            <SelectItem key={status} value={status}>{status}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+        </div>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -84,7 +119,14 @@ export default function HistoryPage() {
             <Skeleton className="h-12 w-full" />
           </div>
         ) : (
-          <DataTable columns={columns} data={activitiesWithApprovers} />
+          <DataTable 
+            columns={columns} 
+            data={activitiesWithApprovers}
+            filters={{
+                visitorName: nameFilter,
+                status: statusFilter
+            }}
+           />
         )}
       </CardContent>
     </Card>

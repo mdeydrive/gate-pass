@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -27,6 +28,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   filterValue?: string
   filterColumn?: string
+  filters?: { [key: string]: string }
   onRowClick?: (row: Row<TData>) => void
 }
 
@@ -35,6 +37,7 @@ export function DataTable<TData, TValue>({
   data,
   filterValue,
   filterColumn,
+  filters,
   onRowClick,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({})
@@ -61,6 +64,15 @@ export function DataTable<TData, TValue>({
       table.getColumn(filterColumn)?.setFilterValue(filterValue || "");
     }
   }, [filterValue, filterColumn, table])
+
+  React.useEffect(() => {
+    if (filters) {
+      Object.entries(filters).forEach(([columnId, value]) => {
+        table.getColumn(columnId)?.setFilterValue(value || "");
+      });
+    }
+  }, [filters, table]);
+
 
   return (
     <div className="space-y-4">
