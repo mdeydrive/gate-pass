@@ -31,7 +31,6 @@
       "dashboard",
       "gate-pass",
       "reports",
-      "settings",
       "staff",
       "deliveries",
       "database",
@@ -40,7 +39,9 @@
       "approving-authorities",
       "management",
       "visitors",
-      "history"
+      "history",
+      "control-panel",
+      "print"
     ]
   },
   {
@@ -91,8 +92,9 @@
       "database",
       "deliveries",
       "staff",
-      "settings",
-      "reports"
+      "reports",
+      "control-panel",
+      "print"
     ]
   },
   {

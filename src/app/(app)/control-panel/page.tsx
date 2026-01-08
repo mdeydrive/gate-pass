@@ -102,7 +102,7 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent>
             <p>
-              Please switch to an Admin role to access the Settings.
+              Please switch to an Admin role to access the Control Panel.
             </p>
           </CardContent>
         </Card>
