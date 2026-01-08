@@ -144,6 +144,7 @@ export function GatePassProvider({ children }: { children: ReactNode }) {
         );
 
         toast({
+            variant: "success",
             title: "Status Updated",
             description: `Pass for ${activities.find(p=>p.id === id)?.visitorName} is now ${status}.`,
         });

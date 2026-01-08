@@ -389,8 +389,9 @@ function PassForm({ onGeneratePass, authorities }: { onGeneratePass: (newPass: O
         resetForm();
 
         toast({
+            variant: "success",
             title: "Pass Generated!",
-            description: `A new gate pass for ${visitorName} has been created and is awaiting approver assignment.`,
+            description: `A new gate pass for ${visitorName} has been created.`,
         });
     }
 
@@ -882,6 +883,7 @@ function PreApproveDialog({ activities, onPreApprove }: { activities: Activity[]
         onPreApprove(newPass);
 
         toast({
+            variant: "success",
             title: "Pass Pre-approved!",
             description: `A pre-approved pass for ${visitorName} has been created.`,
         });
