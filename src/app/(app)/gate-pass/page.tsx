@@ -571,7 +571,7 @@ function PassForm({ onGeneratePass, authorities }: { onGeneratePass: (newPass: O
                     <div className="grid gap-4 pt-4">
                         <Label>Visitor Photo (Optional)</Label>
                         <div className="grid grid-cols-2 gap-4">
-                             <div className="w-full aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden relative">
+                            <div className="w-full aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden relative">
                                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                                 {hasCameraPermission === false && (
                                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-background/80">
@@ -583,7 +583,7 @@ function PassForm({ onGeneratePass, authorities }: { onGeneratePass: (newPass: O
                                 )}
                                <canvas ref={photoRef} className="hidden" />
                             </div>
-                             <div className="w-full aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
+                            <div className="w-full aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
                                 {capturedImage ? (
                                     <img src={capturedImage} alt="Captured" className="object-cover w-full h-full" />
                                 ) : (
@@ -601,7 +601,7 @@ function PassForm({ onGeneratePass, authorities }: { onGeneratePass: (newPass: O
                                 </AlertDescription>
                             </Alert>
                         )}
-                         <div className="flex gap-2">
+                        <div className="flex gap-2">
                             <Button variant="outline" onClick={takePicture} disabled={!hasCameraPermission}>
                                 <Camera className="mr-2 h-4 w-4" />
                                 {capturedImage ? 'Retake Photo' : 'Take Photo'}
@@ -708,17 +708,15 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
             </div>
         ) : (
           <div className="space-y-4">
-              {/* Header for larger screens */}
-              <div className="hidden md:grid grid-cols-6 gap-4 p-4 font-medium text-muted-foreground border-b">
+              <div className="hidden md:grid grid-cols-6 gap-4 p-2 font-medium text-muted-foreground border-b">
                   <div className="col-span-2">Visitor</div>
-                  <div>Mobile No.</div>
-                  <div>Company</div>
+                  <div>Details</div>
                   <div>Pass Type</div>
+                  <div>Status</div>
                   <div className="text-right">Actions</div>
               </div>
               {activePasses.length > 0 ? activePasses.map((activity) => (
                 <div key={activity.id} className="grid grid-cols-2 md:grid-cols-6 gap-4 p-4 border rounded-lg items-center">
-                    {/* Visitor Info */}
                     <div className="col-span-2 flex items-center gap-3">
                         <Avatar>
                             <AvatarImage src={activity.photo || `https://avatar.vercel.sh/${activity.visitorName}.png`} />
@@ -728,7 +726,6 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                             <div className="font-medium">{activity.visitorName}</div>
                             <div className="text-sm text-muted-foreground md:hidden">{activity.mobileNumber}</div>
                             <div className="text-sm text-muted-foreground">
-                                <Badge variant={getBadgeVariant(activity.status)} className="md:hidden mr-2">{activity.status}</Badge>
                                 {activity.status === 'Pending' && activity.approverIds && activity.approverIds.length > 0 && `Waiting for: ${getApproverName(activity.approverIds[0])}`}
                                 {activity.status === 'Approved' && `Approved by: ${getApproverName(activity.approvedById)}`}
                                 {activity.status === 'Checked In' && activity.checkedInAt && `Checked In: ${formatTimestamp(activity.checkedInAt)}`}
@@ -736,18 +733,23 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                             </div>
                         </div>
                     </div>
-                    {/* Details for larger screens */}
-                    <div className="hidden md:block">{activity.mobileNumber}</div>
-                    <div className="hidden md:block">{activity.companyName || 'N/A'}</div>
+
+                    <div className="hidden md:block text-sm">
+                        <div>{activity.mobileNumber}</div>
+                        <div className="text-muted-foreground">{activity.companyName || 'N/A'}</div>
+                    </div>
                     <div className="hidden md:block">{activity.passType}</div>
                     
-                    {/* Actions */}
+                    <div className="col-span-2 md:col-span-1 justify-self-end md:justify-self-start">
+                        <Badge variant={getBadgeVariant(activity.status)}>{activity.status}</Badge>
+                    </div>
+
                     <div className="col-span-2 md:col-span-1 flex justify-end gap-2 items-center">
                       {activity.status === 'Pending' && (
                         <>
                           {(!activity.approverIds || activity.approverIds.length === 0) && (role === 'Admin' || role === 'Manager') ? (
                             <Select onValueChange={(approverId) => onAssignApprover(activity.id, approverId)}>
-                                <SelectTrigger className="w-full md:w-[180px] text-xs h-8">
+                                <SelectTrigger className="w-full md:w-[150px] text-xs h-8">
                                     <SelectValue placeholder="Assign Approver" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -770,7 +772,7 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                           ) : activity.approverIds && activity.approverIds.length > 0 && (
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <Clock className="h-3 w-3" />
-                                <span>Waiting for approval</span>
+                                <span>Awaiting...</span>
                             </div>
                           )}
                         </>
@@ -788,13 +790,9 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                         </Button>
                       )}
                     </div>
-                     {/* Status Badge for mobile */}
-                     <div className="hidden md:block text-right">
-                        <Badge variant={getBadgeVariant(activity.status)}>{activity.status}</Badge>
-                    </div>
                 </div>
               )) : (
-                <div className="text-center col-span-full py-12">No active passes found.</div>
+                <div className="text-center col-span-full py-12 text-muted-foreground">No active or pending passes found.</div>
               )}
           </div>
         )}
@@ -1048,42 +1046,41 @@ function PreApprovedList({ passes, loading }: { passes: Activity[], loading: boo
             <CardContent>
                  {loading ? (
                     <div className="space-y-3">
-                        <Skeleton className="h-16 w-full" />
-                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-20 w-full" />
+                        <Skeleton className="h-20 w-full" />
+                    </div>
+                ) : preApprovedPasses.length > 0 ? (
+                    <div className="space-y-4">
+                        <div className="hidden md:grid grid-cols-4 gap-4 p-2 font-medium text-muted-foreground border-b">
+                            <div className="col-span-2">Visitor</div>
+                            <div>Pass Type</div>
+                            <div>Date Approved</div>
+                        </div>
+                        {preApprovedPasses.map((pass) => (
+                           <div key={pass.id} className="grid grid-cols-3 md:grid-cols-4 gap-4 p-4 border rounded-lg items-center">
+                                <div className="col-span-2 flex items-center gap-3">
+                                    <Avatar>
+                                        <AvatarImage src={pass.photo || `https://avatar.vercel.sh/${pass.visitorName}.png`} />
+                                        <AvatarFallback>{pass.visitorName.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <div className="font-medium">{pass.visitorName}</div>
+                                        <div className="text-sm text-muted-foreground">{pass.mobileNumber}</div>
+                                    </div>
+                                </div>
+                                <div className="md:col-span-1">
+                                    <div>{pass.passType}</div>
+                                </div>
+                                <div className="text-sm text-muted-foreground col-span-3 md:col-span-1">
+                                    <div>{pass.date} at {pass.time}</div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Visitor</TableHead>
-                                <TableHead>Mobile No.</TableHead>
-                                <TableHead>Pass Type</TableHead>
-                                <TableHead>Date Approved</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {preApprovedPasses.length > 0 ? preApprovedPasses.map((pass) => (
-                                <TableRow key={pass.id}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar>
-                                                <AvatarImage src={pass.photo || `https://avatar.vercel.sh/${pass.visitorName}.png`} />
-                                                <AvatarFallback>{pass.visitorName.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <span className="font-medium">{pass.visitorName}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{pass.mobileNumber}</TableCell>
-                                    <TableCell>{pass.passType}</TableCell>
-                                    <TableCell>{pass.date} at {pass.time}</TableCell>
-                                </TableRow>
-                            )) : (
-                                <TableRow>
-                                    <TableCell colSpan={4} className="text-center">No pre-approved passes found.</TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                    <div className="text-center py-12 text-muted-foreground">
+                        No pre-approved passes found.
+                    </div>
                 )}
             </CardContent>
         </Card>
@@ -1152,10 +1149,3 @@ export default function GatePassPage() {
     </Tabs>
   );
 }
-
-    
-    
-
-    
-
-    

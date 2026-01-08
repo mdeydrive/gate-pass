@@ -8,12 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DataTable } from "@/components/data-table/data-table";
 import { useGatePass } from "@/contexts/gate-pass-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo, useState } from "react";
 import type { Activity } from "@/lib/data";
-import type { ColumnDef } from "@tanstack/react-table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -29,44 +27,6 @@ type UniqueVisitor = {
     lastVisit: string;
     photo?: string;
 };
-
-const visitorColumns: ColumnDef<UniqueVisitor>[] = [
-    {
-      accessorKey: "id",
-      header: "Gate Pass ID",
-    },
-    {
-      accessorKey: "visitorName",
-      header: "Visitor",
-      cell: ({ row }) => {
-          const visitor = row.original
-          return (
-            <div className="flex items-center gap-3">
-                <Avatar className="hidden h-9 w-9 sm:flex">
-                  <AvatarImage src={visitor.photo || `https://avatar.vercel.sh/${visitor.visitorName}.png`} alt="Avatar" />
-                  <AvatarFallback>{visitor.visitorName.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div className="font-medium">{visitor.visitorName}</div>
-            </div>
-          )
-      }
-    },
-    {
-      accessorKey: "mobileNumber",
-      header: "Mobile No.",
-    },
-    {
-      accessorKey: "companyName",
-      header: "Company",
-       cell: ({ row }) => {
-        return row.original.companyName ? <span>{row.original.companyName}</span> : <span className="text-muted-foreground">N/A</span>
-    }
-    },
-    {
-      accessorKey: "lastVisit",
-      header: "Last Visit",
-    },
-];
 
 const getBadgeVariant = (status: Activity['status']) => {
     switch (status) {
@@ -101,7 +61,11 @@ export default function VisitorsPage() {
 
     const visitorsMap = new Map<string, UniqueVisitor>();
 
-    activities.forEach(activity => {
+    const filteredActivities = activities.filter(activity =>
+        activity.visitorName.toLowerCase().includes(filter.toLowerCase())
+    );
+
+    filteredActivities.forEach(activity => {
         if (!activity.mobileNumber) return; // Skip activities without a mobile number
 
         const existingVisitor = visitorsMap.get(activity.mobileNumber);
@@ -120,7 +84,7 @@ export default function VisitorsPage() {
     });
 
     return Array.from(visitorsMap.values()).sort((a,b) => new Date(b.lastVisit).getTime() - new Date(a.lastVisit).getTime());
-  }, [activities, loading]);
+  }, [activities, loading, filter]);
 
   const selectedVisitorHistory = useMemo(() => {
     if (!selectedVisitor || !selectedVisitor.mobileNumber) return [];
@@ -141,7 +105,7 @@ export default function VisitorsPage() {
             <div>
               <CardTitle>Visitor List</CardTitle>
               <CardDescription>
-                A list of all unique visitors who have previously entered the complex. Click a row for details.
+                A list of all unique visitors. Click a visitor to see their history.
               </CardDescription>
             </div>
             <div className="w-full sm:w-auto sm:max-w-xs">
@@ -156,19 +120,40 @@ export default function VisitorsPage() {
         <CardContent>
           {loading ? (
             <div className="space-y-4">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
+                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
+            </div>
+          ) : uniqueVisitors.length > 0 ? (
+            <div className="space-y-4">
+                <div className="hidden md:grid grid-cols-4 gap-4 p-2 font-medium text-muted-foreground border-b">
+                    <div className="col-span-2">Visitor</div>
+                    <div>Company</div>
+                    <div>Last Visit</div>
+                </div>
+                 {uniqueVisitors.map(visitor => (
+                    <div 
+                        key={visitor.id} 
+                        className="grid grid-cols-3 md:grid-cols-4 gap-4 items-center p-4 border rounded-lg cursor-pointer hover:bg-muted/50"
+                        onClick={() => setSelectedVisitor(visitor)}
+                    >
+                        <div className="col-span-2 flex items-center gap-3">
+                            <Avatar className="hidden h-9 w-9 sm:flex">
+                                <AvatarImage src={visitor.photo || `https://avatar.vercel.sh/${visitor.visitorName}.png`} alt="Avatar" />
+                                <AvatarFallback>{visitor.visitorName.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <div className="font-medium">{visitor.visitorName}</div>
+                                <div className="text-sm text-muted-foreground">{visitor.mobileNumber}</div>
+                            </div>
+                        </div>
+                        <div className="text-sm text-muted-foreground truncate">{visitor.companyName || 'N/A'}</div>
+                        <div className="text-sm text-muted-foreground truncate">{format(new Date(visitor.lastVisit), 'PP')}</div>
+                    </div>
+                 ))}
             </div>
           ) : (
-            <DataTable 
-              columns={visitorColumns} 
-              data={uniqueVisitors} 
-              filterColumn="visitorName" 
-              filterValue={filter}
-              onRowClick={(row) => setSelectedVisitor(row.original)}
-            />
+            <div className="text-center py-12 text-muted-foreground">
+              No visitors found.
+            </div>
           )}
         </CardContent>
       </Card>

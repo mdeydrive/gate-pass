@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Phone, PlusCircle, Edit, UserCheck, UserX } from 'lucide-react';
+import { Phone, PlusCircle, Edit, UserCheck, UserX, Mail } from 'lucide-react';
 import { useRole } from '@/contexts/role-context';
 import { Button } from '@/components/ui/button';
 import {
@@ -345,60 +345,61 @@ export default function ApprovingAuthoritiesPage() {
       <CardContent>
         {loading ? (
           <div className="space-y-2">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
+            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Staff Member</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Contact Number</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {authorities.map((authority) => (
-                <TableRow key={authority.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={authority.avatar} alt={authority.name} />
-                        <AvatarFallback>{authority.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{authority.name}</p>
-                        <p className="text-sm text-muted-foreground">{authority.email}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{authority.role}</Badge>
-                  </TableCell>
-                  <TableCell>
-                      <Badge variant={authority.status === 'Active' ? 'success' : 'destructive'}>
-                        <div className="flex items-center gap-1">
-                          {authority.status === 'Active' ? <UserCheck className="h-3 w-3" /> : <UserX className="h-3 w-3" />}
-                          {authority.status}
+            <div className="space-y-4">
+                <div className="hidden md:grid md:grid-cols-5 gap-4 p-2 font-medium text-muted-foreground border-b">
+                    <div className="col-span-2">Staff Member</div>
+                    <div>Role</div>
+                    <div>Status</div>
+                    <div className="text-right">Actions</div>
+                </div>
+
+                {authorities.map((authority) => (
+                    <div key={authority.id} className="grid grid-cols-2 md:grid-cols-5 gap-4 items-center p-4 border rounded-lg">
+                        <div className="col-span-2 flex items-center gap-3">
+                            <Avatar>
+                                <AvatarImage src={authority.avatar} alt={authority.name} />
+                                <AvatarFallback>{authority.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <p className="font-medium">{authority.name}</p>
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Mail className="h-3 w-3"/>
+                                    <span>{authority.email}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground md:hidden mt-1">
+                                    <Phone className="h-3 w-3" />
+                                    <span>{authority.mobileNumber}</span>
+                                </div>
+                            </div>
                         </div>
-                      </Badge>
-                  </TableCell>
-                  <TableCell>
-                      <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span>{authority.mobileNumber}</span>
-                      </div>
-                  </TableCell>
-                  <TableCell>
-                    {role === 'Admin' && <EditAuthorityDialog authority={authority} onUpdateAuthority={handleUpdateAuthority} />}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+
+                        <div className="hidden md:block">
+                            <Badge variant="secondary">{authority.role}</Badge>
+                        </div>
+                        
+                        <div className="flex items-center justify-end md:justify-start">
+                            <Badge variant={authority.status === 'Active' ? 'success' : 'destructive'}>
+                                <div className="flex items-center gap-1">
+                                {authority.status === 'Active' ? <UserCheck className="h-3 w-3" /> : <UserX className="h-3 w-3" />}
+                                {authority.status}
+                                </div>
+                            </Badge>
+                        </div>
+
+                        <div className="hidden md:block text-right">
+                           {role === 'Admin' && <EditAuthorityDialog authority={authority} onUpdateAuthority={handleUpdateAuthority} />}
+                        </div>
+
+                        <div className="col-span-2 border-t pt-4 flex md:hidden items-center justify-between">
+                             <Badge variant="secondary">{authority.role}</Badge>
+                             {role === 'Admin' && <EditAuthorityDialog authority={authority} onUpdateAuthority={handleUpdateAuthority} />}
+                        </div>
+                    </div>
+                ))}
+            </div>
         )}
       </CardContent>
     </Card>

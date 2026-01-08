@@ -8,17 +8,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Phone, PlusCircle, Edit, UserCheck, UserX } from 'lucide-react';
+import { Phone, PlusCircle, Edit, UserCheck, UserX, Mail } from 'lucide-react';
 import { useRole } from '@/contexts/role-context';
 import { Button } from '@/components/ui/button';
 import {
@@ -347,64 +339,68 @@ export default function StaffPage() {
       <CardContent>
         {loading ? (
           <div className="space-y-2">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
+            {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Staff ID</TableHead>
-                <TableHead>Staff Member</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Contact Number</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {staff.map((staffMember) => (
-                <TableRow key={staffMember.id}>
-                  <TableCell>
-                    <div className="font-mono text-xs">{staffMember.id}</div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={staffMember.avatar} alt={staffMember.name} />
-                        <AvatarFallback>{staffMember.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{staffMember.name}</p>
-                        <p className="text-sm text-muted-foreground">{staffMember.email}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{staffMember.role}</Badge>
-                  </TableCell>
-                  <TableCell>
-                      <Badge variant={staffMember.status === 'Active' ? 'success' : 'destructive'}>
-                        <div className="flex items-center gap-1">
-                          {staffMember.status === 'Active' ? <UserCheck className="h-3 w-3" /> : <UserX className="h-3 w-3" />}
-                          {staffMember.status}
+          <div className="space-y-4">
+            <div className="hidden md:grid md:grid-cols-6 gap-4 p-2 font-medium text-muted-foreground border-b">
+                <div className="col-span-2">Staff Member</div>
+                <div>Role</div>
+                <div>Status</div>
+                <div>Contact</div>
+                <div className="text-right">Actions</div>
+            </div>
+
+            {staff.map((staffMember) => (
+                 <div key={staffMember.id} className="grid grid-cols-2 md:grid-cols-6 gap-4 items-center p-4 border rounded-lg">
+                    <div className="col-span-2 flex items-center gap-3">
+                        <Avatar>
+                            <AvatarImage src={staffMember.avatar} alt={staffMember.name} />
+                            <AvatarFallback>{staffMember.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="font-medium">{staffMember.name}</p>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                               <p className="font-mono text-xs">{staffMember.id}</p>
+                            </div>
                         </div>
-                      </Badge>
-                  </TableCell>
-                  <TableCell>
-                      <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span>{staffMember.mobileNumber}</span>
-                      </div>
-                  </TableCell>
-                  <TableCell>
-                    {role === 'Admin' && <EditStaffDialog staff={staffMember} onUpdateStaff={handleUpdateStaff} />}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    </div>
+
+                    <div className="hidden md:block">
+                        <Badge variant="secondary">{staffMember.role}</Badge>
+                    </div>
+
+                    <div className="flex items-center justify-end md:justify-start">
+                        <Badge variant={staffMember.status === 'Active' ? 'success' : 'destructive'}>
+                            <div className="flex items-center gap-1">
+                            {staffMember.status === 'Active' ? <UserCheck className="h-3 w-3" /> : <UserX className="h-3 w-3" />}
+                            {staffMember.status}
+                            </div>
+                        </Badge>
+                    </div>
+
+                     <div className="hidden md:flex items-center gap-2 text-sm">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <span>{staffMember.mobileNumber}</span>
+                    </div>
+
+                    <div className="hidden md:block text-right">
+                        {role === 'Admin' && <EditStaffDialog staff={staffMember} onUpdateStaff={handleUpdateStaff} />}
+                    </div>
+
+                    <div className="col-span-2 border-t pt-4 flex md:hidden items-center justify-between">
+                         <div className="space-y-1">
+                            <Badge variant="secondary">{staffMember.role}</Badge>
+                            <div className="flex items-center gap-2 text-sm">
+                                <Phone className="h-4 w-4 text-muted-foreground" />
+                                <span>{staffMember.mobileNumber}</span>
+                            </div>
+                         </div>
+                         {role === 'Admin' && <EditStaffDialog staff={staffMember} onUpdateStaff={handleUpdateStaff} />}
+                    </div>
+                </div>
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>
