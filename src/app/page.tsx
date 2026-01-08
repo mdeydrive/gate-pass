@@ -23,6 +23,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 function UserLoginForm({ onLogin, mobileInputRef }: { onLogin: (mobile: string, pass: string, type: 'user') => void, mobileInputRef: React.RefObject<HTMLInputElement> }) {
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
+  const pinInputRef = useRef<HTMLInputElement>(null);
+
+  const handleMobileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, ''); // Allow only digits
+    if (value.length <= 10) {
+      setMobileNumber(value);
+      if (value.length === 10) {
+        pinInputRef.current?.focus();
+      }
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,11 +48,12 @@ function UserLoginForm({ onLogin, mobileInputRef }: { onLogin: (mobile: string, 
           <Input
             ref={mobileInputRef}
             id="mobile-number"
-            type="text"
+            type="tel"
             placeholder="Enter your mobile number"
             required
             value={mobileNumber}
-            onChange={(e) => setMobileNumber(e.target.value)}
+            onChange={handleMobileChange}
+            maxLength={10}
           />
         </div>
         <div className="grid gap-2">
@@ -50,6 +62,7 @@ function UserLoginForm({ onLogin, mobileInputRef }: { onLogin: (mobile: string, 
              value={password}
              onChange={setPassword}
              onComplete={(pin) => onLogin(mobileNumber, pin, 'user')}
+             inputRef={pinInputRef}
            />
         </div>
         <Button type="submit" className="w-full">
@@ -91,6 +104,17 @@ function AdminLoginForm({ onLogin, passwordInputRef }: { onLogin: (id: string, p
 function ApproverLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, pass: string, type: 'approver') => void, mobileInputRef: React.RefObject<HTMLInputElement> }) {
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
+  const pinInputRef = useRef<HTMLInputElement>(null);
+
+  const handleMobileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 10) {
+      setMobileNumber(value);
+      if (value.length === 10) {
+        pinInputRef.current?.focus();
+      }
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,11 +129,12 @@ function ApproverLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, 
            <Input
             ref={mobileInputRef}
             id="approver-mobile"
-            type="text"
+            type="tel"
             placeholder="Enter your mobile number"
             required
             value={mobileNumber}
-            onChange={(e) => setMobileNumber(e.target.value)}
+            onChange={handleMobileChange}
+            maxLength={10}
           />
         </div>
         <div className="grid gap-2">
@@ -118,6 +143,7 @@ function ApproverLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, 
              value={password}
              onChange={setPassword}
              onComplete={(pin) => onLogin(mobileNumber, pin, 'approver')}
+             inputRef={pinInputRef}
            />
         </div>
         <Button type="submit" className="w-full">
@@ -131,6 +157,17 @@ function ApproverLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, 
 function ManagerLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, pass: string, type: 'manager') => void, mobileInputRef: React.RefObject<HTMLInputElement> }) {
     const [mobileNumber, setMobileNumber] = useState('');
     const [password, setPassword] = useState('');
+    const pinInputRef = useRef<HTMLInputElement>(null);
+    
+    const handleMobileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value.replace(/\D/g, '');
+        if (value.length <= 10) {
+          setMobileNumber(value);
+          if (value.length === 10) {
+            pinInputRef.current?.focus();
+          }
+        }
+    };
   
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
@@ -145,11 +182,12 @@ function ManagerLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, p
              <Input
               ref={mobileInputRef}
               id="manager-mobile"
-              type="text"
+              type="tel"
               placeholder="Enter your mobile number"
               required
               value={mobileNumber}
-              onChange={(e) => setMobileNumber(e.target.value)}
+              onChange={handleMobileChange}
+              maxLength={10}
             />
           </div>
           <div className="grid gap-2">
@@ -158,6 +196,7 @@ function ManagerLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, p
              value={password}
              onChange={setPassword}
              onComplete={(pin) => onLogin(mobileNumber, pin, 'manager')}
+             inputRef={pinInputRef}
            />
           </div>
           <Button type="submit" className="w-full">
@@ -171,7 +210,18 @@ function ManagerLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, p
   function SecurityLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, pass: string, type: 'security') => void, mobileInputRef: React.RefObject<HTMLInputElement> }) {
     const [mobileNumber, setMobileNumber] = useState('');
     const [password, setPassword] = useState('');
+    const pinInputRef = useRef<HTMLInputElement>(null);
   
+    const handleMobileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value.replace(/\D/g, '');
+        if (value.length <= 10) {
+          setMobileNumber(value);
+          if (value.length === 10) {
+            pinInputRef.current?.focus();
+          }
+        }
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       onLogin(mobileNumber, password, 'security');
@@ -185,11 +235,12 @@ function ManagerLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, p
              <Input
               ref={mobileInputRef}
               id="security-mobile"
-              type="text"
+              type="tel"
               placeholder="Enter your mobile number"
               required
               value={mobileNumber}
-              onChange={(e) => setMobileNumber(e.target.value)}
+              onChange={handleMobileChange}
+              maxLength={10}
             />
           </div>
           <div className="grid gap-2">
@@ -198,6 +249,7 @@ function ManagerLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, p
              value={password}
              onChange={setPassword}
              onComplete={(pin) => onLogin(mobileNumber, pin, 'security')}
+             inputRef={pinInputRef}
            />
           </div>
           <Button type="submit" className="w-full">
@@ -360,3 +412,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    

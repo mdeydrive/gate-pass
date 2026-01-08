@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useImperativeHandle } from 'react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
@@ -27,13 +27,8 @@ export const PinInput: React.FC<PinInputProps> = ({
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const [pin, setPin] = useState<string[]>(new Array(length).fill(''));
 
-  useEffect(() => {
-    // If an external ref is provided for the first input, assign it.
-    if (inputRef && inputRefs.current[0]) {
-      // A bit of a hack to merge refs, but for this specific case it's fine.
-      (inputRef as React.MutableRefObject<HTMLInputElement | null>).current = inputRefs.current[0];
-    }
-  }, [inputRef]);
+  // Expose the first input's ref if inputRef is provided
+  useImperativeHandle(inputRef, () => inputRefs.current[0] as HTMLInputElement);
 
 
   useEffect(() => {
@@ -122,3 +117,5 @@ export const PinInput: React.FC<PinInputProps> = ({
     </div>
   );
 };
+
+    
