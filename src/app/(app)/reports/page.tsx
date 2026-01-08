@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
   SelectContent,
@@ -31,7 +31,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { useGatePass } from '@/contexts/gate-pass-context';
 import { useState, useMemo, useRef } from 'react';
 import type { DateRange } from 'react-day-picker';
-import { format, isWithinInterval, startOfDay, endOfDay, parse } from 'date-fns';
+import { format, isWithinInterval, startOfDay, endOfDay, parse, isValid } from 'date-fns';
 import { Printer, Users, Package, Car, Building } from 'lucide-react';
 import type { Activity } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -69,11 +69,13 @@ export default function ReportsPage() {
 
   const filteredActivities = useMemo(() => {
     return activities.filter(activity => {
-      const activityDate = parse(activity.date, 'yyyy-MM-dd', new Date());
+        const activityDate = parse(activity.date, 'yyyy-MM-dd', new Date());
+
+        if (!isValid(activityDate)) return false;
       
-      const dateMatch = dateRange?.from && dateRange?.to 
-        ? isWithinInterval(activityDate, { start: startOfDay(dateRange.from), end: endOfDay(dateRange.to) })
-        : true;
+        const dateMatch = dateRange?.from && dateRange?.to 
+            ? isWithinInterval(activityDate, { start: startOfDay(dateRange.from), end: endOfDay(dateRange.to) })
+            : true;
       
       const passTypeMatch = passTypeFilter === 'all' || activity.passType === passTypeFilter;
       const statusMatch = statusFilter === 'all' || activity.status === statusFilter;
@@ -123,8 +125,17 @@ export default function ReportsPage() {
                     Print Report
                 </Button>
             </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-3">
-                <DateRangePicker date={dateRange} onDateChange={setDateRange} />
+            <CardContent className="grid gap-4 md:grid-cols-4">
+                <DatePicker 
+                    date={dateRange?.from} 
+                    onDateChange={(date) => setDateRange(prev => ({ ...prev, from: date }))}
+                    placeholder="From date"
+                />
+                 <DatePicker 
+                    date={dateRange?.to} 
+                    onDateChange={(date) => setDateRange(prev => ({ ...prev, to: date }))}
+                    placeholder="To date"
+                />
                  <Select value={passTypeFilter} onValueChange={setPassTypeFilter}>
                     <SelectTrigger>
                         <SelectValue placeholder="Filter by pass type" />

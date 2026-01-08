@@ -1,4 +1,3 @@
-
 [
   {
     "id": "auth-1767544215373",
@@ -9,14 +8,11 @@
     "avatar": "https://avatar.vercel.sh/samar.png",
     "status": "Active",
     "permissions": [
-      "dashboard",
       "gate-pass",
       "history",
       "visitors",
-      "alerts",
       "vehicles",
-      "deliveries",
-      "staff"
+      "deliveries"
     ]
   },
   {
@@ -28,20 +24,8 @@
     "avatar": "https://avatar.vercel.sh/mintu.png",
     "status": "Active",
     "permissions": [
-      "dashboard",
       "gate-pass",
-      "reports",
-      "staff",
-      "deliveries",
-      "database",
-      "vehicles",
-      "alerts",
-      "approving-authorities",
-      "management",
-      "visitors",
-      "history",
-      "control-panel",
-      "print"
+      "approving-authorities"
     ]
   },
   {
