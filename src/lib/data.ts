@@ -51,6 +51,15 @@ export type ApprovingAuthority = {
   permissions: Permission[];
 };
 
+export type Complex = {
+  id: string;
+  name: string;
+  blocks: number;
+  floors: number;
+  units: number;
+};
+
+
 export const allPermissions: { id: Permission, label: string }[] = [
     { id: "dashboard", label: "Dashboard" },
     { id: "gate-pass", label: "Manage Gate Pass" },
@@ -104,7 +113,7 @@ export const activityChartData = [
   { time: "3 PM", visitors: 38, deliveries: 6 },
 ];
 
-export const complexes = [
+export const complexes: Complex[] = [
   { id: 'c1', name: 'Tower A', blocks: 1, floors: 20, units: 80 },
   { id: 'c2', name: 'Tower B', blocks: 1, floors: 25, units: 100 },
   { id: 'c3', name: 'Commercial Block', blocks: 2, floors: 5, units: 50 },

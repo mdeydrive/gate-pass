@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { PlusCircle, Building, Users, KeyRound, MoreVertical } from "lucide-react";
-import { complexes as initialComplexes } from "@/lib/data";
+import type { Complex } from "@/lib/data";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,18 +34,28 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
-function AddComplexDialog({ onAddComplex }: { onAddComplex: (newComplex: any) => void }) {
+function AddComplexDialog({ onAddComplex }: { onAddComplex: (newComplex: Omit<Complex, 'id'>) => void }) {
   const [name, setName] = useState('');
   const [blocks, setBlocks] = useState(1);
   const [floors, setFloors] = useState(10);
   const [units, setUnits] = useState(40);
   const [open, setOpen] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = () => {
+    if (!name) {
+        toast({
+            variant: "destructive",
+            title: "Missing Name",
+            description: "Please enter a name for the complex.",
+        });
+        return;
+    }
     const newComplex = {
-      id: `c${Date.now()}`,
       name,
       blocks,
       floors,
@@ -116,11 +126,47 @@ function AddComplexDialog({ onAddComplex }: { onAddComplex: (newComplex: any) =>
 
 export default function ManagementPage() {
     const { role } = useRole();
-    const [complexes, setComplexes] = useState(initialComplexes);
+    const [complexes, setComplexes] = useState<Complex[]>([]);
+    const [loading, setLoading] = useState(true);
+    const { toast } = useToast();
 
-    const handleAddComplex = (newComplex: any) => {
-      setComplexes((prevComplexes) => [...prevComplexes, newComplex]);
+    useEffect(() => {
+        async function fetchComplexes() {
+            try {
+                setLoading(true);
+                const response = await fetch('/api/complexes');
+                if (!response.ok) throw new Error("Failed to fetch complexes.");
+                const data = await response.json();
+                setComplexes(data);
+            } catch (error) {
+                console.error(error);
+                toast({ variant: 'destructive', title: "Error", description: "Could not fetch complexes." });
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchComplexes();
+    }, [toast]);
+
+    const handleAddComplex = async (newComplexData: Omit<Complex, 'id'>) => {
+        try {
+            const response = await fetch('/api/complexes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newComplexData),
+            });
+
+            if (!response.ok) throw new Error('Failed to save the new complex.');
+
+            const savedComplex = await response.json();
+            setComplexes(prev => [...prev, savedComplex]);
+            toast({ title: "Success", description: "New complex has been added." });
+        } catch (error) {
+            console.error(error);
+            toast({ variant: "destructive", title: "Error", description: "Failed to add new complex." });
+        }
     };
+
 
     if (role !== 'Admin') {
         return (
@@ -147,48 +193,54 @@ export default function ManagementPage() {
             </div>
             <AddComplexDialog onAddComplex={handleAddComplex} />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {complexes.map((complex) => (
-                <Card key={complex.id}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-lg font-semibold">{complex.name}</CardTitle>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreVertical className="h-4 w-4" />
-                            </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem>Edit</DropdownMenuItem>
-                                <DropdownMenuItem>Manage Units</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive">
-                                    Delete
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                       <Separator />
-                       <div className="flex justify-around text-sm pt-4">
-                            <div className="text-center">
-                                <p className="font-bold text-lg">{complex.blocks}</p>
-                                <p className="text-xs text-muted-foreground">Blocks</p>
-                            </div>
-                            <div className="text-center">
-                                <p className="font-bold text-lg">{complex.floors}</p>
-                                <p className="text-xs text-muted-foreground">Floors</p>
-                            </div>
-                            <div className="text-center">
-                                <p className="font-bold text-lg">{complex.units}</p>
-                                <p className="text-xs text-muted-foreground">Units</p>
-                            </div>
-                       </div>
-                    </CardContent>
-                </Card>
-            ))}
-        </div>
+        {loading ? (
+             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+             </div>
+        ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {complexes.map((complex) => (
+                    <Card key={complex.id}>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-lg font-semibold">{complex.name}</CardTitle>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreVertical className="h-4 w-4" />
+                                </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                                    <DropdownMenuItem>Manage Units</DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="text-destructive">
+                                        Delete
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                        <Separator />
+                        <div className="flex justify-around text-sm pt-4">
+                                <div className="text-center">
+                                    <p className="font-bold text-lg">{complex.blocks}</p>
+                                    <p className="text-xs text-muted-foreground">Blocks</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="font-bold text-lg">{complex.floors}</p>
+                                    <p className="text-xs text-muted-foreground">Floors</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="font-bold text-lg">{complex.units}</p>
+                                    <p className="text-xs text-muted-foreground">Units</p>
+                                </div>
+                        </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        )}
     </div>
   );
 }

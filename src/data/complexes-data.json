@@ -1,0 +1,7 @@
+
+[
+  { "id": "c1", "name": "Tower A", "blocks": 1, "floors": 20, "units": 80 },
+  { "id": "c2", "name": "Tower B", "blocks": 1, "floors": 25, "units": 100 },
+  { "id": "c3", "name": "Commercial Block", "blocks": 2, "floors": 5, "units": 50 },
+  { "id": "c4", "name": "Villa Community", "blocks": 5, "floors": 2, "units": 30 }
+]
