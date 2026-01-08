@@ -18,7 +18,7 @@ import {
   Database,
   FileText,
   Settings,
-  Printer,
+  Video,
 } from "lucide-react";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -46,7 +46,7 @@ const allNavItems: NavItem[] = [
     { href: "/staff", label: "Staff", icon: Wrench, permission: "staff" },
     { href: "/reports", label: "Reports", icon: FileText, permission: "reports" },
     { href: "/control-panel", label: "Control Panel", icon: Settings, permission: "control-panel" },
-    { href: "/print", label: "Print", icon: Printer, permission: "print" },
+    { href: "/video-conference", label: "Video Conference", icon: Video, permission: "video-conference" },
   ];
 
 
