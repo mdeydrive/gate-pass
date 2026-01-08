@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -306,45 +305,43 @@ function PassForm({ onGeneratePass, authorities }: { onGeneratePass: (newPass: O
         setComboboxOpen(false);
     }
     
-
     useEffect(() => {
+        let stream: MediaStream | null = null;
         const getCameraPermission = async () => {
-          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            setCameraError("Camera not supported by this browser.");
-            setHasCameraPermission(false);
-            return;
-          }
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                setCameraError("Camera not supported by this browser.");
+                setHasCameraPermission(false);
+                return;
+            }
 
-          try {
-            const stream = await navigator.mediaDevices.getUserMedia({video: true});
-            setHasCameraPermission(true);
-            setCameraError(null);
-    
-            if (videoRef.current) {
-              videoRef.current.srcObject = stream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                setHasCameraPermission(true);
+                setCameraError(null);
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                }
+            } catch (error: any) {
+                console.error('Error accessing camera:', error);
+                if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                    setCameraError("No camera device found. Please connect a camera.");
+                } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                    setCameraError("Camera access was denied. Please enable camera permissions in your browser settings.");
+                } else {
+                    setCameraError("An unknown error occurred while accessing the camera.");
+                }
+                setHasCameraPermission(false);
             }
-          } catch (error: any) {
-            console.error('Error accessing camera:', error);
-            if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-                setCameraError("No camera device found. Please connect a camera.");
-            } else if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                setCameraError("Camera access was denied. Please enable camera permissions in your browser settings.");
-            } else {
-                setCameraError("An unknown error occurred while accessing the camera.");
-            }
-            setHasCameraPermission(false);
-          }
         };
-    
+
         getCameraPermission();
 
         return () => {
-            if (videoRef.current && videoRef.current.srcObject) {
-                const stream = videoRef.current.srcObject as MediaStream;
+            if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
-        }
-      }, []);
+        };
+    }, []);
 
     const takePicture = () => {
         if (videoRef.current && photoRef.current) {
@@ -574,17 +571,16 @@ function PassForm({ onGeneratePass, authorities }: { onGeneratePass: (newPass: O
                     <div className="grid gap-4 pt-4">
                         <Label>Visitor Photo (Optional)</Label>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="w-full aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden relative">
-                               {hasCameraPermission ? (
-                                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                               ): (
-                                <div className="text-center p-4">
-                                    <Camera className="mx-auto h-12 w-12 text-muted-foreground" />
-                                    <p className="mt-2 text-sm text-muted-foreground">
-                                        {hasCameraPermission === null ? "Requesting camera..." : "Camera not available."}
-                                    </p>
-                                </div>
-                               )}
+                             <div className="w-full aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden relative">
+                                <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                                {hasCameraPermission === false && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-background/80">
+                                        <Camera className="mx-auto h-12 w-12 text-muted-foreground" />
+                                        <p className="mt-2 text-sm text-muted-foreground">
+                                            {hasCameraPermission === null ? "Requesting camera..." : "Camera not available."}
+                                        </p>
+                                    </div>
+                                )}
                                <canvas ref={photoRef} className="hidden" />
                             </div>
                              <div className="w-full aspect-video rounded-md border border-dashed flex items-center justify-center bg-muted overflow-hidden">
@@ -1161,3 +1157,5 @@ export default function GatePassPage() {
     </Tabs>
   );
 }
+
+    
