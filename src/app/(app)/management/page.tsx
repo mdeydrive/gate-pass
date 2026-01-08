@@ -140,14 +140,14 @@ export default function ManagementPage() {
 
   return (
     <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div>
                 <h1 className="text-2xl font-bold tracking-tight">Complex Management</h1>
                 <p className="text-muted-foreground">Create and manage complexes, blocks, floors, and units.</p>
             </div>
             <AddComplexDialog onAddComplex={handleAddComplex} />
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {complexes.map((complex) => (
                 <Card key={complex.id}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -171,18 +171,18 @@ export default function ManagementPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                        <Separator />
-                       <div className="flex justify-around text-sm">
+                       <div className="flex justify-around text-sm pt-4">
                             <div className="text-center">
-                                <p className="font-bold">{complex.blocks}</p>
-                                <p className="text-muted-foreground">Blocks</p>
+                                <p className="font-bold text-lg">{complex.blocks}</p>
+                                <p className="text-xs text-muted-foreground">Blocks</p>
                             </div>
                             <div className="text-center">
-                                <p className="font-bold">{complex.floors}</p>
-                                <p className="text-muted-foreground">Floors</p>
+                                <p className="font-bold text-lg">{complex.floors}</p>
+                                <p className="text-xs text-muted-foreground">Floors</p>
                             </div>
                             <div className="text-center">
-                                <p className="font-bold">{complex.units}</p>
-                                <p className="text-muted-foreground">Units</p>
+                                <p className="font-bold text-lg">{complex.units}</p>
+                                <p className="text-xs text-muted-foreground">Units</p>
                             </div>
                        </div>
                     </CardContent>
