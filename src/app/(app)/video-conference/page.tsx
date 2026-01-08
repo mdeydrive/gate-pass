@@ -63,6 +63,9 @@ export default function VideoConferencePage() {
             if(callData.user2.id === currentUser?.id){
                 setSelectedUser(callData.user1);
                 setInCall(true);
+            } else if (callData.user1.id === currentUser?.id) {
+                setSelectedUser(callData.user2);
+                setInCall(true);
             }
         } catch(e) {
             console.error(e);

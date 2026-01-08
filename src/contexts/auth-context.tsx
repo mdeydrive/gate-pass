@@ -45,6 +45,23 @@ async function getAuthorities(): Promise<ApprovingAuthority[]> {
     }
 }
 
+const getDefaultPermissionsForRole = (role: UserRole): Permission[] => {
+    switch(role) {
+        case 'Admin':
+            return ["dashboard", "gate-pass", "history", "visitors", "management", "approving-authorities", "alerts", "vehicles", "database", "deliveries", "staff", "reports", "control-panel", "video-conference"];
+        case 'Security':
+            return ["dashboard", "gate-pass", "history", "visitors", "vehicles", "deliveries", "video-conference"];
+        case 'Manager':
+             return ["dashboard", "gate-pass", "staff", "reports", "history", "visitors"];
+        case 'Approver':
+            return ["gate-pass", "history"];
+        case 'Resident':
+            return ["gate-pass"];
+        default:
+            return [];
+    }
+}
+
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -85,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             username: 'Administrator', 
             role: 'Admin',
             status: 'Active',
-            permissions: ["dashboard", "gate-pass", "history", "visitors", "management", "approving-authorities", "alerts", "vehicles", "database", "deliveries", "staff", "reports", "control-panel", "video-conference"],
+            permissions: getDefaultPermissionsForRole('Admin'),
         };
     } else {
         const authorities = await getAuthorities();
@@ -108,7 +125,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     role: userRole,
                     mobileNumber: authority.mobileNumber,
                     status: authority.status,
-                    permissions: authority.permissions,
+                    // Use assigned permissions, or default if none are assigned
+                    permissions: authority.permissions && authority.permissions.length > 0 
+                        ? authority.permissions 
+                        : getDefaultPermissionsForRole(userRole),
                 };
             }
         }
@@ -134,6 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(
     () => ({ user, login, logout, loading }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [user, loading]
   );
 
