@@ -18,15 +18,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  useEffect(() => {
-    const handleContextmenu = (e: MouseEvent) => {
-      e.preventDefault();
-    };
-    document.addEventListener('contextmenu', handleContextmenu);
-    return () => {
-      document.removeEventListener('contextmenu', handleContextmenu);
-    };
-  }, []);
 
   return (
     <html lang="en" suppressHydrationWarning>
