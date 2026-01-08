@@ -12,7 +12,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from 'lucide-reac';
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from 'lucide-react';
 import type { ApprovingAuthority } from '@/lib/data';
 import UserList from '@/components/video/user-list';
 import { useRole } from '@/contexts/role-context';
