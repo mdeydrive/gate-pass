@@ -299,7 +299,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4">
         <div className="mb-8 flex flex-col items-center gap-4">
             {companyLoading ? (
-                <Skeleton className="h-24 w-24 rounded-md" />
+                <Skeleton className="h-32 w-32 rounded-md" />
             ) : logoUrl ? (
                 <Image src={logoUrl} alt={companyName} width={128} height={128} className="h-32 w-32 object-contain" />
             ) : (
