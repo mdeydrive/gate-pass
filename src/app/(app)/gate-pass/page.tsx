@@ -577,7 +577,7 @@ function PassForm({ onGeneratePass, authorities }: { onGeneratePass: (newPass: O
                                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-background/80">
                                         <Camera className="mx-auto h-12 w-12 text-muted-foreground" />
                                         <p className="mt-2 text-sm text-muted-foreground">
-                                            {hasCameraPermission === null ? "Requesting camera..." : "Camera not available."}
+                                            {hasCameraPermission === null ? "Requesting camera..." : (cameraError || "Camera not available.")}
                                         </p>
                                     </div>
                                 )}
@@ -592,7 +592,7 @@ function PassForm({ onGeneratePass, authorities }: { onGeneratePass: (newPass: O
                             </div>
                         </div>
 
-                        {cameraError && (
+                        {hasCameraPermission === false && cameraError && (
                              <Alert variant="destructive">
                                 <AlertTriangle className="h-4 w-4" />
                                 <AlertTitle>Camera Error</AlertTitle>
@@ -1158,4 +1158,5 @@ export default function GatePassPage() {
   );
 }
 
+    
     
