@@ -1,0 +1,41 @@
+diff --git a/node_modules/react-to-print/lib/index.js b/node_modules/react-to-print/lib/index.js
+index 5c1e57c..0235949 100644
+--- a/node_modules/react-to-print/lib/index.js
++++ b/node_modules/react-to-print/lib/index.js
+@@ -2,7 +2,6 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.useReactToPrint = void 0;
+ const React = require("react");
+-const react_dom_1 = require("react-dom");
+ const Print_1 = require("./Print");
+ const build-print-window_1 = require("./utils/build-print-window");
+ const copy-styles_1 = require("./utils/copy-styles");
+@@ -21,7 +20,7 @@ const useReactToPrint = (props) => {
+     const linkTotal = document.links.length;
+     const [isPrinting, setIsPrinting] = React.useState(false);
+     const handlePrint = React.useCallback(() => {
+-        const { bodyClass = "", content, copyStyles = true, documentTitle = "", fonts, getPageMargins, nonce, onAfterPrint, onBeforeGetContent, onBeforePrint, onPrintError, pageStyle, print, removeAfterPrint = false, suppressErrors = false, } = props;
++        const { bodyClass = "", content, copyStyles = true, documentTitle = "", fonts, getPageMargins, nonce, onAfterPrint, onBeforeGetContent, onBeforePrint, onPrintError, pageStyle, print, removeAfterPrint = false, suppressErrors = false, trigger, } = props;
+         setIsPrinting(true);
+         const contentRef = content === null || content === void 0 ? void 0 : content();
+         if (contentRef) {
+@@ -35,7 +34,8 @@ const useReactToPrint = (props) => {
+                 (0, logger_1.useLogger)("debug", "Starting print");
+                 if (onBeforePrint) {
+                     (0, logger_1.useLogger)("debug", '"onBeforePrint" prop triggered');
+-                    const onBeforePrintOutput = onBeforePrint();
++                    const triggerComponent = trigger === null || trigger === void 0 ? void 0 : trigger();
++                    const onBeforePrintOutput = onBeforePrint(triggerComponent);
+                     if (onBeforePrintOutput && typeof onBeforePrintOutput.then === "function") {
+                         (0, logger_1.useLogger)("debug", '"onBeforePrint" prop returned a promise, waiting for it to resolve');
+                         onBeforePrintOutput
+@@ -51,7 +51,7 @@ const useReactToPrint = (props) => {
+             const runPrint = (target, trigger) => {
+                 (0, logger_1.useLogger)("debug", "Getting content");
+                 const printContent = content();
+-                const printContentRef = React.isValidElement(printContent) ? react_dom_1.findDOMNode(printContentRefValue.current) : (0, react_dom_1.findDOMNode)(printContent);
++                const printContentRef = React.isValidElement(printContent) ? printContentRefValue.current : printContent;
+                 if (printContentRef) {
+                     const printWindow = (0, build-print-window_1.default)(print, documentTitle);
+                     if (printWindow) {
+
