@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CompanyProvider } from "@/contexts/company-context";
+import IncomingCallDialog from "@/components/video/incoming-call-dialog";
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
@@ -35,7 +36,10 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     
     return (
         <GatePassProvider>
-            <AppShell>{children}</AppShell>
+            <AppShell>
+                {children}
+                <IncomingCallDialog />
+            </AppShell>
         </GatePassProvider>
     )
 }
