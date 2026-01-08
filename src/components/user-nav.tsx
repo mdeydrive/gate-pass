@@ -21,7 +21,7 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { users } from "@/lib/data";
-import { Moon, Sun, Laptop, Languages, LogOut } from "lucide-react";
+import { Moon, Sun, Laptop, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 
@@ -74,18 +74,6 @@ export default function UserNav() {
       
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-           <Button variant="ghost" size="icon">
-            <Languages className="h-[1.2rem] w-[1.2rem]" />
-            <span className="sr-only">Change language</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem>English</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-9 w-auto rounded-full px-2">
              <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
@@ -133,5 +121,3 @@ export default function UserNav() {
     </div>
   );
 }
-
-    
