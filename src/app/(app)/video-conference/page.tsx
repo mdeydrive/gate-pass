@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -10,28 +11,40 @@ import {
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from 'lucide-reac';
+import type { ApprovingAuthority } from '@/lib/data';
+import UserList from '@/components/video/user-list';
+import { useRole } from '@/contexts/role-context';
 
 export default function VideoConferencePage() {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const { toast } = useToast();
+  const [inCall, setInCall] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<ApprovingAuthority | null>(null);
+  const { role } = useRole();
 
   useEffect(() => {
+    let stream: MediaStream | null = null;
     const getCameraPermission = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         setHasCameraPermission(true);
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
         }
       } catch (error) {
         console.error('Error accessing camera:', error);
         setHasCameraPermission(false);
         toast({
           variant: 'destructive',
-          title: 'Camera Access Denied',
-          description: 'Please enable camera permissions in your browser settings to use this feature.',
+          title: 'Media Access Denied',
+          description: 'Please enable camera and microphone permissions in your browser settings.',
         });
       }
     };
@@ -39,34 +52,101 @@ export default function VideoConferencePage() {
     getCameraPermission();
 
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
+      if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     }
   }, [toast]);
 
+  const handleStartCall = (user: ApprovingAuthority) => {
+    setSelectedUser(user);
+    setInCall(true);
+    toast({
+        title: `Calling ${user.name}...`,
+        description: "Connecting to the user. This is a UI demonstration.",
+    });
+    // In a real app, you would initiate the WebRTC connection here.
+  }
+
+  const handleEndCall = () => {
+    setInCall(false);
+    setSelectedUser(null);
+    toast({
+        title: "Call Ended",
+        description: "The video call has been disconnected.",
+    });
+    // In a real app, you would close the WebRTC connection here.
+  }
+  
+  if (role !== 'Admin' && role !== 'Security') {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Card className="w-full max-w-md text-center">
+          <CardHeader>
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription>You do not have permission to view this page.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>Only Security and Admin roles can access the video conference feature.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Video Conference</CardTitle>
-        <CardDescription>
-          Your camera feed is active below.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="w-full aspect-video rounded-md border bg-muted overflow-hidden">
-            <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted />
-        </div>
-        {hasCameraPermission === false && (
-            <Alert variant="destructive">
-              <AlertTitle>Camera Access Required</AlertTitle>
-              <AlertDescription>
-                Please allow camera access in your browser settings to use this feature. The application needs permission to display your video.
-              </AlertDescription>
-            </Alert>
-        )}
-      </CardContent>
-    </Card>
+    <div className="grid md:grid-cols-3 gap-6">
+      <div className="md:col-span-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Video Conference</CardTitle>
+            <CardDescription>
+              {inCall ? `In call with ${selectedUser?.name}` : "Select a user to start a video call."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Remote Video */}
+                <div className="w-full aspect-video rounded-md border bg-muted overflow-hidden relative flex items-center justify-center">
+                    <video ref={remoteVideoRef} className="w-full h-full object-cover" autoPlay />
+                    {!inCall && <div className="absolute text-muted-foreground">Remote user video</div>}
+                </div>
+                {/* Local Video */}
+                <div className="w-full aspect-video rounded-md border bg-muted overflow-hidden relative">
+                    <video ref={localVideoRef} className="w-full h-full object-cover" autoPlay muted />
+                </div>
+            </div>
+             {hasCameraPermission === false && (
+                <Alert variant="destructive">
+                  <AlertTitle>Camera Access Required</AlertTitle>
+                  <AlertDescription>
+                    Please allow camera access in your browser settings to use this feature. The application needs permission to display your video.
+                  </AlertDescription>
+                </Alert>
+            )}
+            {inCall && (
+                <div className="flex justify-center items-center gap-4 pt-4">
+                    <Button variant={isMuted ? "secondary" : "outline"} size="icon" className="rounded-full h-12 w-12" onClick={() => setIsMuted(!isMuted)}>
+                       {isMuted ? <MicOff /> : <Mic />}
+                       <span className="sr-only">Toggle Mute</span>
+                    </Button>
+                    <Button variant={isVideoOff ? "secondary" : "outline"} size="icon" className="rounded-full h-12 w-12" onClick={() => setIsVideoOff(!isVideoOff)}>
+                       {isVideoOff ? <VideoOff /> : <Video />}
+                        <span className="sr-only">Toggle Video</span>
+                    </Button>
+                    <Button variant="destructive" size="icon" className="rounded-full h-14 w-14" onClick={handleEndCall}>
+                        <PhoneOff />
+                        <span className="sr-only">End Call</span>
+                    </Button>
+                </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+      <div className="md:col-span-1">
+        <UserList onSelectUser={handleStartCall} selectedUser={selectedUser} />
+      </div>
+    </div>
   );
 }
