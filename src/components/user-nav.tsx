@@ -81,7 +81,6 @@ export default function UserNav() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem>English</DropdownMenuItem>
-          <DropdownMenuItem disabled>বাংলা</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
