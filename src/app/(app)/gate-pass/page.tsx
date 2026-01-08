@@ -702,57 +702,52 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
         <CardContent>
         {loading ? (
             <div className="space-y-3">
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-24 w-full rounded-lg" />
+                <Skeleton className="h-24 w-full rounded-lg" />
+                <Skeleton className="h-24 w-full rounded-lg" />
             </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Visitor ID</TableHead>
-                <TableHead>Visitor</TableHead>
-                <TableHead>Mobile No.</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead>Pass Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <div className="space-y-4">
+              {/* Header for larger screens */}
+              <div className="hidden md:grid grid-cols-6 gap-4 p-4 font-medium text-muted-foreground border-b">
+                  <div className="col-span-2">Visitor</div>
+                  <div>Mobile No.</div>
+                  <div>Company</div>
+                  <div>Pass Type</div>
+                  <div className="text-right">Actions</div>
+              </div>
               {activePasses.length > 0 ? activePasses.map((activity) => (
-                <TableRow key={activity.id}>
-                  <TableCell className="font-mono text-xs">{activity.id}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={activity.photo || `https://avatar.vercel.sh/${activity.visitorName}.png`} />
-                        <AvatarFallback>{activity.visitorName.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">{activity.visitorName}</div>
-                        <div className="text-sm text-muted-foreground">
-                            {activity.status === 'Pending' && activity.approverIds && activity.approverIds.length > 0 && `Waiting for: ${getApproverName(activity.approverIds[0])}`}
-                            {activity.status === 'Approved' && `Approved by: ${getApproverName(activity.approvedById)}`}
-                            {activity.status === 'Checked In' && activity.checkedInAt && `Checked In: ${formatTimestamp(activity.checkedInAt)}`}
-                            {activity.status === 'Pending' && (!activity.approverIds || activity.approverIds.length === 0) && `Requested: ${activity.time}`}
+                <div key={activity.id} className="grid grid-cols-2 md:grid-cols-6 gap-4 p-4 border rounded-lg items-center">
+                    {/* Visitor Info */}
+                    <div className="col-span-2 flex items-center gap-3">
+                        <Avatar>
+                            <AvatarImage src={activity.photo || `https://avatar.vercel.sh/${activity.visitorName}.png`} />
+                            <AvatarFallback>{activity.visitorName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <div className="font-medium">{activity.visitorName}</div>
+                            <div className="text-sm text-muted-foreground md:hidden">{activity.mobileNumber}</div>
+                            <div className="text-sm text-muted-foreground">
+                                <Badge variant={getBadgeVariant(activity.status)} className="md:hidden mr-2">{activity.status}</Badge>
+                                {activity.status === 'Pending' && activity.approverIds && activity.approverIds.length > 0 && `Waiting for: ${getApproverName(activity.approverIds[0])}`}
+                                {activity.status === 'Approved' && `Approved by: ${getApproverName(activity.approvedById)}`}
+                                {activity.status === 'Checked In' && activity.checkedInAt && `Checked In: ${formatTimestamp(activity.checkedInAt)}`}
+                                {activity.status === 'Pending' && (!activity.approverIds || activity.approverIds.length === 0) && `Requested: ${activity.time}`}
+                            </div>
                         </div>
-                      </div>
                     </div>
-                  </TableCell>
-                  <TableCell>{activity.mobileNumber}</TableCell>
-                  <TableCell>{activity.companyName || 'N/A'}</TableCell>
-                  <TableCell>{activity.passType}</TableCell>
-                  <TableCell>
-                    <Badge variant={getBadgeVariant(activity.status)}>{activity.status}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2 items-center">
+                    {/* Details for larger screens */}
+                    <div className="hidden md:block">{activity.mobileNumber}</div>
+                    <div className="hidden md:block">{activity.companyName || 'N/A'}</div>
+                    <div className="hidden md:block">{activity.passType}</div>
+                    
+                    {/* Actions */}
+                    <div className="col-span-2 md:col-span-1 flex justify-end gap-2 items-center">
                       {activity.status === 'Pending' && (
                         <>
                           {(!activity.approverIds || activity.approverIds.length === 0) && (role === 'Admin' || role === 'Manager') ? (
                             <Select onValueChange={(approverId) => onAssignApprover(activity.id, approverId)}>
-                                <SelectTrigger className="w-[180px]">
+                                <SelectTrigger className="w-full md:w-[180px] text-xs h-8">
                                     <SelectValue placeholder="Assign Approver" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -762,16 +757,16 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                                 </SelectContent>
                             </Select>
                           ) : isCurrentUserApprover(activity.approverIds) && role === 'Approver' ? (
-                            <>
-                              <Button variant="outline" size="sm" onClick={() => onUpdatePass(activity.id, 'Approved')}>
+                            <div className="flex flex-col sm:flex-row gap-2 w-full">
+                              <Button variant="outline" size="sm" onClick={() => onUpdatePass(activity.id, 'Approved')} className="w-full">
                                   <ShieldCheck className="mr-1 h-3.5 w-3.5" />
                                   Approve
                               </Button>
-                              <Button variant="destructive" size="sm" onClick={() => onUpdatePass(activity.id, 'Rejected')}>
+                              <Button variant="destructive" size="sm" onClick={() => onUpdatePass(activity.id, 'Rejected')} className="w-full">
                                   <Ban className="mr-1 h-3.5 w-3.5" />
                                   Reject
                               </Button>
-                            </>
+                            </div>
                           ) : activity.approverIds && activity.approverIds.length > 0 && (
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <Clock className="h-3 w-3" />
@@ -781,27 +776,27 @@ function ActivePassesList({ passes, onUpdatePass, onAssignApprover, loading }: {
                         </>
                       )}
                       {activity.status === 'Approved' && role === 'Security' && (
-                        <Button variant="outline" size="sm" onClick={() => onUpdatePass(activity.id, 'Checked In')}>
+                        <Button variant="outline" size="sm" onClick={() => onUpdatePass(activity.id, 'Checked In')} className="w-full">
                             <Check className="mr-1 h-3.5 w-3.5" />
                             Check In
                         </Button>
                       )}
                       {activity.status === 'Checked In' && role === 'Security' && (
-                        <Button variant="destructive" size="sm" onClick={() => onUpdatePass(activity.id, 'Checked Out')}>
+                        <Button variant="destructive" size="sm" onClick={() => onUpdatePass(activity.id, 'Checked Out')} className="w-full">
                             <X className="mr-1 h-3.5 w-3.5" />
                             Check Out
                         </Button>
                       )}
                     </div>
-                  </TableCell>
-                </TableRow>
+                     {/* Status Badge for mobile */}
+                     <div className="hidden md:block text-right">
+                        <Badge variant={getBadgeVariant(activity.status)}>{activity.status}</Badge>
+                    </div>
+                </div>
               )) : (
-                <TableRow>
-                    <TableCell colSpan={7} className="text-center">No active passes found.</TableCell>
-                </TableRow>
+                <div className="text-center col-span-full py-12">No active passes found.</div>
               )}
-            </TableBody>
-          </Table>
+          </div>
         )}
         </CardContent>
       </Card>
@@ -1159,6 +1154,8 @@ export default function GatePassPage() {
 }
 
     
+    
+
     
 
     
