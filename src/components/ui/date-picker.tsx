@@ -27,10 +27,16 @@ export function DatePicker({
   onDateChange,
   placeholder = "Pick a date"
 }: DatePickerProps) {
+  const [open, setOpen] = React.useState(false)
+
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    onDateChange(selectedDate)
+    setOpen(false)
+  }
 
   return (
     <div className={cn("grid gap-2", className)}>
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             id="date"
@@ -49,7 +55,7 @@ export function DatePicker({
             initialFocus
             mode="single"
             selected={date}
-            onSelect={onDateChange}
+            onSelect={handleDateSelect}
           />
         </PopoverContent>
       </Popover>
