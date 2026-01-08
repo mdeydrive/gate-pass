@@ -9,8 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DataTable } from "@/components/data-table/data-table";
-import { columns } from "@/components/data-table/columns";
 import { useGatePass } from "@/contexts/gate-pass-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState, useMemo } from "react";
@@ -23,6 +21,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+
+const getBadgeVariant = (status: Activity['status']) => {
+    switch (status) {
+      case 'Checked In': return 'default';
+      case 'Checked Out': return 'success';
+      case 'Pending': return 'destructive';
+      case 'Approved': return 'secondary';
+      case 'Rejected': return 'destructive';
+      default: return 'outline';
+    }
+};
+
+const formatTimestamp = (timestamp?: string) => {
+    if (!timestamp) return 'N/A';
+    try {
+        return format(new Date(timestamp), 'PPp');
+    } catch (e) {
+        return 'Invalid Date';
+    }
+}
+
 
 export default function HistoryPage() {
   const { activities, loading: loadingActivities } = useGatePass();
@@ -55,7 +77,8 @@ export default function HistoryPage() {
     
     const authorityMap = new Map(authorities.map(auth => [auth.id, auth.name]));
 
-    return activities.map(activity => {
+    return activities
+    .map(activity => {
       let approverNames: string[] = [];
       if (activity.approvedById) {
         const name = authorityMap.get(activity.approvedById);
@@ -72,12 +95,40 @@ export default function HistoryPage() {
         ...activity,
         approverNames: approverNames.length > 0 ? approverNames : undefined,
       };
+    })
+    .filter(activity => {
+        const nameMatch = activity.visitorName.toLowerCase().includes(nameFilter.toLowerCase());
+        const statusMatch = statusFilter === 'all' || activity.status === statusFilter;
+        return nameMatch && statusMatch;
     });
-  }, [activities, authorities, loadingActivities, loadingAuthorities]);
+  }, [activities, authorities, loadingActivities, loadingAuthorities, nameFilter, statusFilter]);
 
   const loading = loadingActivities || loadingAuthorities;
 
   const passStatuses: Activity['status'][] = ['Checked In', 'Checked Out', 'Pending', 'Approved', 'Rejected'];
+
+  const getApproverDisplay = (activity: Activity & { approverNames?: string[] }) => {
+     let approverDisplay: string[] | undefined;
+
+        if (activity.status === 'Approved' || activity.status === 'Rejected') {
+            const approverName = activity.approverNames?.find(name => name); // Get first defined name
+            if (approverName) {
+                approverDisplay = [approverName];
+            }
+        } else if (activity.status === 'Pending' && activity.approverNames && activity.approverNames.length > 0) {
+            approverDisplay = activity.approverNames;
+        }
+
+        return approverDisplay && approverDisplay.length > 0 ? (
+            <div className="flex flex-col">
+                {approverDisplay.map((name, index) => (
+                    <span key={index}>{name}</span>
+                ))}
+            </div>
+        ) : (
+            <span className="text-muted-foreground">N/A</span>
+        );
+  }
 
   return (
     <Card>
@@ -113,20 +164,64 @@ export default function HistoryPage() {
       <CardContent>
         {loading ? (
           <div className="space-y-4">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
           </div>
         ) : (
-          <DataTable 
-            columns={columns} 
-            data={activitiesWithApprovers}
-            filters={{
-                visitorName: nameFilter,
-                status: statusFilter === 'all' ? '' : statusFilter
-            }}
-           />
+           <div className="space-y-4">
+                 <div className="hidden md:grid grid-cols-6 gap-4 p-2 font-medium text-muted-foreground border-b">
+                    <div className="col-span-2">Visitor</div>
+                    <div>Check-in</div>
+                    <div>Check-out</div>
+                    <div>Approver</div>
+                    <div className="text-right">Status</div>
+                </div>
+
+                {activitiesWithApprovers.length > 0 ? activitiesWithApprovers.map((activity) => (
+                    <div key={activity.id} className="grid grid-cols-2 md:grid-cols-6 gap-4 items-center p-4 border rounded-lg">
+                        <div className="col-span-2 flex items-center gap-3">
+                             <Avatar className="hidden h-9 w-9 sm:flex">
+                                <AvatarImage src={activity.photo || `https://avatar.vercel.sh/${activity.visitorName}.png`} alt="Avatar" />
+                                <AvatarFallback>{activity.visitorName.charAt(0)}</AvatarFallback>
+                             </Avatar>
+                            <div>
+                                <p className="font-medium">{activity.visitorName}</p>
+                                <p className="text-sm text-muted-foreground">{activity.mobileNumber}</p>
+                                <div className="text-xs text-muted-foreground md:hidden mt-1">
+                                    <p>Check-in: {formatTimestamp(activity.checkedInAt)}</p>
+                                    <p>Check-out: {formatTimestamp(activity.checkedOutAt)}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="hidden md:block text-sm text-muted-foreground">
+                            {formatTimestamp(activity.checkedInAt)}
+                        </div>
+                        <div className="hidden md:block text-sm text-muted-foreground">
+                            {formatTimestamp(activity.checkedOutAt)}
+                        </div>
+
+                        <div className="hidden md:block text-sm">
+                           {getApproverDisplay(activity)}
+                        </div>
+                        
+                        <div className="flex items-center justify-end md:justify-end text-right">
+                           <Badge variant={getBadgeVariant(activity.status)}>{activity.status}</Badge>
+                        </div>
+
+                         <div className="col-span-2 border-t pt-4 flex md:hidden items-center justify-between text-sm">
+                             <div className="text-muted-foreground">Approver</div>
+                             <div>{getApproverDisplay(activity)}</div>
+                        </div>
+                    </div>
+                )) : (
+                     <div className="text-center col-span-full py-12 text-muted-foreground">
+                        No history found matching your criteria.
+                    </div>
+                )}
+            </div>
         )}
       </CardContent>
     </Card>
