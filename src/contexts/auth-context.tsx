@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             username: 'Administrator', 
             role: 'Admin',
             status: 'Active',
-            permissions: ["dashboard", "gate-pass", "history", "visitors", "management", "approving-authorities", "alerts", "vehicles", "database", "deliveries", "staff", "control-panel", "reports"],
+            permissions: ["dashboard", "gate-pass", "history", "visitors", "management", "approving-authorities", "alerts", "vehicles", "database", "deliveries", "staff", "settings", "reports"],
         };
     } else {
         const authorities = await getAuthorities();

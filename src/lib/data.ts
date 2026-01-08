@@ -35,7 +35,7 @@ export type Permission =
     | "database"
     | "deliveries"
     | "staff"
-    | "control-panel"
+    | "settings"
     | "reports";
 
 
@@ -62,7 +62,7 @@ export const allPermissions: { id: Permission, label: string }[] = [
     { id: "database", label: "Database" },
     { id: "deliveries", label: "Deliveries" },
     { id: "staff", label: "Staff" },
-    { id: "control-panel", label: "Control Panel" },
+    { id: "settings", label: "Settings" },
     { id: "reports", label: "Reports" },
 ];
 

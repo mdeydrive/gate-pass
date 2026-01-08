@@ -31,7 +31,7 @@
       "dashboard",
       "gate-pass",
       "reports",
-      "control-panel",
+      "settings",
       "staff",
       "deliveries",
       "database",
@@ -91,7 +91,7 @@
       "database",
       "deliveries",
       "staff",
-      "control-panel",
+      "settings",
       "reports"
     ]
   },

@@ -44,7 +44,7 @@ const allNavItems: NavItem[] = [
     { href: "/deliveries", label: "Deliveries", icon: Package, permission: "deliveries" },
     { href: "/staff", label: "Staff", icon: Wrench, permission: "staff" },
     { href: "/reports", label: "Reports", icon: FileText, permission: "reports" },
-    { href: "/control-panel", label: "Control Panel", icon: Settings, permission: "control-panel" },
+    { href: "/settings", label: "Settings", icon: Settings, permission: "settings" },
   ];
 
 

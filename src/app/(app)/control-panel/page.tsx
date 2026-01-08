@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useState, useRef, ChangeEvent } from 'react';
 import Image from 'next/image';
 
-export default function ControlPanelPage() {
+export default function SettingsPage() {
   const { role } = useRole();
   const { companyName, setCompanyName, logoUrl, setLogoUrl } = useCompany();
   const { toast } = useToast();
@@ -102,7 +102,7 @@ export default function ControlPanelPage() {
           </CardHeader>
           <CardContent>
             <p>
-              Please switch to an Admin role to access the Control Panel.
+              Please switch to an Admin role to access the Settings.
             </p>
           </CardContent>
         </Card>
