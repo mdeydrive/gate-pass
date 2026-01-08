@@ -2,6 +2,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -16,6 +17,8 @@ import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PinInput } from '@/components/ui/pin-input';
+import { useCompany } from '@/contexts/company-context';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function UserLoginForm({ onLogin, mobileInputRef }: { onLogin: (mobile: string, pass: string, type: 'user') => void, mobileInputRef: React.RefObject<HTMLInputElement> }) {
   const [mobileNumber, setMobileNumber] = useState('');
@@ -207,17 +210,24 @@ function ManagerLoginForm({ onLogin, mobileInputRef }: { onLogin: (id: string, p
 
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('user');
+  const { companyName, logoUrl, loading: companyLoading } = useCompany();
 
   const userMobileInputRef = useRef<HTMLInputElement>(null);
   const adminPasswordInputRef = useRef<HTMLInputElement>(null);
   const approverMobileInputRef = useRef<HTMLInputElement>(null);
   const managerMobileInputRef = useRef<HTMLInputElement>(null);
   const securityMobileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (user) {
+        router.push('/dashboard');
+    }
+  }, [user, router]);
 
 
   useEffect(() => {
@@ -286,10 +296,34 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4">
+        <div className="mb-8 flex flex-col items-center gap-4">
+            {companyLoading ? (
+                <Skeleton className="h-24 w-24 rounded-md" />
+            ) : logoUrl ? (
+                <Image src={logoUrl} alt={companyName} width={128} height={128} className="h-32 w-32 object-contain" />
+            ) : (
+                 <div className="h-32 w-32 bg-background rounded-md flex items-center justify-center">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-16 w-16 text-primary"
+                    >
+                        <path d="M13 16h- момент-4v-4h4v4Z" fill="currentColor" strokeWidth="0" />
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+                        <path d="M13 16h-4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2Z" />
+                    </svg>
+                 </div>
+            )}
+        </div>
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">SecurePass Login</CardTitle>
+          <CardTitle className="text-2xl">{companyName} Login</CardTitle>
           <CardDescription>
             Select your role to access the system
           </CardDescription>

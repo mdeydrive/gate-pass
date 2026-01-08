@@ -5,6 +5,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/auth-context';
 import { RoleProvider } from '@/contexts/role-context';
+import { CompanyProvider } from '@/contexts/company-context';
 import { useEffect } from 'react';
 
 const metadata: Metadata = {
@@ -36,7 +37,9 @@ export default function RootLayout({
       <body className={`font-body antialiased`}>
         <RoleProvider>
           <AuthProvider>
-            {children}
+            <CompanyProvider>
+              {children}
+            </CompanyProvider>
           </AuthProvider>
         </RoleProvider>
         <Toaster />

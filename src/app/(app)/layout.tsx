@@ -34,11 +34,9 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     }
     
     return (
-        <CompanyProvider>
-            <GatePassProvider>
-                <AppShell>{children}</AppShell>
-            </GatePassProvider>
-        </CompanyProvider>
+        <GatePassProvider>
+            <AppShell>{children}</AppShell>
+        </GatePassProvider>
     )
 }
 
