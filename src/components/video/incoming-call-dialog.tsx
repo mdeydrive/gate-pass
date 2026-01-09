@@ -29,14 +29,6 @@ type CallData = {
   offer?: any;
 };
 
-const servers = {
-  iceServers: [
-    {
-      urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'],
-    },
-  ],
-};
-
 export default function IncomingCallDialog() {
   const [incomingCall, setIncomingCall] = useState<CallData | null>(null);
   const { user } = useAuth();
@@ -74,42 +66,12 @@ export default function IncomingCallDialog() {
 
   const handleAcceptCall = async () => {
     if (incomingCall?.offer) {
-        const pc = new RTCPeerConnection(servers);
-        
-        // This is a temporary solution to get the stream and pass it to the page.
-        // A better solution would use a global state management for WebRTC.
+        // Store the offer in sessionStorage so the conference page can pick it up
         sessionStorage.setItem('webrtc_offer', JSON.stringify(incomingCall.offer));
 
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        stream.getTracks().forEach(track => pc.addTrack(track, stream));
-
-        await pc.setRemoteDescription(new RTCSessionDescription(incomingCall.offer));
+        // Note: The actual peer connection creation and answer is now handled
+        // by the video-conference page itself to ensure media stream is ready.
         
-        const answerDescription = await pc.createAnswer();
-        await pc.setLocalDescription(answerDescription);
-
-        const answer = {
-          type: answerDescription.type,
-          sdp: answerDescription.sdp,
-        };
-
-        await fetch('/api/call-signal', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'accept', call: incomingCall, answer }),
-        });
-        
-        // This is also temporary, to signal candidates from the callee
-        pc.onicecandidate = event => {
-            if(event.candidate) {
-                fetch('/api/call-signal', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'add-candidate', candidate: event.candidate.toJSON() }),
-                });
-            }
-        };
-
         setIncomingCall(null);
         router.push('/video-conference');
     }

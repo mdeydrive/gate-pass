@@ -41,55 +41,54 @@ export default function VideoConferencePage() {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [selectedUser, setSelectedUser] = useState<ApprovingAuthority | null>(null);
+  const [candidateQueue, setCandidateQueue] = useState<RTCIceCandidate[]>([]);
+
   const { role } = useRole();
   const { user: currentUser } = useAuth();
   const router = useRouter();
 
   const createPeerConnection = useCallback(() => {
     if (pc.current) {
-        pc.current.close();
+      pc.current.close();
     }
-    
+
     const newPc = new RTCPeerConnection(servers);
 
-    // Add local tracks to the connection
     if (localStream.current) {
       localStream.current.getTracks().forEach(track => {
         newPc.addTrack(track, localStream.current!);
       });
     }
 
-    // Handle incoming remote tracks
     newPc.ontrack = event => {
       if (remoteVideoRef.current && event.streams[0]) {
         remoteVideoRef.current.srcObject = event.streams[0];
       }
     };
-    
-    // Handle ICE candidates
+
     newPc.onicecandidate = event => {
-        if(event.candidate) {
-            fetch('/api/call-signal', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'add-candidate', candidate: event.candidate.toJSON() }),
-            });
-        }
+      if (event.candidate) {
+        fetch('/api/call-signal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'add-candidate', candidate: event.candidate.toJSON() }),
+        });
+      }
     };
-    
+
     pc.current = newPc;
   }, []);
 
   const handleStartCall = async (userToCall: ApprovingAuthority) => {
     if (!currentUser || !pc.current) return;
-    
+
     setSelectedUser(userToCall);
-    
+
     const callData = {
-        user1: { id: currentUser.id, name: currentUser.username, avatar: (currentUser as any).avatar },
-        user2: { id: userToCall.id, name: userToCall.name, avatar: userToCall.avatar }
+      user1: { id: currentUser.id, name: currentUser.username, avatar: (currentUser as any).avatar },
+      user2: { id: userToCall.id, name: userToCall.name, avatar: userToCall.avatar },
     };
-    
+
     const offerDescription = await pc.current.createOffer();
     await pc.current.setLocalDescription(offerDescription);
 
@@ -97,59 +96,70 @@ export default function VideoConferencePage() {
       sdp: offerDescription.sdp,
       type: offerDescription.type,
     };
-    
-    try {
-        await fetch('/api/call-signal', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'initiate', call: callData, offer }),
-        });
 
-        toast({
-            title: `Calling ${userToCall.name}...`,
-            description: "Waiting for the user to accept. This is a UI demonstration.",
-        });
+    try {
+      await fetch('/api/call-signal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'initiate', call: callData, offer }),
+      });
+
+      toast({
+        title: `Calling ${userToCall.name}...`,
+        description: "Waiting for the user to accept.",
+      });
 
     } catch (error) {
-        console.error("Failed to initiate call signal", error);
-        toast({
-            variant: "destructive",
-            title: "Call Failed",
-            description: "Could not initiate the call. Please try again."
-        });
-        setSelectedUser(null);
+      console.error("Failed to initiate call signal", error);
+      toast({
+        variant: "destructive",
+        title: "Call Failed",
+        description: "Could not initiate the call. Please try again."
+      });
+      setSelectedUser(null);
     }
   }
 
   const handleEndCall = useCallback(async () => {
     if (pc.current) {
-        pc.current.close();
-        pc.current = null;
+      pc.current.close();
+      pc.current = null;
     }
     setInCall(false);
     setSelectedUser(null);
-    
-    try {
-        await fetch('/api/call-signal', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'end' }),
-        });
+    setCandidateQueue([]); // Clear queue on call end
+    sessionStorage.removeItem('webrtc_offer');
 
-        toast({
-            title: "Call Ended",
-            description: "The video call has been disconnected.",
-        });
-    } catch(e) {
-        console.error("Failed to end call signal", e);
+    try {
+      await fetch('/api/call-signal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'end' }),
+      });
+
+      toast({
+        title: "Call Ended",
+        description: "The video call has been disconnected.",
+      });
+    } catch (e) {
+      console.error("Failed to end call signal", e);
     }
 
-    if(role !== 'Admin' && role !== 'Security'){
-        router.push('/dashboard');
+    if (role !== 'Admin' && role !== 'Security') {
+      router.push('/dashboard');
     }
   }, [role, router, toast]);
 
-  // Main effect for setting up media and polling for call status
+  useEffect(() => {
+    candidateQueue.forEach(candidate => {
+        if (pc.current && pc.current.remoteDescription) {
+            pc.current.addIceCandidate(candidate).catch(e => console.error("Error adding queued ICE candidate", e));
+        }
+    });
+    // Clear queue after attempting to add
+    setCandidateQueue([]);
+  }, [candidateQueue, inCall]);
+
   useEffect(() => {
     const getMedia = async () => {
       try {
@@ -159,7 +169,30 @@ export default function VideoConferencePage() {
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
         }
-        createPeerConnection(); // Create PC after getting media
+        createPeerConnection();
+
+        // For callees joining a call
+        const offerString = sessionStorage.getItem('webrtc_offer');
+        if (offerString && pc.current) {
+            const offer = JSON.parse(offerString);
+            pc.current.setRemoteDescription(new RTCSessionDescription(offer));
+            const answerDescription = await pc.current.createAnswer();
+            await pc.current.setLocalDescription(answerDescription);
+
+            const answer = {
+              type: answerDescription.type,
+              sdp: answerDescription.sdp,
+            };
+
+            await fetch('/api/call-signal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'accept', answer }),
+            });
+            sessionStorage.removeItem('webrtc_offer');
+            setInCall(true);
+        }
+
       } catch (error) {
         console.error('Error accessing camera:', error);
         setHasMediaPermission(false);
@@ -174,27 +207,31 @@ export default function VideoConferencePage() {
 
     const pollInterval = setInterval(async () => {
       if (!pc.current || !currentUser) return;
-      
+
       const response = await fetch('/api/call-signal');
       const { call } = await response.json();
-
-      // If there is an active call and we have an answer
+      
+      // If we are the caller and an answer comes in
       if (call?.answer && pc.current.signalingState !== 'stable') {
         const answerDescription = new RTCSessionDescription(call.answer);
         await pc.current.setRemoteDescription(answerDescription);
         setInCall(true);
       }
 
-       // Add any new ICE candidates
-       if (call?.candidates) {
+      if (call?.candidates) {
         call.candidates.forEach((candidate: any) => {
-          pc.current?.addIceCandidate(new RTCIceCandidate(candidate)).catch(e => console.error("Error adding ICE candidate", e));
+            const rtcCandidate = new RTCIceCandidate(candidate);
+            if (pc.current?.remoteDescription) {
+                pc.current.addIceCandidate(rtcCandidate).catch(e => console.error("Error adding ICE candidate", e));
+            } else {
+                // Queue the candidate if remote description is not set yet
+                setCandidateQueue(prev => [...prev, rtcCandidate]);
+            }
         });
       }
 
-      // If call has ended remotely
       if (!call && inCall) {
-          handleEndCall();
+        handleEndCall();
       }
     }, 2000);
 
@@ -206,9 +243,10 @@ export default function VideoConferencePage() {
       if (pc.current) {
         pc.current.close();
       }
+      handleEndCall(); // Clean up on unmount
     }
   }, [currentUser, createPeerConnection, toast, inCall, handleEndCall]);
-  
+
   if (role !== 'Admin' && role !== 'Security' && !inCall) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -226,17 +264,17 @@ export default function VideoConferencePage() {
   }
 
   const toggleMute = () => {
-      if(localStream.current) {
-          localStream.current.getAudioTracks().forEach(track => track.enabled = !track.enabled);
-          setIsMuted(!isMuted);
-      }
+    if (localStream.current) {
+      localStream.current.getAudioTracks().forEach(track => track.enabled = !track.enabled);
+      setIsMuted(!isMuted);
+    }
   }
 
   const toggleVideo = () => {
-      if(localStream.current) {
-          localStream.current.getVideoTracks().forEach(track => track.enabled = !track.enabled);
-          setIsVideoOff(!isVideoOff);
-      }
+    if (localStream.current) {
+      localStream.current.getVideoTracks().forEach(track => track.enabled = !track.enabled);
+      setIsVideoOff(!isVideoOff);
+    }
   }
 
   return (
@@ -246,60 +284,60 @@ export default function VideoConferencePage() {
           <CardHeader>
             <CardTitle>Video Conference</CardTitle>
             <CardDescription>
-              {inCall ? `In call with ${selectedUser?.name}` : "Select a user to start a video call."}
+              {inCall ? `In call with ${selectedUser?.name || 'user'}` : "Select a user to start a video call."}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Remote Video */}
-                <div className="w-full aspect-video rounded-md border bg-muted overflow-hidden relative flex items-center justify-center">
-                    <video ref={remoteVideoRef} className="w-full h-full object-cover" autoPlay playsInline />
-                    {!inCall && <div className="absolute text-muted-foreground">Remote user video</div>}
-                </div>
-                {/* Local Video */}
-                <div className="w-full aspect-video rounded-md border bg-muted overflow-hidden relative">
-                    <video ref={localVideoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                </div>
+              {/* Remote Video */}
+              <div className="w-full aspect-video rounded-md border bg-muted overflow-hidden relative flex items-center justify-center">
+                <video ref={remoteVideoRef} className="w-full h-full object-cover" autoPlay playsInline />
+                {!inCall && <div className="absolute text-muted-foreground">Remote user video</div>}
+              </div>
+              {/* Local Video */}
+              <div className="w-full aspect-video rounded-md border bg-muted overflow-hidden relative">
+                <video ref={localVideoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+              </div>
             </div>
-             {hasMediaPermission === false && (
-                <Alert variant="destructive">
-                  <AlertTitle>Media Access Required</AlertTitle>
-                  <AlertDescription>
-                    Please allow camera and microphone access in your browser settings to use this feature.
-                  </AlertDescription>
-                </Alert>
+            {hasMediaPermission === false && (
+              <Alert variant="destructive">
+                <AlertTitle>Media Access Required</AlertTitle>
+                <AlertDescription>
+                  Please allow camera and microphone access in your browser settings to use this feature.
+                </AlertDescription>
+              </Alert>
             )}
             {inCall && (
-                <div className="flex justify-center items-center gap-4 pt-4">
-                    <Button variant={isMuted ? "secondary" : "outline"} size="icon" className="rounded-full h-12 w-12" onClick={toggleMute}>
-                       {isMuted ? <MicOff /> : <Mic />}
-                       <span className="sr-only">Toggle Mute</span>
-                    </Button>
-                    <Button variant={isVideoOff ? "secondary" : "outline"} size="icon" className="rounded-full h-12 w-12" onClick={toggleVideo}>
-                       {isVideoOff ? <VideoOff /> : <Video />}
-                        <span className="sr-only">Toggle Video</span>
-                    </Button>
-                    <Button variant="destructive" size="icon" className="rounded-full h-14 w-14" onClick={handleEndCall}>
-                        <PhoneOff />
-                        <span className="sr-only">End Call</span>
-                    </Button>
-                </div>
+              <div className="flex justify-center items-center gap-4 pt-4">
+                <Button variant={isMuted ? "secondary" : "outline"} size="icon" className="rounded-full h-12 w-12" onClick={toggleMute}>
+                  {isMuted ? <MicOff /> : <Mic />}
+                  <span className="sr-only">Toggle Mute</span>
+                </Button>
+                <Button variant={isVideoOff ? "secondary" : "outline"} size="icon" className="rounded-full h-12 w-12" onClick={toggleVideo}>
+                  {isVideoOff ? <VideoOff /> : <Video />}
+                  <span className="sr-only">Toggle Video</span>
+                </Button>
+                <Button variant="destructive" size="icon" className="rounded-full h-14 w-14" onClick={handleEndCall}>
+                  <PhoneOff />
+                  <span className="sr-only">End Call</span>
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
       </div>
       <div className="md:col-span-1">
         {(role === 'Admin' || role === 'Security') && !inCall ? (
-             <UserList onSelectUser={handleStartCall} selectedUser={selectedUser} />
+          <UserList onSelectUser={handleStartCall} selectedUser={selectedUser} />
         ) : (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Call In Progress</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground">You are currently in a call. End the call to see the user list.</p>
-                </CardContent>
-            </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Call In Progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">You are currently in a call. End the call to see the user list.</p>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
