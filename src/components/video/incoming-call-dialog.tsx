@@ -46,10 +46,9 @@ export default function IncomingCallDialog() {
 
           if (callData && callData.user2.id === user.id && callData.status === 'ringing') {
             setIncomingCall(callData);
-          } else {
-            if (incomingCall && (!callData || callData.user2.id !== user.id)) {
-                 setIncomingCall(null);
-            }
+          } else if (incomingCall && (!callData || callData.user1.id !== incomingCall.user1.id)) {
+            // If the current incoming call is no longer valid (e.g., cancelled), close the dialog
+            setIncomingCall(null);
           }
         }
       } catch (e) {
