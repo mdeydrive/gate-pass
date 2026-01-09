@@ -16,9 +16,16 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/auth-context';
 import { Phone, PhoneOff } from 'lucide-react';
 
+type CallUser = {
+  id: string;
+  name: string;
+  avatar: string;
+};
+
 type CallData = {
-  user1: { id: string; name: string };
-  user2: { id: string; name: string };
+  user1: CallUser; // Caller
+  user2: CallUser; // Callee
+  status: 'ringing' | 'active';
 };
 
 export default function IncomingCallDialog() {
@@ -27,46 +34,63 @@ export default function IncomingCallDialog() {
   const router = useRouter();
 
   useEffect(() => {
-    const handleStorageChange = () => {
-      const callDataString = localStorage.getItem('incomingCall');
-      if (callDataString) {
-        try {
-          const callData: CallData = JSON.parse(callDataString);
-          if (callData.user2.id === user?.id) {
+    if (!user) return;
+
+    const pollForCall = async () => {
+      try {
+        const response = await fetch('/api/call-signal');
+        if (response.ok) {
+          const data = await response.json();
+          const callData: CallData | null = data.call;
+
+          if (callData && callData.user2.id === user.id && callData.status === 'ringing') {
             setIncomingCall(callData);
+          } else {
+            // If the call is no longer ringing for this user, close the dialog
+            if (incomingCall && (!callData || callData.user2.id !== user.id)) {
+                 setIncomingCall(null);
+            }
           }
-        } catch (e) {
-          console.error('Failed to parse incoming call data:', e);
         }
-      } else {
-        // If the item is removed, it means the call was cancelled or ended.
-        setIncomingCall(null);
+      } catch (e) {
+        // console.error('Failed to poll for call signal:', e);
       }
     };
 
-    // Check on mount
-    handleStorageChange();
-
-    // Listen for changes
-    window.addEventListener('storage', handleStorageChange);
+    const intervalId = setInterval(pollForCall, 2000); // Poll every 2 seconds
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(intervalId);
     };
-  }, [user]);
+  }, [user, incomingCall]);
 
-  const handleAcceptCall = () => {
+  const handleAcceptCall = async () => {
     if (incomingCall) {
-      localStorage.setItem('activeCall', JSON.stringify(incomingCall));
-      localStorage.removeItem('incomingCall');
-      setIncomingCall(null);
-      router.push('/video-conference');
+      try {
+        await fetch('/api/call-signal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'accept', call: incomingCall }),
+        });
+        setIncomingCall(null);
+        router.push('/video-conference');
+      } catch (e) {
+        console.error("Failed to accept call", e);
+      }
     }
   };
 
-  const handleDeclineCall = () => {
-    localStorage.removeItem('incomingCall');
-    setIncomingCall(null);
+  const handleDeclineCall = async () => {
+    try {
+        await fetch('/api/call-signal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'end' }),
+        });
+        setIncomingCall(null);
+    } catch(e) {
+        console.error("Failed to decline call", e);
+    }
   };
 
   if (!incomingCall) {
@@ -78,7 +102,7 @@ export default function IncomingCallDialog() {
       <DialogContent>
         <DialogHeader className="items-center text-center">
           <Avatar className="h-20 w-20 mb-4">
-            <AvatarImage src={`https://avatar.vercel.sh/${incomingCall.user1.name}.png`} />
+            <AvatarImage src={incomingCall.user1.avatar || `https://avatar.vercel.sh/${incomingCall.user1.name}.png`} />
             <AvatarFallback>{incomingCall.user1.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <DialogTitle className="text-2xl">Incoming Call</DialogTitle>

@@ -55,23 +55,26 @@ export default function VideoConferencePage() {
 
     getCameraPermission();
 
-    // Check for an active call in localStorage
-    const activeCall = localStorage.getItem('activeCall');
-    if(activeCall){
+    // Check for an active call via API
+    const checkActiveCall = async () => {
         try {
-            const callData = JSON.parse(activeCall);
-            if(callData.user2.id === currentUser?.id){
-                setSelectedUser(callData.user1);
-                setInCall(true);
-            } else if (callData.user1.id === currentUser?.id) {
-                setSelectedUser(callData.user2);
-                setInCall(true);
+            const response = await fetch('/api/call-signal');
+            const callData = await response.json();
+            if (callData.call) {
+                if(callData.call.user2.id === currentUser?.id){
+                    setSelectedUser(callData.call.user1);
+                    setInCall(true);
+                } else if (callData.call.user1.id === currentUser?.id) {
+                    setSelectedUser(callData.call.user2);
+                    setInCall(true);
+                }
             }
         } catch(e) {
             console.error(e);
         }
-    }
+    };
 
+    checkActiveCall();
 
     return () => {
       if (stream) {
@@ -80,56 +83,75 @@ export default function VideoConferencePage() {
     }
   }, [toast, currentUser?.id]);
 
-  const handleStartCall = (userToCall: ApprovingAuthority) => {
+  const handleStartCall = async (userToCall: ApprovingAuthority) => {
     if (!currentUser) return;
     
     setSelectedUser(userToCall);
     
     const callData = {
-        user1: { id: currentUser.id, name: currentUser.username },
-        user2: { id: userToCall.id, name: userToCall.name }
+        user1: { id: currentUser.id, name: currentUser.username, avatar: (currentUser as any).avatar },
+        user2: { id: userToCall.id, name: userToCall.name, avatar: userToCall.avatar }
     };
-    // Simulate call initiation
-    localStorage.setItem('incomingCall', JSON.stringify(callData));
+    
+    try {
+        await fetch('/api/call-signal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'initiate', call: callData }),
+        });
 
-    toast({
-        title: `Calling ${userToCall.name}...`,
-        description: "Waiting for the user to accept. This is a UI demonstration.",
-    });
+        toast({
+            title: `Calling ${userToCall.name}...`,
+            description: "Waiting for the user to accept. This is a UI demonstration.",
+        });
 
-    // In a real app, you would wait for an 'accepted' event.
-    // For this demo, we'll listen for localStorage changes.
-    const pollForAcceptance = setInterval(() => {
-        const activeCall = localStorage.getItem('activeCall');
-        if(activeCall){
-            try {
-                const activeCallData = JSON.parse(activeCall);
-                if(activeCallData.user2.id === userToCall.id) {
-                    setInCall(true);
-                    toast({
-                        title: "Call Accepted",
-                        description: `Connected with ${userToCall.name}.`
-                    })
-                    localStorage.removeItem('incomingCall');
-                    clearInterval(pollForAcceptance);
-                }
-            } catch (e) {
-                console.error("Error parsing activeCall", e);
+        // Poll for acceptance
+        const interval = setInterval(async () => {
+            const res = await fetch('/api/call-signal');
+            const data = await res.json();
+            if (data.call && data.call.status === 'active') {
+                clearInterval(interval);
+                setInCall(true);
+                toast({
+                    title: "Call Accepted",
+                    description: `Connected with ${userToCall.name}.`
+                });
+            } else if (!data.call) { // Call was rejected or cancelled
+                clearInterval(interval);
+                setSelectedUser(null);
             }
-        }
-    }, 1000);
+        }, 2000);
+
+    } catch (error) {
+        console.error("Failed to initiate call signal", error);
+        toast({
+            variant: "destructive",
+            title: "Call Failed",
+            description: "Could not initiate the call. Please try again."
+        });
+        setSelectedUser(null);
+    }
   }
 
-  const handleEndCall = () => {
+  const handleEndCall = async () => {
     setInCall(false);
     setSelectedUser(null);
-    localStorage.removeItem('activeCall');
-    localStorage.removeItem('incomingCall');
-    toast({
-        title: "Call Ended",
-        description: "The video call has been disconnected.",
-    });
-    // In a real app, you would close the WebRTC connection here.
+    
+    try {
+        await fetch('/api/call-signal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'end' }),
+        });
+
+        toast({
+            title: "Call Ended",
+            description: "The video call has been disconnected.",
+        });
+    } catch(e) {
+        console.error("Failed to end call signal", e);
+    }
+
     if(role !== 'Admin' && role !== 'Security'){
         router.push('/dashboard');
     }
