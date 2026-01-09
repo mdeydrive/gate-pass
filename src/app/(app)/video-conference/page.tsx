@@ -124,36 +124,41 @@ export default function VideoConferencePage() {
 
   const handleEndCall = useCallback(async () => {
     if (pc.current) {
-      pc.current.close();
-      pc.current = null;
+        pc.current.close();
+        pc.current = null;
     }
+    
+    // Only send the 'end' signal if we were actually in a call
     if (inCall) {
-      try {
-        await fetch('/api/call-signal', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'end' }),
-        });
-  
-        toast({
-          title: "Call Ended",
-          description: "The video call has been disconnected.",
-        });
-      } catch (e) {
-        console.error("Failed to end call signal", e);
-      }
+        try {
+            await fetch('/api/call-signal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'end' }),
+            });
+      
+            toast({
+                title: "Call Ended",
+                description: "The video call has been disconnected.",
+            });
+        } catch (e) {
+            console.error("Failed to end call signal", e);
+        }
     }
+
     setInCall(false);
     setSelectedUser(null);
-    setCandidateQueue([]); // Clear queue on call end
+    setCandidateQueue([]);
     sessionStorage.removeItem('webrtc_offer');
-    
-  }, [toast, inCall]);
+    // Recreate a peer connection for the next call
+    createPeerConnection();
+}, [toast, inCall, createPeerConnection]);
 
   useEffect(() => {
     if (inCall && candidateQueue.length > 0) {
       const queue = [...candidateQueue];
-      setCandidateQueue([]); // Clear queue before processing
+      // Clear queue before processing to avoid loops
+      setCandidateQueue([]); 
       queue.forEach(candidate => {
         if (pc.current && pc.current.remoteDescription) {
           pc.current.addIceCandidate(candidate).catch(e => console.error("Error adding queued ICE candidate", e));
@@ -221,7 +226,6 @@ export default function VideoConferencePage() {
         if (call?.answer && pc.current.signalingState !== 'stable') {
             const answerDescription = new RTCSessionDescription(call.answer);
             await pc.current.setRemoteDescription(answerDescription);
-            if (!inCall) setInCall(true);
         }
 
         if (call?.candidates) {
@@ -248,10 +252,8 @@ export default function VideoConferencePage() {
       if (localStream.current) {
         localStream.current.getTracks().forEach(track => track.stop());
       }
-      if (pc.current) {
-        pc.current.close();
-      }
-      handleEndCall(); // Clean up on unmount
+      // Use the handleEndCall function to ensure consistent cleanup
+      handleEndCall();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, createPeerConnection, toast]);

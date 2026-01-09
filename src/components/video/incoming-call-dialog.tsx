@@ -43,13 +43,21 @@ export default function IncomingCallDialog() {
         if (response.ok) {
           const data = await response.json();
           const callData: CallData | null = data.call;
-
-          // Condition 1: A new call is ringing for me.
-          if (callData && callData.status === 'ringing' && callData.user2.id === user.id) {
+          
+          // A new call is ringing for me, and I'm not already looking at a call dialog
+          if (
+            callData &&
+            callData.status === 'ringing' &&
+            callData.user2.id === user.id &&
+            !incomingCall
+          ) {
             setIncomingCall(callData);
           } 
-          // Condition 2: I have an incoming call dialog open, but the caller cancelled.
-          else if (!callData && incomingCall) {
+          // I have a dialog open, but the call was cancelled or answered by another device
+          else if (
+            incomingCall && 
+            (!callData || callData.user1.id !== incomingCall.user1.id || callData.status !== 'ringing')
+          ) {
              setIncomingCall(null);
           }
         }
