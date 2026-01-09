@@ -31,9 +31,20 @@ type SignalFile = {
 async function readSignal(): Promise<SignalFile> {
   try {
     const fileContent = await fs.readFile(dataFilePath, 'utf-8');
+    // If the file is empty or just whitespace, return a default state
+    if (!fileContent.trim()) {
+      return { call: null };
+    }
     return JSON.parse(fileContent);
   } catch (error: any) {
     if (error.code === 'ENOENT') {
+      return { call: null };
+    }
+    // If there's a parsing error, assume corruption and return a default state
+    if (error instanceof SyntaxError) {
+      console.error("Corrupted signal file detected. Resetting state.", error);
+      // Optionally, you could try to fix the file here by writing a default state
+      await writeSignal({ call: null });
       return { call: null };
     }
     throw error;
@@ -42,8 +53,13 @@ async function readSignal(): Promise<SignalFile> {
 
 // Helper function to write data to the file
 async function writeSignal(data: SignalFile) {
-  await fs.mkdir(path.dirname(dataFilePath), { recursive: true });
-  await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
+  try {
+    await fs.mkdir(path.dirname(dataFilePath), { recursive: true });
+    // This atomic write ensures the file is always valid JSON
+    await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (e) {
+    console.error("Failed to write signal file:", e);
+  }
 }
 
 
@@ -65,34 +81,41 @@ export async function POST(request: Request) {
     const { action, call, offer, answer, candidate } = body;
 
     let currentSignal = await readSignal();
-    let response: SignalFile = currentSignal;
 
     switch (action) {
       case 'initiate':
-        response = { call: { ...call, status: 'ringing', offer, candidates: [] } };
+        currentSignal.call = { ...call, status: 'ringing', offer: offer, candidates: [] };
         break;
       case 'accept':
          if (currentSignal.call) {
-            response = { call: { ...currentSignal.call, status: 'active', answer } };
+            currentSignal.call.status = 'active';
+            currentSignal.call.answer = answer;
          }
         break;
       case 'add-candidate':
-        if (currentSignal.call && candidate) {
-            const existingCandidates = currentSignal.call.candidates || [];
-            response = { call: { ...currentSignal.call, candidates: [...existingCandidates, candidate] } };
+        if (currentSignal.call) {
+            if (!currentSignal.call.candidates) {
+                currentSignal.call.candidates = [];
+            }
+            currentSignal.call.candidates.push(candidate);
+        }
+        break;
+      case 'clear-candidates':
+        if (currentSignal.call) {
+          currentSignal.call.candidates = [];
         }
         break;
       case 'end':
       case 'decline':
       case 'cancel':
-        response = { call: null };
+        currentSignal.call = null;
         break;
       default:
         return NextResponse.json({ message: 'Invalid action' }, { status: 400 });
     }
 
-    await writeSignal(response);
-    return NextResponse.json(response, { status: 200 });
+    await writeSignal(currentSignal);
+    return NextResponse.json(currentSignal, { status: 200 });
 
   } catch (error) {
     console.error("[API_ERROR] Failed to process signal request:", error);
@@ -100,6 +123,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Failed to process request', error: errorMessage }, { status: 500 });
   }
 }
-
-
-    
