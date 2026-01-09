@@ -46,16 +46,10 @@ export default function IncomingCallDialog() {
 
           // Condition 1: A new call is ringing for me.
           if (callData && callData.status === 'ringing' && callData.user2.id === user.id) {
-            if (!incomingCall || incomingCall.user1.id !== callData.user1.id) {
-              setIncomingCall(callData);
-            }
+            setIncomingCall(callData);
           } 
-          // Condition 2: I have an incoming call dialog open, but the call was cancelled (callData is now null).
+          // Condition 2: I have an incoming call dialog open, but the caller cancelled.
           else if (!callData && incomingCall) {
-             setIncomingCall(null);
-          }
-          // Condition 3: I have a dialog open, but the call on the server is now for someone else or has changed status.
-          else if (callData && incomingCall && (callData.user1.id !== incomingCall.user1.id || callData.status !== 'ringing')) {
              setIncomingCall(null);
           }
         }
