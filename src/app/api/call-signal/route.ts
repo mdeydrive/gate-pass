@@ -43,7 +43,7 @@ async function readSignal(): Promise<SignalFile> {
     // If there's a parsing error, assume corruption and return a default state
     if (error instanceof SyntaxError) {
       console.error("Corrupted signal file detected. Resetting state.", error);
-      // Optionally, you could try to fix the file here by writing a default state
+      // Attempt to fix the file by writing a default state
       await writeSignal({ call: null });
       return { call: null };
     }
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
          }
         break;
       case 'add-candidate':
-        if (currentSignal.call) {
+        if (currentSignal.call && candidate) {
             if (!currentSignal.call.candidates) {
                 currentSignal.call.candidates = [];
             }
