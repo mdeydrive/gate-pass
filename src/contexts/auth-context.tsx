@@ -52,11 +52,11 @@ const getDefaultPermissionsForRole = (role: UserRole): Permission[] => {
         case 'Security':
             return ["dashboard", "gate-pass", "history", "visitors", "vehicles", "deliveries", "video-conference"];
         case 'Manager':
-             return ["dashboard", "gate-pass", "staff", "reports", "history", "visitors"];
+             return ["dashboard", "gate-pass", "staff", "reports", "history", "visitors", "video-conference"];
         case 'Approver':
-            return ["gate-pass", "history"];
+            return ["gate-pass", "history", "video-conference"];
         case 'Resident':
-            return ["gate-pass"];
+            return ["gate-pass", "video-conference"];
         default:
             return [];
     }

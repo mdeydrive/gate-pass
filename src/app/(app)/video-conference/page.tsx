@@ -146,21 +146,18 @@ export default function VideoConferencePage() {
     } catch (e) {
       console.error("Failed to end call signal", e);
     }
-
-    if (role !== 'Admin' && role !== 'Security') {
-      router.push('/dashboard');
-    }
-  }, [role, router, toast]);
+    
+  }, [toast]);
 
   useEffect(() => {
     if (inCall && candidateQueue.length > 0) {
-        candidateQueue.forEach(candidate => {
-            if (pc.current && pc.current.remoteDescription) {
-                pc.current.addIceCandidate(candidate).catch(e => console.error("Error adding queued ICE candidate", e));
-            }
-        });
-        // Clear queue after attempting to add
-        setCandidateQueue([]);
+      const queue = [...candidateQueue];
+      setCandidateQueue([]);
+      queue.forEach(candidate => {
+          if (pc.current && pc.current.remoteDescription) {
+              pc.current.addIceCandidate(candidate).catch(e => console.error("Error adding queued ICE candidate", e));
+          }
+      });
     }
   }, [candidateQueue, inCall]);
 
@@ -256,21 +253,6 @@ export default function VideoConferencePage() {
     }
   }, [currentUser, createPeerConnection, toast, inCall, handleEndCall]);
 
-  if (role !== 'Admin' && role !== 'Security' && !inCall) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Card className="w-full max-w-md text-center">
-          <CardHeader>
-            <CardTitle>Access Denied</CardTitle>
-            <CardDescription>You do not have permission to view this page.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p>Only Security and Admin roles can initiate calls from this page.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   const toggleMute = () => {
     if (localStream.current) {
@@ -336,7 +318,7 @@ export default function VideoConferencePage() {
         </Card>
       </div>
       <div className="md:col-span-1">
-        {(role === 'Admin' || role === 'Security') && !inCall ? (
+        {!inCall ? (
           <UserList onSelectUser={handleStartCall} selectedUser={selectedUser} />
         ) : (
           <Card>
