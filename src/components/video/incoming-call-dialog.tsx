@@ -44,20 +44,18 @@ export default function IncomingCallDialog() {
           const data = await response.json();
           const callData: CallData | null = data.call;
           
-          // A new call is ringing for me, and I'm not already looking at a call dialog
+          // A new call is ringing for me
           if (
             callData &&
             callData.status === 'ringing' &&
-            callData.user2.id === user.id &&
-            !incomingCall
+            callData.user2.id === user.id
           ) {
-            setIncomingCall(callData);
+            if (!incomingCall || incomingCall.user1.id !== callData.user1.id) {
+                setIncomingCall(callData);
+            }
           } 
-          // I have a dialog open, but the call was cancelled or answered by another device
-          else if (
-            incomingCall && 
-            (!callData || callData.user1.id !== incomingCall.user1.id || callData.status !== 'ringing')
-          ) {
+          // The call I was being alerted for was cancelled or timed out
+          else if (incomingCall && (!callData || callData.user1.id !== incomingCall.user1.id)) {
              setIncomingCall(null);
           }
         }
@@ -75,11 +73,8 @@ export default function IncomingCallDialog() {
 
   const handleAcceptCall = async () => {
     if (incomingCall?.offer) {
-        // Store the offer in sessionStorage so the conference page can pick it up
         sessionStorage.setItem('webrtc_offer', JSON.stringify(incomingCall.offer));
-
-        // Note: The actual peer connection creation and answer is now handled
-        // by the video-conference page itself to ensure media stream is ready.
+        sessionStorage.setItem('webrtc_caller', JSON.stringify(incomingCall.user1));
         
         setIncomingCall(null);
         router.push('/video-conference');
@@ -88,7 +83,6 @@ export default function IncomingCallDialog() {
 
   const handleDeclineCall = useCallback(async () => {
     try {
-        // Only the person being called should be able to end the 'ringing' state.
         if (incomingCall) {
              await fetch('/api/call-signal', {
                 method: 'POST',
