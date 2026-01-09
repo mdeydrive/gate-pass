@@ -1,34 +1,3 @@
 {
-  "call": {
-    "user1": {
-      "id": "auth-1767544215373",
-      "name": "Samar"
-    },
-    "user2": {
-      "id": "auth-1767532502167",
-      "name": "Mintu Dey",
-      "avatar": "https://avatar.vercel.sh/mintu.png"
-    },
-    "status": "ringing",
-    "candidates": [
-      {
-        "candidate": "candidate:3999518020 1 udp 2122260224 192.168.0.103 63180 typ host generation 0 ufrag d2ui network-id 1 network-cost 10",
-        "sdpMid": "1",
-        "sdpMLineIndex": 1,
-        "usernameFragment": "d2ui"
-      },
-      {
-        "candidate": "candidate:3999518020 1 udp 2122260224 192.168.0.103 63179 typ host generation 0 ufrag d2ui network-id 1 network-cost 10",
-        "sdpMid": "0",
-        "sdpMLineIndex": 0,
-        "usernameFragment": "d2ui"
-      }
-    ]
-  }
-}   ]
-  }
-}ui"
-      }
-    ]
-  }
+  "call": null
 }
