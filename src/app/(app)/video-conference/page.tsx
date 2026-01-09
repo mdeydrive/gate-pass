@@ -83,6 +83,7 @@ export default function VideoConferencePage() {
     if (!currentUser || !pc.current) return;
 
     setSelectedUser(userToCall);
+    setInCall(true); // Set inCall to true immediately for UI feedback
 
     const callData = {
       user1: { id: currentUser.id, name: currentUser.username, avatar: (currentUser as any).avatar },
@@ -117,6 +118,7 @@ export default function VideoConferencePage() {
         description: "Could not initiate the call. Please try again."
       });
       setSelectedUser(null);
+      setInCall(false);
     }
   }
 
@@ -151,13 +153,15 @@ export default function VideoConferencePage() {
   }, [role, router, toast]);
 
   useEffect(() => {
-    candidateQueue.forEach(candidate => {
-        if (pc.current && pc.current.remoteDescription) {
-            pc.current.addIceCandidate(candidate).catch(e => console.error("Error adding queued ICE candidate", e));
-        }
-    });
-    // Clear queue after attempting to add
-    setCandidateQueue([]);
+    if (inCall && candidateQueue.length > 0) {
+        candidateQueue.forEach(candidate => {
+            if (pc.current && pc.current.remoteDescription) {
+                pc.current.addIceCandidate(candidate).catch(e => console.error("Error adding queued ICE candidate", e));
+            }
+        });
+        // Clear queue after attempting to add
+        setCandidateQueue([]);
+    }
   }, [candidateQueue, inCall]);
 
   useEffect(() => {
@@ -175,7 +179,7 @@ export default function VideoConferencePage() {
         const offerString = sessionStorage.getItem('webrtc_offer');
         if (offerString && pc.current) {
             const offer = JSON.parse(offerString);
-            pc.current.setRemoteDescription(new RTCSessionDescription(offer));
+            await pc.current.setRemoteDescription(new RTCSessionDescription(offer));
             const answerDescription = await pc.current.createAnswer();
             await pc.current.setLocalDescription(answerDescription);
 
@@ -207,31 +211,36 @@ export default function VideoConferencePage() {
 
     const pollInterval = setInterval(async () => {
       if (!pc.current || !currentUser) return;
-
-      const response = await fetch('/api/call-signal');
-      const { call } = await response.json();
       
-      // If we are the caller and an answer comes in
-      if (call?.answer && pc.current.signalingState !== 'stable') {
-        const answerDescription = new RTCSessionDescription(call.answer);
-        await pc.current.setRemoteDescription(answerDescription);
-        setInCall(true);
-      }
+      try {
+        const response = await fetch('/api/call-signal');
+        if (!response.ok) return;
 
-      if (call?.candidates) {
-        call.candidates.forEach((candidate: any) => {
-            const rtcCandidate = new RTCIceCandidate(candidate);
+        const { call } = await response.json();
+        
+        // If we are the caller and an answer comes in
+        if (call?.answer && pc.current.signalingState !== 'stable') {
+            const answerDescription = new RTCSessionDescription(call.answer);
+            await pc.current.setRemoteDescription(answerDescription);
+            if (!inCall) setInCall(true);
+        }
+
+        if (call?.candidates) {
+            const newCandidates = call.candidates.map((c: any) => new RTCIceCandidate(c));
             if (pc.current?.remoteDescription) {
-                pc.current.addIceCandidate(rtcCandidate).catch(e => console.error("Error adding ICE candidate", e));
+                newCandidates.forEach((candidate: RTCIceCandidate) => {
+                    pc.current!.addIceCandidate(candidate).catch(e => console.error("Error adding ICE candidate", e));
+                });
             } else {
-                // Queue the candidate if remote description is not set yet
-                setCandidateQueue(prev => [...prev, rtcCandidate]);
+                setCandidateQueue(prev => [...prev, ...newCandidates]);
             }
-        });
-      }
+        }
 
-      if (!call && inCall) {
-        handleEndCall();
+        if (!call && inCall) {
+          handleEndCall();
+        }
+      } catch (e) {
+        // Silently fail on poll
       }
     }, 2000);
 
