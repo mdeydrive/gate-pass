@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Dialog,
@@ -44,15 +44,23 @@ export default function IncomingCallDialog() {
           const data = await response.json();
           const callData: CallData | null = data.call;
 
-          if (callData && callData.user2.id === user.id && callData.status === 'ringing') {
-            setIncomingCall(callData);
-          } else if (incomingCall && (!callData || callData.user1.id !== incomingCall.user1.id)) {
-            // If the current incoming call is no longer valid (e.g., cancelled), close the dialog
-            setIncomingCall(null);
+          // Condition 1: A new call is ringing for me.
+          if (callData && callData.status === 'ringing' && callData.user2.id === user.id) {
+            if (!incomingCall || incomingCall.user1.id !== callData.user1.id) {
+              setIncomingCall(callData);
+            }
+          } 
+          // Condition 2: I have an incoming call dialog open, but the call was cancelled (callData is now null).
+          else if (!callData && incomingCall) {
+             setIncomingCall(null);
+          }
+          // Condition 3: I have a dialog open, but the call on the server is now for someone else or has changed status.
+          else if (callData && incomingCall && (callData.user1.id !== incomingCall.user1.id || callData.status !== 'ringing')) {
+             setIncomingCall(null);
           }
         }
       } catch (e) {
-        // console.error('Failed to poll for call signal:', e);
+        // Silently ignore polling errors
       }
     };
 
@@ -76,25 +84,33 @@ export default function IncomingCallDialog() {
     }
   };
 
-  const handleDeclineCall = async () => {
+  const handleDeclineCall = useCallback(async () => {
     try {
-        await fetch('/api/call-signal', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'end' }),
-        });
-        setIncomingCall(null);
+        // Only the person being called should be able to end the 'ringing' state.
+        if (incomingCall) {
+             await fetch('/api/call-signal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'end' }),
+            });
+        }
     } catch(e) {
         console.error("Failed to decline call", e);
+    } finally {
+        setIncomingCall(null);
     }
-  };
+  }, [incomingCall]);
 
   if (!incomingCall) {
     return null;
   }
 
   return (
-    <Dialog open={!!incomingCall} onOpenChange={(open) => !open && handleDeclineCall()}>
+    <Dialog open={!!incomingCall} onOpenChange={(open) => {
+        if (!open) {
+            handleDeclineCall();
+        }
+    }}>
       <DialogContent>
         <DialogHeader className="items-center text-center">
           <Avatar className="h-20 w-20 mb-4">
