@@ -40,25 +40,33 @@ async function readSignal(): Promise<SignalFile> {
     if (error.code === 'ENOENT') {
       return { call: null };
     }
-    // If there's a parsing error, assume corruption and return a default state
+    // If there's a parsing error, assume corruption (e.g. caught mid-write) and return a default state
     if (error instanceof SyntaxError) {
-      console.error("Corrupted signal file detected. Resetting state.", error);
-      // Attempt to fix the file by writing a default state
-      await writeSignal({ call: null });
+      console.warn("Caught malformed JSON (likely a race condition), returning fallback state.", error);
       return { call: null };
     }
     throw error;
   }
 }
 
-// Helper function to write data to the file
+// Helper function to write data to the file atomically
 async function writeSignal(data: SignalFile) {
+  const tempPath = `${dataFilePath}.tmp`;
   try {
     await fs.mkdir(path.dirname(dataFilePath), { recursive: true });
-    // This atomic write ensures the file is always valid JSON
-    await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), 'utf-8');
+    // 1. Write to a temporary file first
+    await fs.writeFile(tempPath, JSON.stringify(data, null, 2), 'utf-8');
+    // 2. Atomically rename the temp file to the real file.
+    // This ensures GET requests never see a "half-written" file.
+    await fs.rename(tempPath, dataFilePath);
   } catch (e) {
     console.error("Failed to write signal file:", e);
+    // Attempt to clean up the temporary file if it exists
+    try {
+        await fs.unlink(tempPath);
+    } catch (cleanupError) {
+        // Ignore cleanup errors
+    }
   }
 }
 
