@@ -26,6 +26,15 @@ type CallData = {
   user1: CallUser; // Caller
   user2: CallUser; // Callee
   status: 'ringing' | 'active';
+  offer?: any;
+};
+
+const servers = {
+  iceServers: [
+    {
+      urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'],
+    },
+  ],
 };
 
 export default function IncomingCallDialog() {
@@ -46,7 +55,6 @@ export default function IncomingCallDialog() {
           if (callData && callData.user2.id === user.id && callData.status === 'ringing') {
             setIncomingCall(callData);
           } else {
-            // If the call is no longer ringing for this user, close the dialog
             if (incomingCall && (!callData || callData.user2.id !== user.id)) {
                  setIncomingCall(null);
             }
@@ -65,18 +73,45 @@ export default function IncomingCallDialog() {
   }, [user, incomingCall]);
 
   const handleAcceptCall = async () => {
-    if (incomingCall) {
-      try {
+    if (incomingCall?.offer) {
+        const pc = new RTCPeerConnection(servers);
+        
+        // This is a temporary solution to get the stream and pass it to the page.
+        // A better solution would use a global state management for WebRTC.
+        sessionStorage.setItem('webrtc_offer', JSON.stringify(incomingCall.offer));
+
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+        await pc.setRemoteDescription(new RTCSessionDescription(incomingCall.offer));
+        
+        const answerDescription = await pc.createAnswer();
+        await pc.setLocalDescription(answerDescription);
+
+        const answer = {
+          type: answerDescription.type,
+          sdp: answerDescription.sdp,
+        };
+
         await fetch('/api/call-signal', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'accept', call: incomingCall }),
+            body: JSON.stringify({ action: 'accept', call: incomingCall, answer }),
         });
+        
+        // This is also temporary, to signal candidates from the callee
+        pc.onicecandidate = event => {
+            if(event.candidate) {
+                fetch('/api/call-signal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'add-candidate', candidate: event.candidate.toJSON() }),
+                });
+            }
+        };
+
         setIncomingCall(null);
         router.push('/video-conference');
-      } catch (e) {
-        console.error("Failed to accept call", e);
-      }
     }
   };
 

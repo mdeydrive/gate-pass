@@ -17,7 +17,10 @@ type CallUser = {
 type CallData = {
   user1: CallUser; // Caller
   user2: CallUser; // Callee
-  status: 'ringing' | 'active';
+  status: 'ringing' | 'active' | 'connecting';
+  offer?: any;
+  answer?: any;
+  candidates?: any[];
 };
 
 type SignalFile = {
@@ -59,16 +62,25 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, call } = body;
+    const { action, call, offer, answer, candidate } = body;
 
-    let response: SignalFile = { call: null };
+    let currentSignal = await readSignal();
+    let response: SignalFile = currentSignal;
 
     switch (action) {
       case 'initiate':
-        response = { call: { ...call, status: 'ringing' } };
+        response = { call: { ...call, status: 'ringing', offer, candidates: [] } };
         break;
       case 'accept':
-         response = { call: { ...call, status: 'active' } };
+         if (currentSignal.call) {
+            response = { call: { ...currentSignal.call, status: 'active', answer } };
+         }
+        break;
+      case 'add-candidate':
+        if (currentSignal.call && candidate) {
+            const existingCandidates = currentSignal.call.candidates || [];
+            response = { call: { ...currentSignal.call, candidates: [...existingCandidates, candidate] } };
+        }
         break;
       case 'end':
       case 'decline':
@@ -88,3 +100,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Failed to process request', error: errorMessage }, { status: 500 });
   }
 }
+

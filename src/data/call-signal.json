@@ -1,0 +1,14 @@
+{
+  "call": {
+    "user1": {
+      "id": "auth-1767544215373",
+      "name": "Samar"
+    },
+    "user2": {
+      "id": "auth-1767532502167",
+      "name": "Mintu Dey",
+      "avatar": "https://avatar.vercel.sh/mintu.png"
+    },
+    "status": "ringing"
+  }
+}
